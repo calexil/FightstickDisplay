@@ -11,7 +11,7 @@ class GUI:
 	def __init__(self):
 
 
-            self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            self.window = gtk.Window()
             self.image = gtk.Image()
             self.image.set_from_file(file_name)
             self.image.set_size_request(width=640, height=391)
