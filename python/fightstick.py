@@ -3,10 +3,12 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-import os, sys, time
-import pygame
-import inspect
-file_name = ("images/fightstick_paneltemplate.png")
+import os, sys, time, pygame
+file_name = ("images/fightstickclear.png")
+
+pygame.joystick.init()
+joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+print (joysticks)
 class GUI:
 
 	def __init__(self):
