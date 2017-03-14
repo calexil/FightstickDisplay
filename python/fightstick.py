@@ -1,12 +1,11 @@
 #!/usr/bin/python
-
 import gtk
 import pygtk
 pygtk.require('2.0')
 import os, sys, time
 import pygame
 import inspect
-file_name = "~/FightstickDisplay/images/fightstick_paneltemplate.png"
+file_name = ("~/FightstickDisplay/images/fightstick_paneltemplate.png")
 class GUI:
 
 	def __init__(self):
@@ -15,6 +14,7 @@ class GUI:
             self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
             self.image = gtk.Image()
             self.image.set_from_file(file_name)
+            self.image.set_size_request(width=640, height=391)
             self.window.set_title ("Fightstick Display")
             self.window.add(self.image)
             self.window.show_all()
