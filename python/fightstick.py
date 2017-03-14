@@ -1,14 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import gi
+gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 import os, sys, time
 import pygame
 import inspect
-file_name = ("fightstick_paneltemplate.png")
+file_name = ("images/fightstick_paneltemplate.png")
 class GUI:
 
 	def __init__(self):
-
 
             self.window = Gtk.Window()
             self.image = Gtk.Image()
