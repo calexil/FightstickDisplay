@@ -1,18 +1,17 @@
 #!/usr/bin/python
-import gtk
-import pygtk
-pygtk.require('2.0')
+# -*- coding: utf-8 -*-
+from gi.repository import Gtk
 import os, sys, time
 import pygame
 import inspect
-file_name = ("~/FightstickDisplay/images/fightstick_paneltemplate.png")
+file_name = ("fightstick_paneltemplate.png")
 class GUI:
 
 	def __init__(self):
 
 
-            self.window = gtk.Window()
-            self.image = gtk.Image()
+            self.window = Gtk.Window()
+            self.image = Gtk.Image()
             self.image.set_from_file(file_name)
             self.image.set_size_request(width=640, height=391)
             self.window.set_title ("Fightstick Display")
@@ -21,11 +20,11 @@ class GUI:
             self.window.connect_after('destroy', self.destroy)
 
 	def destroy(window, self):
-		gtk.main_quit()
+		Gtk.main_quit()
 
 def main():
 	app = GUI()
-	gtk.main()
+	Gtk.main()
 
 if __name__ == "__main__":
     sys.exit(main())
