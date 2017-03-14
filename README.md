@@ -9,4 +9,4 @@ A simple program written in python to display fightstick inputs
 
 
 # Screenshot
-![Alt text](/python/images/fightstickclear.png?raw=true)
+![Alt text](/python/images/fightstick.gif?raw=true)
