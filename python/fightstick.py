@@ -11,14 +11,6 @@ from inputs import get_gamepad
 file_name = ("images/fightstickclear.png")
 up = ("images/up.png")
 
-
-events = get_gamepad()
-for event in events:
-    event.code=('ABS_HAT0Y', -1)
-    self.overlay = Gtk.Overlay()
-    self.add(self.overlay)
-    self.image.set_from_file(up)
-
 class GUI:
 
 	def __init__(self):
@@ -30,9 +22,23 @@ class GUI:
             self.window.add(self.image)
             self.window.show_all()
             self.window.connect_after('destroy', self.destroy)
-            
+
 	def destroy(window, self):
 		Gtk.main_quit()
+
+# Detect the button presses and render the appropriate image
+        def __press__(self):   
+                self.image = Gtk.Image()
+                self.image.set_from_file(up)
+                self.image.set_size_request(width=640, height=391)
+                self.window.show_all()
+                self.window.connect_after('destroy', self.destroy)
+                events = get_gamepad()
+                for event in events:
+                    event.code=('ABS_HAT0Y', -1)
+
+
+
 
 def main():
 	app = GUI()
