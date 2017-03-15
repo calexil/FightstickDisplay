@@ -3,7 +3,7 @@ A simple program written in python to display fightstick inputs
 
 # Prerequisites
 * python2.7+, Gtk 3.0
-* inputs
+* inputs  
     `git clone https://github.com/zeth/inputs.git`  
     `cd inputs`  
     `python setup.py install`  
