@@ -6,7 +6,7 @@ A simple program written in python to display fightstick inputs
 * inputs  
     `git clone https://github.com/zeth/inputs.git`  
     `cd inputs`  
-    `python setup.py install`  
+    `sudo python setup.py install`  
 
 # Screenshot
 ![Alt text](/python/images/fightstick.gif?raw=true)
