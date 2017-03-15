@@ -47,7 +47,10 @@ class GUI:
 
 def inputloop():
 	while 1:
-		events = get_gamepad()
+    events = get_gamepad()
+        self.window = Gtk.Window
+        self.image = Gtk.Image()
+        self.image.set_from_file(up)
 		for event in events:
 			print(event.code, event.state)
 			if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
