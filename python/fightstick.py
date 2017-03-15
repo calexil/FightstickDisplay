@@ -26,8 +26,6 @@ lk = ("images/lk.png")
 mk = ("images/mk.png")
 hk = ("images/hk.png")
 rb = ("images/rb.png")
-events = get_gamepad()
-
 class GUI:
 
 	def __init__(self):
@@ -51,11 +49,12 @@ def main():
 if __name__ == "__main__":
     sys.exit(main())
 
+
+
 # Detect the button presses and render the appropriate image
-for event in events:
-    if event=(('ABS_HAT0Y', -1))
-                self.image.set_from_file(up)
-
-
+#while 1:
+#    events = get_gamepad()
+#    for event in events:
+#        print(event.code)
 
 
