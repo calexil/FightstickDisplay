@@ -45,18 +45,16 @@ class GUI:
 		Gtk.main_quit()
 
 
-def inputloop():
+def inputloop(self):
 	while 1:
-    events = get_gamepad()
-        self.window = Gtk.Window
-        self.image = Gtk.Image()
-        self.image.set_from_file(up)
-		for event in events:
-			print(event.code, event.state)
-			if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
-				print("It matches!")
-			else:
-				print("It doesn't match")
+            events = get_gamepad()
+            self.image.set_from_file(up)
+        for event in events:
+            print(event.code, event.state)
+        if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
+            print("It matches!")
+        else:
+            print("It doesn't match")
 
 def main():
 	Process(target=inputloop).start()
