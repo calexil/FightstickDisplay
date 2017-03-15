@@ -3,14 +3,13 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
-import os, sys, time
-import inputs
+import os, sys, time, inputs
 from inputs import devices
 print(devices.gamepads)
 from inputs import get_gamepad
 file_name = ("images/fightstickclear.png")
 up = ("images/up.png")
-
+events = get_gamepad()
 class GUI:
 
 	def __init__(self):
@@ -26,19 +25,6 @@ class GUI:
 	def destroy(window, self):
 		Gtk.main_quit()
 
-# Detect the button presses and render the appropriate image
-        def __press__(self):   
-                self.image = Gtk.Image()
-                self.image.set_from_file(up)
-                self.image.set_size_request(width=640, height=391)
-                self.window.show_all()
-                self.window.connect_after('destroy', self.destroy)
-                events = get_gamepad()
-                for event in events:
-                    event.code=('ABS_HAT0Y', -1)
-
-
-
 
 def main():
 	app = GUI()
@@ -46,3 +32,17 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+# Detect the button presses and render the appropriate image
+event.code=(('ABS_HAT0Y', -1))
+while True:
+	    def __init__(self):
+                self.image = Gtk.Image()
+                self.image.set_from_file(up)
+                self.image.set_size_request(width=640, height=391)
+                self.window.show_all()
+                self.window.connect_after('destroy', self.destroy)
+
+
+
+
