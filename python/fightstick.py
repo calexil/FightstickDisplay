@@ -9,7 +9,25 @@ print(devices.gamepads)
 from inputs import get_gamepad
 file_name = ("images/fightstickclear.png")
 up = ("images/up.png")
+down = ("images/down.png")
+left = ("images/left.png")
+right = ("images/right.png")
+select = ("images/select.png")
+start = ("images/start.png")
+upright = ("images/upright.png")
+downright = ("images/downright.png")
+upleft = ("images/upleft.png")
+downleft = ("images/downleft.png")
+lp = ("images/lp.png")
+mp = ("images/mp.png")
+hp = ("images/hp.png")
+lb = ("images/lb.png")
+lk = ("images/lk.png")
+mk = ("images/mk.png")
+hk = ("images/hk.png")
+rb = ("images/rb.png")
 events = get_gamepad()
+
 class GUI:
 
 	def __init__(self):
@@ -34,14 +52,9 @@ if __name__ == "__main__":
     sys.exit(main())
 
 # Detect the button presses and render the appropriate image
-event.code=(('ABS_HAT0Y', -1))
-while True:
-	    def __init__(self):
-                self.image = Gtk.Image()
+for event in events:
+    if event=(('ABS_HAT0Y', -1))
                 self.image.set_from_file(up)
-                self.image.set_size_request(width=640, height=391)
-                self.window.show_all()
-                self.window.connect_after('destroy', self.destroy)
 
 
 
