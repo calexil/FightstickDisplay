@@ -26,12 +26,18 @@ lk = ("images/lk.png")
 mk = ("images/mk.png")
 hk = ("images/hk.png")
 rb = ("images/rb.png")
+# Detect the button presses and render the appropriate image
+#while 1:
+#    events = get_gamepad()
+#    for event in events:
+#        print(event.code, event.state)
+
 class GUI:
 
 	def __init__(self):
             self.window = Gtk.Window()
             self.image = Gtk.Image()
-            self.image.set_from_file(file_name)
+            self.background_image = self.image.set_from_file(file_name)
             self.image.set_size_request(width=640, height=391)
             self.window.set_title ("Fightstick Display")
             self.window.add(self.image)
@@ -48,13 +54,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-# Detect the button presses and render the appropriate image
-#while 1:
-#    events = get_gamepad()
-#    for event in events:
-#        print(event.code)
-
-
