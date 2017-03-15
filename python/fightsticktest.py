@@ -27,12 +27,12 @@ lk = ("images/lk.png")
 mk = ("images/mk.png")
 hk = ("images/hk.png")
 rb = ("images/rb.png")
-classWindow = Gtk.Window()
+# Detect the button presses and render the appropriate image
 
 class GUI:
 
 	def __init__(self):
-            self.window = classWindow
+            self.window = Gtk.Window()
             self.image = Gtk.Image()
             self.background_image = self.image.set_from_file(file_name)
             self.image.set_size_request(width=640, height=391)
@@ -46,20 +46,22 @@ class GUI:
 
 
 def inputloop():
-	testImage = Gtk.Image()
-	testImage.set_from_file(mk)
-	testImage.show()
-	classWindow.add(testImage)
-	
 	while 1:
 		events = get_gamepad()
 		for event in events:
 			print(event.code, event.state)
+			if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
+				print("It matches!")
+			else:
+				print("It doesn't match")
 
 def main():
 	Process(target=inputloop).start()
 	app = GUI()
 	Gtk.main()
+#        while True:
+#                if (event.code, event.state) == ('HAT0Y, -1'):
+#                    then self.image.set_from_file(up)
 
 if __name__ == "__main__":
     sys.exit(main())

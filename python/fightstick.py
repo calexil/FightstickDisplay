@@ -37,7 +37,7 @@ class GUI:
             self.background_image = self.image.set_from_file(file_name)
             self.image.set_size_request(width=640, height=391)
             self.window.set_title ("Fightstick Display")
-            self.window.add(self.image)                   
+            self.window.add(self.image)
             self.window.show_all()
             self.window.connect_after('destroy', self.destroy)
 
@@ -50,14 +50,15 @@ def inputloop():
 		events = get_gamepad()
 		for event in events:
 			print(event.code, event.state)
+			if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
+				print("It matches!")
+			else:
+				print("It doesn't match")
 
 def main():
 	Process(target=inputloop).start()
 	app = GUI()
 	Gtk.main()
-        while True:
-                if (event.code, event.state) == ('HAT0Y, -1')
-                    then self.image.set_from_file(up)
 
 if __name__ == "__main__":
     sys.exit(main())
