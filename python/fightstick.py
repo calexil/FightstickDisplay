@@ -45,8 +45,15 @@ class GUI:
             self.window.show_all()
             self.window.connect_after('destroy', self.destroy)
 
-	def destroy(window, self):
-		Gtk.main_quit()
+	    def destroy(window, self):
+		    Gtk.main_quit()
+
+def overlay(self):
+    while True:
+        self.overlay = Gtk.Overlay
+        self.image = gdk.pixbuf_new_from_file(up)
+        events = get_gamepad()
+        if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
 
 # Detect the button presses and render the appropriate image
 def inputloop():
@@ -82,8 +89,7 @@ def inputloop():
                 print("START")
             elif (event.code) == ("BTN_SELECT") and (event.state) == (1):
                 print("SELECT")
-               
-            
+
 def main():
 	Process(target=inputloop).start()
 	app = GUI()
