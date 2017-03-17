@@ -25,48 +25,86 @@ foreground = pyglet.graphics.OrderedGroup(1)
 
 # Create all of the sprites for everything. Some are not visible by default:
 base_sprite = pyglet.sprite.Sprite(img=base_img, x=0, y=0, batch=batch, group=background)
-stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
+stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=150, y=200, batch=batch, group=foreground)
 pyglet.sprite.Sprite._visible = False       # Default to not-visible:
 select_sprite = pyglet.sprite.Sprite(img=select_img, x=50, y=50, batch=batch, group=foreground)
-start_sprite = pyglet.sprite.Sprite(img=start_img, x=50, y=50, batch=batch, group=foreground)
+start_sprite = pyglet.sprite.Sprite(img=start_img, x=50, y=150, batch=batch, group=foreground)
 lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
+mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=150, y=50, batch=batch, group=foreground)
+hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=200, y=50, batch=batch, group=foreground)
+lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=250, y=50, batch=batch, group=foreground)
+lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=300, y=50, batch=batch, group=foreground)
+mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=350, y=50, batch=batch, group=foreground)
+hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=400, y=50, batch=batch, group=foreground)
+rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=450, y=50, batch=batch, group=foreground)
 
 
 @fightstick.event
-def on_button_press(button):
-    print("Pressed button:  {0}".format(0))
-    lp_sprite.visible = True
-    mp_sprite.visible = True
-    hp_sprite.visible = True
-    lb_sprite.visible = True
-    lk_sprite.visible = True
-    mk_sprite.visible = True
-    hk_sprite.visible = True
-    rb_sprite.visible = True
-    select_sprite.visible = True
-    start_sprite.visible = True
+def on_joybutton_press(js, button):
+    if button == 0:
+        lp_sprite.visible = True
+    if button == 1:
+        mp_sprite.visible = True
+    if button == 2:
+        hp_sprite.visible = True
+    if button == 3:
+        lb_sprite.visible = True
+    if button == 4:
+        lk_sprite.visible = True
+    if button == 5:
+        mk_sprite.visible = True
+    if button == 6:
+        hk_sprite.visible = True
+    if button == 7:
+        rb_sprite.visible = True
+    if button == 8:
+        select_sprite.visible = True
+    if button == 9:
+        start_sprite.visible = True
 
 
 @fightstick.event
-def on_button_release(button):
-    print("Released button: {0}".format(0))
-    lp_sprite.visible = False
-    mp_sprite.visible = False
-    hp_sprite.visible = False
-    lb_sprite.visible = False
-    lk_sprite.visible = False
-    mk_sprite.visible = False
-    hk_sprite.visible = False
-    rb_sprite.visible = False
-    select_sprite.visible = False
-    start_sprite.visible = False
+def on_joybutton_release(js, button):
+    if button == 0:
+        lp_sprite.visible = False
+    if button == 1:
+        mp_sprite.visible = False
+    if button == 2:
+        hp_sprite.visible = False
+    if button == 3:
+        lb_sprite.visible = False
+    if button == 4:
+        lk_sprite.visible = False
+    if button == 5:
+        mk_sprite.visible = False
+    if button == 6:
+        hk_sprite.visible = False
+    if button == 7:
+        rb_sprite.visible = False
+    if button == 8:
+        select_sprite.visible = False
+    if button == 9:
+        start_sprite.visible = False
+
+
+@fightstick.event
+def on_joyaxis_motion(js, axis, value):
+    center_x = 150
+    center_y = 200
+    if axis == 'x':
+        center_x += value * 25
+    elif axis == 'y':
+        center_y += value * 25
+    stick_sprite.position = center_x, center_y
+
+
+@fightstick.event
+def on_joyhat_motion(js, hat_x, hat_y):
+    center_x = 150
+    center_y = 200
+    center_x += hat_x * 25
+    center_y += hat_y * 25
+    stick_sprite.position = center_x, center_y
 
 
 @window.event
