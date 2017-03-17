@@ -53,7 +53,7 @@ def inputloop():
     while 1:
         events = get_gamepad()
         for event in events:
-#            print(event.code, event.state)
+            print(event.code, event.state)
             if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
                 print("UP")
             elif (event.code) == ("ABS_HAT0Y") and (event.state) == (1):
