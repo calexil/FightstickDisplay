@@ -48,13 +48,6 @@ class GUI:
 	    def destroy(window, self):
 		    Gtk.main_quit()
 
-def overlay(self):
-    while True:
-        self.overlay = Gtk.Overlay
-        self.image = gdk.pixbuf_new_from_file(up)
-        events = get_gamepad()
-        if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
-
 # Detect the button presses and render the appropriate image
 def inputloop():
     while 1:
