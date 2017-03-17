@@ -3,18 +3,19 @@ import pyglet
 
 pyglet.resource.path.append("images")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=390, style=pyglet.window.Window.WINDOW_STYLE_TOOL)
+window = pyglet.window.Window(width=640, height=390, vsync=False)
 batch = pyglet.graphics.Batch()
 
 # TODO: handle the situation where there are no fightsticks attached, instead of crashing
 joysticks = pyglet.input.get_joysticks()
 if len(joysticks) > 0:
     fightstick = joysticks[0]
+    fightstick.open()
 else:
     fightstick = None
 
 # Load some images to be used by the program:
-base_img = pyglet.resource.image("fightstickblank.png")
+background_img = pyglet.resource.image("fightstickblank.png")
 redcircle_img = pyglet.resource.image("redcircle.png")
 select_img = pyglet.resource.image("select.png")
 start_img = pyglet.resource.image("start.png")
@@ -24,19 +25,21 @@ background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 
 # Create all of the sprites for everything. Some are not visible by default:
-base_sprite = pyglet.sprite.Sprite(img=base_img, x=0, y=0, batch=batch, group=background)
-stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=150, y=200, batch=batch, group=foreground)
-pyglet.sprite.Sprite._visible = False       # Default to not-visible:
-select_sprite = pyglet.sprite.Sprite(img=select_img, x=50, y=50, batch=batch, group=foreground)
-start_sprite = pyglet.sprite.Sprite(img=start_img, x=50, y=150, batch=batch, group=foreground)
-lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=50, y=50, batch=batch, group=foreground)
-mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=150, y=50, batch=batch, group=foreground)
-hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=200, y=50, batch=batch, group=foreground)
-lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=250, y=50, batch=batch, group=foreground)
-lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=300, y=50, batch=batch, group=foreground)
-mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=350, y=50, batch=batch, group=foreground)
-hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=400, y=50, batch=batch, group=foreground)
-rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=450, y=50, batch=batch, group=foreground)
+pyglet.sprite.Sprite._visible = False
+background_sprite = pyglet.sprite.Sprite(img=background_img, x=0, y=0, batch=batch, group=background)
+stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=118, y=155, batch=batch, group=foreground)
+select_sprite = pyglet.sprite.Sprite(img=select_img, x=0, y=0, batch=batch, group=foreground)
+start_sprite = pyglet.sprite.Sprite(img=start_img, x=0, y=0, batch=batch, group=foreground)
+lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=258, y=80, batch=batch, group=foreground)
+mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=350, y=80, batch=batch, group=foreground)
+hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=450, y=80, batch=batch, group=foreground)
+lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=550, y=80, batch=batch, group=foreground)
+lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=250, y=200, batch=batch, group=foreground)
+mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=350, y=200, batch=batch, group=foreground)
+hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=450, y=200, batch=batch, group=foreground)
+rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=550, y=200, batch=batch, group=foreground)
+background_sprite.visible = True
+stick_sprite.visible = True
 
 
 @fightstick.event
@@ -89,22 +92,22 @@ def on_joybutton_release(js, button):
 
 @fightstick.event
 def on_joyaxis_motion(js, axis, value):
-    center_x = 150
-    center_y = 200
     if axis == 'x':
-        center_x += value * 25
+        x = 118 + (value * 50)
+        stick_sprite.x = x
     elif axis == 'y':
-        center_y += value * 25
-    stick_sprite.position = center_x, center_y
+        y = 155 + -(value * 50)
+        stick_sprite.y = y
 
 
+# TODO: test this on a joystick that uses the hat instead of x/y axis:
 @fightstick.event
 def on_joyhat_motion(js, hat_x, hat_y):
-    center_x = 150
-    center_y = 200
-    center_x += hat_x * 25
-    center_y += hat_y * 25
-    stick_sprite.position = center_x, center_y
+    center_x = 118
+    center_y = 155
+    x = center_x + (hat_x * 50)
+    y = center_y + (hat_y * 50)
+    stick_sprite.position = x, y
 
 
 @window.event
@@ -114,4 +117,5 @@ def on_draw():
 
 
 if __name__ == "__main__":
+    pyglet.clock.schedule_interval(lambda dt: None, 1/30.0)
     pyglet.app.run()
