@@ -5,7 +5,7 @@ A simple program written in python to display fightstick inputs
 * python3
 
 # Screenshot
-![Alt text](/python/images/fightstick.gif?raw=true)
+![Alt text](/images/fightstickblank.png?raw=true)
 
 # To do
 * handle no-fightstick-attached situation
