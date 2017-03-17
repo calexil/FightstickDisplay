@@ -52,10 +52,7 @@ def inputloop():
         for event in events:
             print(event.code, event.state)
             if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
-                testImage = Gtk.Image()
-                testImage.set_from_file(up)
-                testImage.show()
-                app.window.add(testImage)
+                print("It matches")
             else:
                 print("It doesn't match")
 

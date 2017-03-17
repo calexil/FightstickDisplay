@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+#imports
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
@@ -8,7 +9,8 @@ import os, sys, time, inputs
 from inputs import devices
 print(devices.gamepads)
 from inputs import get_gamepad
-file_name = ("images/fightstickclear.png")
+#Defs
+background = ("images/fightstickclear.png")
 up = ("images/up.png")
 down = ("images/down.png")
 left = ("images/left.png")
@@ -27,14 +29,16 @@ lk = ("images/lk.png")
 mk = ("images/mk.png")
 hk = ("images/hk.png")
 rb = ("images/rb.png")
-# Detect the button presses and render the appropriate image
+app = None
 
+# Start main code
+#Render bg
 class GUI:
 
 	def __init__(self):
             self.window = Gtk.Window()
             self.image = Gtk.Image()
-            self.background_image = self.image.set_from_file(file_name)
+            self.background_image = self.image.set_from_file(background)
             self.image.set_size_request(width=640, height=391)
             self.window.set_title ("Fightstick Display")
             self.window.add(self.image)
@@ -44,18 +48,42 @@ class GUI:
 	def destroy(window, self):
 		Gtk.main_quit()
 
-
-def inputloop(self):
-	while 1:
-            events = get_gamepad()
-            self.image.set_from_file(up)
+# Detect the button presses and render the appropriate image
+def inputloop():
+    while 1:
+        events = get_gamepad()
         for event in events:
-            print(event.code, event.state)
-        if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
-            print("It matches!")
-        else:
-            print("It doesn't match")
-
+#            print(event.code, event.state)
+            if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
+                print("UP")
+            elif (event.code) == ("ABS_HAT0Y") and (event.state) == (1):
+                print("DOWN")
+            elif (event.code) == ("ABS_HAT0X") and (event.state) == (-1):
+                print("LEFT")
+            elif (event.code) == ("ABS_HAT0X") and (event.state) == (1):
+                print("RIGHT")
+            elif (event.code) == ("BTN_NORTH") and (event.state) == (1):
+                print("LP")
+            elif (event.code) == ("BTN_WEST") and (event.state) == (1):
+                print("MP")
+            elif (event.code) == ("BTN_TR") and (event.state) == (1):
+                print("HP")
+            elif (event.code) == ("BTN_TL") and (event.state) == (1):
+                print("LB")
+            elif (event.code) == ("BTN_SOUTH") and (event.state) == (1):
+                print("LK")
+            elif (event.code) == ("BTN_EAST") and (event.state) == (1):
+                print("MK")
+            elif (event.code) == ("ABS_RZ") and (event.state) == (255):
+                print("HK")
+            elif (event.code) == ("ABS_Z") and (event.state) == (255):
+                print("RB")
+            elif (event.code) == ("BTN_START") and (event.state) == (1):
+                print("START")
+            elif (event.code) == ("BTN_SELECT") and (event.state) == (1):
+                print("SELECT")
+               
+            
 def main():
 	Process(target=inputloop).start()
 	app = GUI()
