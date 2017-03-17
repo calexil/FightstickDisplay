@@ -3,7 +3,7 @@
 #imports
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GdkPixbuf
 from multiprocessing import Process
 import os, sys, time, inputs
 from inputs import devices
@@ -30,7 +30,7 @@ mk = ("images/mk.png")
 hk = ("images/hk.png")
 rb = ("images/rb.png")
 app = None
-
+pixbufup = GdkPixbuf.Pixbuf.new_from_file_at_size("images/up.png", 640, 391)
 # Start main code
 #Render bg
 class GUI:
@@ -52,11 +52,12 @@ class GUI:
 def overlay(self):
     while 1:
         if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
-            window = Gtk.Window()
-            overlay = Gtk.Overlay
-            self.overlay.window.add()
-            self.window.set_size_request(width=640, height=391)
-            self.image.set_from_file(up)
+            self.window = Gtk.Window()
+            self.overlay = Gtk.Overlay()
+            pixbufup = GdkPixbuf.Pixbuf.new_from_file_at_size("images/up.png", 640, 391)
+            self.image = pixbuf(self)
+            self.overlay.add(self.image)
+            self.window.add(self.image)
             self.window.show_all()
         elif (event.code) == ("BTN_SELECT") and (event.state) == (4):
             print("close enough")
@@ -66,7 +67,6 @@ def inputloop():
     while 1:
         events = get_gamepad()
         for event in events:
-#            print(event.code, event.state)
             if (event.code) == ("ABS_HAT0Y") and (event.state) == (-1):
                 print("UP")
             elif (event.code) == ("ABS_HAT0Y") and (event.state) == (1):
