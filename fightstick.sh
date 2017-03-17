@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cd ~/FightstickDisplay/python/ && python fightstick.py &disown
+python fightstick.py &disown
