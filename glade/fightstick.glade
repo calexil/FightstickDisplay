@@ -28,15 +28,17 @@ Author: https://github.com/calexil
   <!-- interface-description Display Gamepad/Fightstick Inputs -->
   <!-- interface-copyright https://github.com/calexil -->
   <!-- interface-authors https://github.com/calexil -->
-  <object class="GtkApplicationWindow" id="applicationwindow1">
+  <template class="applicationwindow1" parent="GtkApplicationWindow">
     <property name="width_request">640</property>
     <property name="height_request">391</property>
     <property name="app_paintable">True</property>
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Fightstick Display</property>
     <child>
       <object class="GtkMenuBar" id="menubar1">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="opacity">0.5</property>
         <property name="valign">start</property>
         <child>
           <object class="GtkMenuItem" id="menuitem1">
@@ -154,14 +156,6 @@ Author: https://github.com/calexil
           </object>
         </child>
         <child>
-          <object class="GtkMenuItem" id="menuitem3">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">_View</property>
-            <property name="use_underline">True</property>
-          </object>
-        </child>
-        <child>
           <object class="GtkMenuItem" id="menuitem4">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -186,5 +180,5 @@ Author: https://github.com/calexil
         </child>
       </object>
     </child>
-  </object>
+  </template>
 </interface>
