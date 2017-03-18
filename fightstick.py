@@ -3,7 +3,7 @@ import pyglet
 
 pyglet.resource.path.append("images")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=390, vsync=False)
+window = pyglet.window.Window(width=640, height=391, vsync=True)
 batch = pyglet.graphics.Batch()
 
 # TODO: handle the situation where there are no fightsticks attached, instead of crashing
