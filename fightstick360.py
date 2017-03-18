@@ -1,5 +1,5 @@
 import pyglet
-
+import os, sys, time
 
 pyglet.resource.path.append("images")
 pyglet.resource.reindex()
