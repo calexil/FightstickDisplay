@@ -51,8 +51,8 @@ button_mapping = {
     5: hp_sprite,
     6: select_sprite,
     7: start_sprite,
-#    8: select_sprite,
-#    9: start_sprite,
+    8: hk_sprite,
+    9: rb_sprite,
 }
 
 
