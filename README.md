@@ -15,7 +15,7 @@ A simple program written in python to display fightstick inputs
 
 # To do
 * Fix xb360 axis HAT buttons HP & RB
-* Add alpha channel foe better stream compatibility
+* Add alpha channel for better stream compatibility
 * implement custom button mapping and base definitions
 * add/simplify color selection
 * add bg image/gamepad type selection
