@@ -47,12 +47,13 @@ button_mapping = {
     1: mp_sprite,
     2: hp_sprite,
     3: lb_sprite,
-    4: lk_sprite,
-    5: mk_sprite,
-    6: hk_sprite,
-    7: rb_sprite,
-    8: select_sprite,
-    9: start_sprite,
+    4: start_sprite,
+    5: lk_sprite,
+    6: mk_sprite,
+    7: hk_sprite,
+    8: rb_sprite,
+    9: select_sprite,
+    10: start_sprite,
 }
 
 
