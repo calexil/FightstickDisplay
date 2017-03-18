@@ -2,17 +2,13 @@
 A simple program written in python to display fightstick inputs
 
 # Prerequisites
-* python2.7+, Gtk 3.0
-* inputs  
-    `git clone https://github.com/zeth/inputs.git`  
-    `cd inputs`  
-    `sudo python setup.py install`  
+* python3
 
 # Screenshot
-![Alt text](/python/images/fightstick.gif?raw=true)
+![Alt text](/images/fightstickblank.png?raw=true)
 
 # To do
-* make it *actually work*
+* handle no-fightstick-attached situation
 * allow custom button mapping
 * add color selection
 * add bg image selection
