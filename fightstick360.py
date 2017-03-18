@@ -30,30 +30,29 @@ background_sprite = pyglet.sprite.Sprite(img=background_img, x=0, y=0, batch=bat
 stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=118, y=155, batch=batch, group=foreground)
 select_sprite = pyglet.sprite.Sprite(img=select_img, x=0, y=0, batch=batch, group=foreground)
 start_sprite = pyglet.sprite.Sprite(img=start_img, x=0, y=0, batch=batch, group=foreground)
-lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=257, y=85, batch=batch, group=foreground)
-mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=337, y=115, batch=batch, group=foreground)
-hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=422, y=114, batch=batch, group=foreground)
-lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=508, y=111, batch=batch, group=foreground)
-lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=276, y=175, batch=batch, group=foreground)
-mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=355, y=205, batch=batch, group=foreground)
-hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=441, y=204, batch=batch, group=foreground)
-rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=528, y=201, batch=batch, group=foreground)
+lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=257, y=85, batch=batch, group=foreground)
+mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=337, y=115, batch=batch, group=foreground)
+hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=422, y=114, batch=batch, group=foreground)
+rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=508, y=111, batch=batch, group=foreground)
+lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=276, y=175, batch=batch, group=foreground)
+mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=355, y=205, batch=batch, group=foreground)
+hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=441, y=204, batch=batch, group=foreground)
+lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=528, y=200, batch=batch, group=foreground)
 background_sprite.visible = True
 stick_sprite.visible = True
 
 
 button_mapping = {
-    0: lp_sprite,
-    1: mp_sprite,
-    2: hp_sprite,
-    3: lb_sprite,
-    4: start_sprite,
-    5: lk_sprite,
-    6: mk_sprite,
-    7: hk_sprite,
-    8: rb_sprite,
-    9: select_sprite,
-    10: start_sprite,
+    0: lk_sprite,
+    1: mk_sprite,
+    2: lp_sprite,
+    3: mp_sprite,
+    4: lb_sprite,
+    5: hp_sprite,
+    6: select_sprite,
+    7: start_sprite,
+#    8: select_sprite,
+#    9: start_sprite,
 }
 
 
