@@ -30,14 +30,14 @@ background_sprite = pyglet.sprite.Sprite(img=background_img, x=0, y=0, batch=bat
 stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=118, y=155, batch=batch, group=foreground)
 select_sprite = pyglet.sprite.Sprite(img=select_img, x=0, y=0, batch=batch, group=foreground)
 start_sprite = pyglet.sprite.Sprite(img=start_img, x=0, y=0, batch=batch, group=foreground)
-lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=258, y=80, batch=batch, group=foreground)
-mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=350, y=80, batch=batch, group=foreground)
-hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=450, y=80, batch=batch, group=foreground)
-lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=550, y=80, batch=batch, group=foreground)
-lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=250, y=200, batch=batch, group=foreground)
-mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=350, y=200, batch=batch, group=foreground)
-hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=450, y=200, batch=batch, group=foreground)
-rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=550, y=200, batch=batch, group=foreground)
+lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=257, y=85, batch=batch, group=foreground)
+mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=337, y=115, batch=batch, group=foreground)
+hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=422, y=114, batch=batch, group=foreground)
+lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=508, y=111, batch=batch, group=foreground)
+lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=276, y=175, batch=batch, group=foreground)
+mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=355, y=205, batch=batch, group=foreground)
+hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=441, y=204, batch=batch, group=foreground)
+rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=528, y=201, batch=batch, group=foreground)
 background_sprite.visible = True
 stick_sprite.visible = True
 
@@ -73,10 +73,10 @@ def on_joybutton_release(js, button):
 
 @fightstick.event
 def on_joyaxis_motion(js, axis, value):
-    if axis == 'x' and value > 0.01:
+    if axis == 'x':
         x = 118 + (value * 50)
         stick_sprite.x = x
-    elif axis == 'y' and value > 0.01:
+    elif axis == 'y':
         y = 155 + -(value * 50)
         stick_sprite.y = y
     if axis == 'hat_x':
