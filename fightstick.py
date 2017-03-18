@@ -42,61 +42,48 @@ background_sprite.visible = True
 stick_sprite.visible = True
 
 
+button_mapping = {
+    0: lp_sprite,
+    1: mp_sprite,
+    2: hp_sprite,
+    3: lb_sprite,
+    4: lk_sprite,
+    5: mk_sprite,
+    6: hk_sprite,
+    7: rb_sprite,
+    8: select_sprite,
+    9: start_sprite,
+}
+
+
 @fightstick.event
 def on_joybutton_press(js, button):
-    if button == 0:
-        lp_sprite.visible = True
-    if button == 1:
-        mp_sprite.visible = True
-    if button == 2:
-        hp_sprite.visible = True
-    if button == 3:
-        lb_sprite.visible = True
-    if button == 4:
-        lk_sprite.visible = True
-    if button == 5:
-        mk_sprite.visible = True
-    if button == 6:
-        hk_sprite.visible = True
-    if button == 7:
-        rb_sprite.visible = True
-    if button == 8:
-        select_sprite.visible = True
-    if button == 9:
-        start_sprite.visible = True
+    pressed_button = button_mapping.get(button)
+    # XXX: avoid crash if the button is not mapped:
+    if pressed_button:
+        pressed_button.visible = True
 
 
 @fightstick.event
 def on_joybutton_release(js, button):
-    if button == 0:
-        lp_sprite.visible = False
-    if button == 1:
-        mp_sprite.visible = False
-    if button == 2:
-        hp_sprite.visible = False
-    if button == 3:
-        lb_sprite.visible = False
-    if button == 4:
-        lk_sprite.visible = False
-    if button == 5:
-        mk_sprite.visible = False
-    if button == 6:
-        hk_sprite.visible = False
-    if button == 7:
-        rb_sprite.visible = False
-    if button == 8:
-        select_sprite.visible = False
-    if button == 9:
-        start_sprite.visible = False
+    pressed_button = button_mapping.get(button)
+    if pressed_button:
+        pressed_button.visible = False
 
 
 @fightstick.event
 def on_joyaxis_motion(js, axis, value):
-    if axis == 'x':
+    if axis == 'x' and value > 0.01:
         x = 118 + (value * 50)
         stick_sprite.x = x
-    elif axis == 'y':
+    elif axis == 'y' and value > 0.01:
         y = 155 + -(value * 50)
+        stick_sprite.y = y
+    if axis == 'hat_x':
+        x = 118 + (value * 50)
+        stick_sprite.x = x
+    elif axis == 'hat_y':
+        y = 155 + (value * 50)
         stick_sprite.y = y
 
 
