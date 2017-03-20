@@ -15,9 +15,10 @@ import os
 
 import pyglet
 from pyglet.app.xlib import XlibSelectDevice
-from .base import Device, Control, RelativeAxis, AbsoluteAxis, Button, Joystick
+from .base import Device, Control, RelativeAxis, AbsoluteAxis, Button, Joystick, GameController
 from .base import DeviceOpenException
 from .evdev_constants import *
+from .gamecontroller import *
 
 
 c = pyglet.lib.load_library('c')
@@ -148,6 +149,8 @@ _rel_names = {
     REL_RZ: RelativeAxis.RZ,
     REL_WHEEL: RelativeAxis.WHEEL,
 }
+
+
 def _create_control(fileno, event_type, event_code):
     if event_type == EV_ABS:
         raw_name = abs_raw_names.get(event_code, 'EV_ABS(%x)' % event_code)
@@ -177,6 +180,7 @@ def _create_control(fileno, event_type, event_code):
     control._event_code = event_code
     return control
 
+
 def _create_joystick(device):
     # Look for something with an ABS X and ABS Y axis, and a joystick 0 button
     have_x = False
@@ -188,12 +192,35 @@ def _create_joystick(device):
         elif control._event_type == EV_ABS and control._event_code == ABS_Y:
             have_y = True
         elif control._event_type == EV_KEY and \
-             control._event_code in (BTN_JOYSTICK, BTN_GAMEPAD):
+                        control._event_code in (BTN_JOYSTICK, BTN_GAMEPAD):
             have_button = True
     if not (have_x and have_y and have_button):
         return
 
     return Joystick(device)
+
+
+def _create_game_controller(device):
+    # Look for something with an ABS X and ABS Y axis, and a joystick 0 button
+    have_x = False
+    have_y = False
+    have_button = False
+    if not is_game_controller(device):
+        return
+    device.controls.sort(key=lambda ctrl: ctrl._event_code)
+    for control in device.controls:
+        if control._event_type == EV_ABS and control._event_code == ABS_X:
+            have_x = True
+        elif control._event_type == EV_ABS and control._event_code == ABS_Y:
+            have_y = True
+        elif control._event_type == EV_KEY and \
+                        control._event_code in (BTN_JOYSTICK, BTN_GAMEPAD):
+            have_button = True
+    if not (have_x and have_y and have_button):
+        return
+
+    return GameController(device)
+
 
 event_types = {
     EV_KEY: KEY_MAX,
@@ -204,6 +231,7 @@ event_types = {
     EV_SND: SND_MAX,
 }
 
+
 class EvdevDevice(XlibSelectDevice, Device):
     _fileno = None
         
@@ -211,13 +239,13 @@ class EvdevDevice(XlibSelectDevice, Device):
         self._filename = filename
 
         fileno = os.open(filename, os.O_RDONLY)
-        #event_version = EVIOCGVERSION(fileno).value
+        # event_version = EVIOCGVERSION(fileno).value
 
-        id = EVIOCGID(fileno)
-        self.id_bustype = id.bustype
-        self.id_vendor = hex(id.vendor)
-        self.id_product = hex(id.product)
-        self.id_version = id.version
+        self._id = EVIOCGID(fileno)
+        self.id_bustype = self._id.bustype
+        self.id_vendor = hex(self._id.vendor)
+        self.id_product = hex(self._id.product)
+        self.id_version = self._id.version
 
         name = EVIOCGNAME(fileno)
         try:
@@ -259,6 +287,20 @@ class EvdevDevice(XlibSelectDevice, Device):
 
         super(EvdevDevice, self).__init__(display, name)
 
+    def get_guid(self):
+        """Generate an SDL2 style GUID from the device ID"""
+        hex_bustype = format(self._id.bustype & 0xFF, '02x')
+        hex_vendor = format(self._id.vendor & 0xFF, '02x')
+        hex_product = format(self._id.product & 0xFF, '02x')
+        hex_version = format(self._id.version & 0xFF, '02x')
+        shifted_bustype = format(self._id.bustype >> 8, '02x')
+        shifted_vendor = format(self._id.vendor >> 8, '02x')
+        shifted_product = format(self._id.product >> 8, '02x')
+        shifted_version = format(self._id.version >> 8, '02x')
+        slug = "{:0>2}{:0>2}0000{:0>2}{:0>2}0000{:0>2}{:0>2}0000{:0>2}{:0>2}0000"
+        return slug.format(hex_bustype, shifted_bustype, hex_vendor, shifted_vendor,
+                           hex_product, shifted_product, hex_version, shifted_version)
+
     def open(self, window=None, exclusive=False):
         super(EvdevDevice, self).open(window, exclusive)
 
@@ -296,11 +338,11 @@ class EvdevDevice(XlibSelectDevice, Device):
             return
 
         events = (input_event * 64)()
-        bytes = c.read(self._fileno, events, ctypes.sizeof(events))
-        if bytes < 0:
+        bytes_read = c.read(self._fileno, events, ctypes.sizeof(events))
+        if bytes_read < 0:
             return
 
-        n_events = bytes // ctypes.sizeof(input_event)
+        n_events = bytes_read // ctypes.sizeof(input_event)
         for event in events[:n_events]:
             try:
                 control = self.control_map[(event.type, event.code)]
@@ -308,8 +350,9 @@ class EvdevDevice(XlibSelectDevice, Device):
             except KeyError:
                 pass
 
-_devices = {}
+
 def get_devices(display=None):
+    _devices = {}
     base = '/dev/input'
     for filename in os.listdir(base):
         if filename.startswith('event'):
@@ -324,10 +367,14 @@ def get_devices(display=None):
 
     return list(_devices.values())
 
+
 def get_joysticks(display=None):
-    return [joystick
-            for joystick
-            in [_create_joystick(device)
-                for device
-                in get_devices(display)]
+    return [joystick for joystick in
+            [_create_joystick(device) for device in get_devices(display)]
             if joystick is not None]
+
+
+def get_game_controllers(display=None):
+    return [controller for controller in
+            [_create_game_controller(device) for device in get_devices(display)]
+            if controller is not None]

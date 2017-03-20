@@ -9,6 +9,7 @@ from pyglet.input import base
 from pyglet.libs import win32
 from pyglet.libs.win32 import dinput
 from pyglet.libs.win32 import _kernel32
+from .gamecontroller import is_game_controller
 
 # These instance names are not defined anywhere, obtained by experiment.  The
 # GUID names (which seem to be ideally what are needed) are wrong/missing for
@@ -30,6 +31,7 @@ _rel_instance_names = {
 }
 
 _btn_instance_names = {}
+
 
 def _create_control(object_instance):
     raw_name = object_instance.tszName
@@ -53,7 +55,8 @@ def _create_control(object_instance):
 
     control._type = object_instance.dwType
     return control
-        
+
+
 class DirectInputDevice(base.Device):
     def __init__(self, display, device, device_instance):
         name = device_instance.tszInstanceName
@@ -61,10 +64,21 @@ class DirectInputDevice(base.Device):
 
         self._type = device_instance.dwDevType & 0xff
         self._subtype = device_instance.dwDevType & 0xff00
-
         self._device = device
         self._init_controls()
         self._set_format()
+
+        self.id_name = device_instance.tszProductName
+        self.id_product_guid = format(device_instance.guidProduct.Data1, "08x")
+
+    def get_guid(self):
+        """Generate an SDL2 style GUID from the product guid."""
+        # byte swap the product guid:
+        swapped_guid = (self.id_product_guid[6:8] + self.id_product_guid[4:6] +
+                        self.id_product_guid[2:4] + self.id_product_guid[0:2])
+        # A string to be formatted into the final guid:
+        slug = "{0}000000000000504944564944"
+        return slug.format(swapped_guid)
 
     def _init_controls(self):
         self.controls = []
@@ -162,7 +176,9 @@ class DirectInputDevice(base.Device):
             index = event.dwOfs // 4
             self.controls[index].value = event.dwData
 
+
 _i_dinput = None
+
 
 def _init_directinput():
     global _i_dinput
@@ -175,6 +191,7 @@ def _init_directinput():
                               dinput.IID_IDirectInput8W, 
                               ctypes.byref(_i_dinput), None)
 
+
 def get_devices(display=None):
     _init_directinput()
     _devices = []
@@ -186,7 +203,6 @@ def get_devices(display=None):
                                None)
         _devices.append(DirectInputDevice(display, 
                                           device, device_instance.contents))
-        
         return dinput.DIENUM_CONTINUE
 
     _i_dinput.EnumDevices(dinput.DI8DEVCLASS_ALL, 
@@ -194,16 +210,30 @@ def get_devices(display=None):
                           None, dinput.DIEDFL_ATTACHEDONLY)
     return _devices
 
+
 def _create_joystick(device):
     if device._type in (dinput.DI8DEVTYPE_JOYSTICK,
                         dinput.DI8DEVTYPE_1STPERSON,
                         dinput.DI8DEVTYPE_GAMEPAD):
         return base.Joystick(device)
 
+
+def _create_game_controller(device):
+    if not is_game_controller(device):
+        return
+    if device._type in (dinput.DI8DEVTYPE_JOYSTICK,
+                        dinput.DI8DEVTYPE_1STPERSON,
+                        dinput.DI8DEVTYPE_GAMEPAD):
+        return base.GameController(device)
+
+
 def get_joysticks(display=None):
-    return [joystick 
-            for joystick 
-            in [_create_joystick(device) 
-                for device
-                in get_devices(display)] 
+    return [joystick for joystick in
+            [_create_joystick(device) for device in get_devices(display)]
             if joystick is not None]
+
+
+def get_game_controllers(display=None):
+    return [controller for controller in
+            [_create_game_controller(device) for device in get_devices(display)]
+            if controller is not None]
