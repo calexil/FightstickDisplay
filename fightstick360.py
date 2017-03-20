@@ -16,6 +16,7 @@ else:
 
 # Load some images to be used by the program:
 background_img = pyglet.resource.image("fightstickblank.png")
+nostick_img = pyglet.resource.image("missing.png")
 redcircle_img = pyglet.resource.image("redcircle.png")
 select_img = pyglet.resource.image("select.png")
 start_img = pyglet.resource.image("start.png")
@@ -27,7 +28,7 @@ foreground = pyglet.graphics.OrderedGroup(1)
 # Create all of the sprites for everything. Some are not visible by default:
 pyglet.sprite.Sprite._visible = False
 background_sprite = pyglet.sprite.Sprite(img=background_img, x=0, y=0, batch=batch, group=background)
-stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=118, y=155, batch=batch, group=foreground)
+stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=119, y=155, batch=batch, group=foreground)
 select_sprite = pyglet.sprite.Sprite(img=select_img, x=0, y=0, batch=batch, group=foreground)
 start_sprite = pyglet.sprite.Sprite(img=start_img, x=0, y=0, batch=batch, group=foreground)
 lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=257, y=85, batch=batch, group=foreground)
@@ -75,23 +76,26 @@ def on_joybutton_release(js, button):
 @fightstick.event
 def on_joyaxis_motion(js, axis, value):
     if axis == 'x':
-        x = 118 + (value * 50)
+        x = 119 + (value * 50)
         stick_sprite.x = x
     elif axis == 'y':
         y = 155 + -(value * 50)
         stick_sprite.y = y
     if axis == 'hat_x':
-        x = 118 + (value * 50)
+        x = 119 + (value * 50)
         stick_sprite.x = x
     elif axis == 'hat_y':
         y = 155 + (value * 50)
         stick_sprite.y = y
-
+    if axis == '5' and value == 32767:
+        hk_sprite.visible = True
+    elif axis == '2' and value == 1:
+        rb_sprite
 
 # TODO: test this on a joystick that uses the hat instead of x/y axis:
 @fightstick.event
 def on_joyhat_motion(js, hat_x, hat_y):
-    center_x = 118
+    center_x = 119
     center_y = 155
     x = center_x + (hat_x * 50)
     y = center_y + (hat_y * 50)
