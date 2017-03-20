@@ -287,8 +287,7 @@ class EvdevDevice(XlibSelectDevice, Device):
 
         super(EvdevDevice, self).__init__(display, name)
 
-    @property
-    def guid(self):
+    def get_guid(self):
         """Generate an SDL2 style GUID from the device ID"""
         hex_bustype = format(self._id.bustype & 0xFF, '02x')
         hex_vendor = format(self._id.vendor & 0xFF, '02x')
@@ -299,10 +298,8 @@ class EvdevDevice(XlibSelectDevice, Device):
         shifted_product = format(self._id.product >> 8, '02x')
         shifted_version = format(self._id.version >> 8, '02x')
         slug = "{:0>2}{:0>2}0000{:0>2}{:0>2}0000{:0>2}{:0>2}0000{:0>2}{:0>2}0000"
-        return slug.format(
-            hex_bustype, shifted_bustype, hex_vendor, shifted_vendor,
-            hex_product, shifted_product, hex_version, shifted_version
-        )
+        return slug.format(hex_bustype, shifted_bustype, hex_vendor, shifted_vendor,
+                           hex_product, shifted_product, hex_version, shifted_version)
 
     def open(self, window=None, exclusive=False):
         super(EvdevDevice, self).open(window, exclusive)

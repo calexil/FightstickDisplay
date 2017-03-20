@@ -72,12 +72,23 @@ def on_button_release(controller, button):
 
 
 @fightstick.event
-def on_stick_motion(controller, axis, xvalue, yvalue):
-    center_x = 118
-    center_y = 155
-    center_x += (xvalue * 50)
-    center_y += (yvalue * 50)
-    stick_sprite.position = center_x, center_y
+def on_stick_motion(controller, stick, xvalue, yvalue):
+    if stick == "leftstick":
+        center_x = 118
+        center_y = 155
+        center_x += (xvalue * 50)
+        center_y += (yvalue * 50)
+        stick_sprite.position = center_x, center_y
+    elif stick == "rightstick":
+        # TODO: confirm these values:
+        if xvalue > 0.8:
+            hk_sprite.visible = True
+        elif xvalue < -0.8:
+            hk_sprite.visible = False
+        if yvalue > 0.8:
+            rb_sprite.visible = True
+        elif yvalue < -0.8:
+            rb_sprite.visible = False
 
 
 @fightstick.event
@@ -93,6 +104,15 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
     elif dpright:
         center_x += 50
     stick_sprite.position = center_x, center_y
+
+
+@fightstick.event
+def on_trigger_motion(controller, trigger, value):
+    # TODO: possible something?
+    if trigger == "lefttrigger":
+        pass
+    if trigger == "righttrigger":
+        pass
 
 
 @window.event

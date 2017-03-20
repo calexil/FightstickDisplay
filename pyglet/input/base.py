@@ -114,6 +114,13 @@ class Device(object):
         """
         raise NotImplementedError('abstract')
 
+    def get_guid(self):
+        """Get the devices GUID, in SDL2 format.
+
+        :rtype: The GUID, as a string
+        """
+        raise NotImplementedError('abstract')
+
     def __repr__(self):
         return '%s(name=%s)' % (self.__class__.__name__, self.name)
 
@@ -755,9 +762,9 @@ class GameController(EventDispatcher):
 
     def __init__(self, device):
         self.device = device
-        self._mapping = get_mapping(device.guid)
+        self.guid = device.get_guid()
+        self._mapping = get_mapping(self.guid)
         self.name = self._mapping['name']
-        self.guid = device.guid
 
         self.a = False
         self.b = False
