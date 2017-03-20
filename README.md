@@ -14,8 +14,6 @@ A simple program written in python to display fightstick inputs
 ![Alt text](/images/fightstick.gif?raw=true)
 
 # To do
-* Fix xb360 axis HAT buttons HP & RB
-* Add alpha channel for better stream compatibility
 * implement custom button mapping and base definitions
 * add/simplify color selection
 * add bg image/gamepad type selection
