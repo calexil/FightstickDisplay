@@ -52,11 +52,7 @@ button_mapping = {
     5: hp_sprite,
     6: select_sprite,
     7: start_sprite,
-#fixes needed:
-#this is hat axis 5   8: hk_sprite,
-#this is hat axis 2   9: rb_sprite,
 }
-
 
 @fightstick.event
 def on_joybutton_press(js, button):
@@ -87,10 +83,14 @@ def on_joyaxis_motion(js, axis, value):
     elif axis == 'hat_y':
         y = 155 + (value * 50)
         stick_sprite.y = y
-    if axis == '5' and value == 32767:
+    if axis == 'rz' and value == (1):
         hk_sprite.visible = True
-    elif axis == '2' and value == 1:
-        rb_sprite
+    elif axis == 'rz' and value == (-1):
+        hk_sprite.visible = False
+    if axis == 'z' and value == (1):
+        rb_sprite.visible = True
+    elif axis == 'z' and value == (-1):
+        rb_sprite.visible = False
 
 # TODO: test this on a joystick that uses the hat instead of x/y axis:
 @fightstick.event
