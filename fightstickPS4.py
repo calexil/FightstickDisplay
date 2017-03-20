@@ -16,6 +16,7 @@ else:
 
 # Load some images to be used by the program:
 background_img = pyglet.resource.image("fightstickblank.png")
+nostick_img = pyglet.resource.image("missing.png")
 redcircle_img = pyglet.resource.image("redcircle.png")
 select_img = pyglet.resource.image("select.png")
 start_img = pyglet.resource.image("start.png")
