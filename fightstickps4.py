@@ -1,6 +1,6 @@
 import pyglet
 import os, sys, time
-
+# Version .08a
 pyglet.resource.path.append("images")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, vsync=True)
@@ -16,6 +16,7 @@ else:
 
 # Load some images to be used by the program:
 background_img = pyglet.resource.image("fightstickblank.png")
+nostick_img = pyglet.resource.image("missing.png")
 redcircle_img = pyglet.resource.image("redcircle.png")
 select_img = pyglet.resource.image("select.png")
 start_img = pyglet.resource.image("start.png")

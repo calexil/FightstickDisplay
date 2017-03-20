@@ -5,6 +5,9 @@ A simple program written in python to display fightstick inputs
 * python3
 * fightstick or gamepad, and some patience
 
+# Current Version
+Alpha .08a
+
 # Contributors:
 * [benmoran56](https://github.com/benmoran56)
 * [Scootadash](https://www.reddit.com/user/wonderful72pike) 

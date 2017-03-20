@@ -1,6 +1,6 @@
 import pyglet
 import os, sys, time
-
+# Version .08a
 pyglet.resource.path.append("images")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, vsync=True)
