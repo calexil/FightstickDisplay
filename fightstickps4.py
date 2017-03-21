@@ -15,9 +15,10 @@ else:
     fightstick = None
 
 # Load some images to be used by the program:
-background_img = pyglet.resource.image("fightstickblank.png")
+background_img = pyglet.resource.image("background.png")
+stick_img = pyglet.resource.image("stick.png")
 nostick_img = pyglet.resource.image("missing.png")
-redcircle_img = pyglet.resource.image("redcircle.png")
+redcircle_img = pyglet.resource.image("button.png")
 select_img = pyglet.resource.image("select.png")
 start_img = pyglet.resource.image("start.png")
 
@@ -28,7 +29,7 @@ foreground = pyglet.graphics.OrderedGroup(1)
 # Create all of the sprites for everything. Some are not visible by default:
 pyglet.sprite.Sprite._visible = False
 background_sprite = pyglet.sprite.Sprite(img=background_img, x=0, y=0, batch=batch, group=background)
-stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=119, y=155, batch=batch, group=foreground)
+stick_sprite = pyglet.sprite.Sprite(img=stick_img, x=119, y=155, batch=batch, group=foreground)
 select_sprite = pyglet.sprite.Sprite(img=select_img, x=0, y=0, batch=batch, group=foreground)
 start_sprite = pyglet.sprite.Sprite(img=start_img, x=0, y=0, batch=batch, group=foreground)
 lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=257, y=85, batch=batch, group=foreground)
