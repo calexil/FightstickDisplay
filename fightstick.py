@@ -1,5 +1,7 @@
 import pyglet
-import os, sys, time
+import sys
+import json
+
 
 pyglet.resource.path.append("images")
 pyglet.resource.reindex()
@@ -14,30 +16,56 @@ else:
     print("No FightStick detected. Please attach and try again!")
     sys.exit(1)
 
+layout = {
+    "background": (0, 0),
+    "stick": (118, 155),
+    "select": (0, 0),
+    "start": (0, 0),
+    "lp": (257, 85),
+    "mp": (337, 115),
+    "hp": (422, 114),
+    "lb": (508, 111),
+    "lk": (276, 175),
+    "mk": (355, 205),
+    "hk": (441, 204),
+    "rb": (528, 201),
+}
+
+# Attempt to load in an alternate layout file for different themes:
+try:
+    default_layout = layout.copy()
+    loaded_layout = json.load(pyglet.resource.file("layout.json"))
+    for key in loaded_layout:
+        default_layout[key] = loaded_layout[key]
+    layout = default_layout.copy()
+except:
+    print("Invalid layout.json file. Falling back to default layout.")
+
 # Load some images to be used by the program:
-background_img = pyglet.resource.image("fightstickblank.png")
-redcircle_img = pyglet.resource.image("redcircle.png")
+background_img = pyglet.resource.image("background.png")
+stick_img = pyglet.resource.image("stick.png")
+button_img = pyglet.resource.image("button.png")
 select_img = pyglet.resource.image("select.png")
 start_img = pyglet.resource.image("start.png")
 
 # Ordered Groups to handle draw order of the sprites:
-background = pyglet.graphics.OrderedGroup(0)
-foreground = pyglet.graphics.OrderedGroup(1)
+bg = pyglet.graphics.OrderedGroup(0)
+fg = pyglet.graphics.OrderedGroup(1)
 
 # Create all of the sprites for everything. Some are not visible by default:
 pyglet.sprite.Sprite._visible = False
-background_sprite = pyglet.sprite.Sprite(img=background_img, x=0, y=0, batch=batch, group=background)
-stick_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=118, y=155, batch=batch, group=foreground)
-select_sprite = pyglet.sprite.Sprite(img=select_img, x=0, y=0, batch=batch, group=foreground)
-start_sprite = pyglet.sprite.Sprite(img=start_img, x=0, y=0, batch=batch, group=foreground)
-lp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=257, y=85, batch=batch, group=foreground)
-mp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=337, y=115, batch=batch, group=foreground)
-hp_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=422, y=114, batch=batch, group=foreground)
-lb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=508, y=111, batch=batch, group=foreground)
-lk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=276, y=175, batch=batch, group=foreground)
-mk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=355, y=205, batch=batch, group=foreground)
-hk_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=441, y=204, batch=batch, group=foreground)
-rb_sprite = pyglet.sprite.Sprite(img=redcircle_img, x=528, y=201, batch=batch, group=foreground)
+background_sprite = pyglet.sprite.Sprite(background_img, *layout['background'], batch=batch, group=bg)
+stick_sprite = pyglet.sprite.Sprite(stick_img, *layout['stick'], batch=batch, group=fg)
+select_sprite = pyglet.sprite.Sprite(select_img, *layout['select'], batch=batch, group=fg)
+start_sprite = pyglet.sprite.Sprite(start_img, *layout['start'], batch=batch, group=fg)
+lp_sprite = pyglet.sprite.Sprite(button_img, *layout['lp'], batch=batch, group=fg)
+mp_sprite = pyglet.sprite.Sprite(button_img, *layout['mp'], batch=batch, group=fg)
+hp_sprite = pyglet.sprite.Sprite(button_img, *layout['hp'], batch=batch, group=fg)
+lb_sprite = pyglet.sprite.Sprite(button_img, *layout['lb'], batch=batch, group=fg)
+lk_sprite = pyglet.sprite.Sprite(button_img, *layout['lk'], batch=batch, group=fg)
+mk_sprite = pyglet.sprite.Sprite(button_img, *layout['mk'], batch=batch, group=fg)
+hk_sprite = pyglet.sprite.Sprite(button_img, *layout['hk'], batch=batch, group=fg)
+rb_sprite = pyglet.sprite.Sprite(button_img, *layout['rb'], batch=batch, group=fg)
 background_sprite.visible = True
 stick_sprite.visible = True
 
@@ -74,13 +102,12 @@ def on_button_release(controller, button):
 @fightstick.event
 def on_stick_motion(controller, stick, xvalue, yvalue):
     if stick == "leftstick":
-        center_x = 118
-        center_y = 155
+        center_x, center_y = layout['stick']
         center_x += (xvalue * 50)
         center_y += (yvalue * 50)
         stick_sprite.position = center_x, center_y
     elif stick == "rightstick":
-        # TODO: confirm these values:
+        # TODO: confirm these are setting the right buttons:
         if xvalue > 0.8:
             hk_sprite.visible = True
         elif xvalue < -0.8:
@@ -93,8 +120,7 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
 
 @fightstick.event
 def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
-    center_x = 118
-    center_y = 155
+    center_x, center_y = layout["stick"]
     if dpup:
         center_y += 50
     elif dpdown:
@@ -108,11 +134,17 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
 
 @fightstick.event
 def on_trigger_motion(controller, trigger, value):
-    # TODO: possible something?
+    # TODO: confirm these are setting the right buttons:
     if trigger == "lefttrigger":
-        pass
+        if value > 0.8:
+            hk_sprite.visible = True
+        elif value < -0.8:
+            hk_sprite.visible = False
     if trigger == "righttrigger":
-        pass
+        if value > 0.8:
+            rb_sprite.visible = True
+        elif value < -0.8:
+            rb_sprite.visible = False
 
 
 @window.event
