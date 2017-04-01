@@ -1,3 +1,4 @@
 #!/bin/bash
 
-cd ~/FightstickDisplay/ && python fightstickps4.py &disown
+cd "${BASH_SOURCE%/*}" || exit  
+python fightstickps4.py &disown
