@@ -14,7 +14,7 @@ Alpha .08a
 * [ShaggyTwoDope](https://github.com/shaggytwodope)
 
 # Screenshot
-![Alt text](/images/fightstick.gif?raw=true)
+![Alt text](/theme/fightstick.gif?raw=true)
 
 # To do
 * implement custom button mapping and base definitions
