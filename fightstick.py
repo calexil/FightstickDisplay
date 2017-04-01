@@ -3,7 +3,7 @@ import sys
 import json
 
 
-pyglet.resource.path.append("images")
+pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, vsync=True)
 batch = pyglet.graphics.Batch()

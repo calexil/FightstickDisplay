@@ -1,7 +1,7 @@
 # FightstickDisplay
 A simple program written in python to display fightstick inputs
 # Screenshot
-![Alt text](/images/fightstick.gif?raw=true)
+![Alt text](/theme/fightstick.gif?raw=true)
 # Prerequisites
 * python3
 * fightstick or gamepad, and some patience
