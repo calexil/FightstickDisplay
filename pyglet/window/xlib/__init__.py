@@ -355,6 +355,9 @@ class XlibWindow(BaseWindow):
         # Set caption
         self.set_caption(self._caption)
 
+        # Set WM_CLASS names
+        self.set_wm_class(self._caption)
+
         # this is supported by some compositors (ie gnome-shell), and more to come
         # see: http://standards.freedesktop.org/wm-spec/wm-spec-latest.html#idp6357888
         _NET_WM_BYPASS_COMPOSITOR_HINT_ON = c_ulong(int(self._fullscreen))
@@ -515,6 +518,17 @@ class XlibWindow(BaseWindow):
         self._set_text_property('WM_ICON_NAME', caption, allow_utf8=False)
         self._set_text_property('_NET_WM_NAME', caption)
         self._set_text_property('_NET_WM_ICON_NAME', caption)
+
+    def set_wm_class(self, name):
+        if hasattr(name, "decode"):
+            try:
+                name = name.decode("utf8")
+            except UnicodeDecodeError:
+                name = "pyglet"
+        hints = xlib.XAllocClassHint().contents
+        hints.res_class = asbytes(name)
+        hints.res_name = asbytes(name.lower())
+        xlib.XSetClassHint(self._x_display, self._window, hints)
 
     def get_caption(self):
         return self._caption

@@ -5,7 +5,7 @@ import json
 
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=391, vsync=True)
+window = pyglet.window.Window(width=640, height=391, caption="FightStickDisplay", vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 batch = pyglet.graphics.Batch()
 
