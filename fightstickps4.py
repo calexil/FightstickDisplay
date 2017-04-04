@@ -4,6 +4,7 @@ import os, sys, time
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, vsync=True)
+window.set_icon(pyglet.resource.image("icon.png"))
 batch = pyglet.graphics.Batch()
 
 # TODO: handle the situation where there are no fightsticks attached, instead of crashing
