@@ -12,6 +12,7 @@ A simple program written in python to display fightstick inputs
 * Make a launcher with fightstick.sh as the start script
 * Edit the ..theme/layout.json to your liking to get the buttons displaying correctly if they are not
 * Enjoy
+
 **Windoze**
 * Install Linux
 * See above
