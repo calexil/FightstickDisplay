@@ -268,14 +268,18 @@ if compat_platform.startswith("linux"):
          'righty': ('axis', 4), 'a': ('button', 0), 'b': ('button', 1), 'leftx': ('axis', 0),
          'rightstick': ('button', 10), 'leftstick': ('button', 9), 'rightshoulder': ('button', 5),
          'guid': '03000000de280000ff11000001000000'},
-        {'lefttrigger': ('axis', 2), 'leftshoulder': ('button', 4), 'dpright': ('hat0', 2),
-         'platform': 'Linux', 'y': ('button', 3), 'guide': ('button', 8),
+
+
+        {'lefttrigger': ('axis', 5), 'leftshoulder': ('button', 2), 'dpright': ('hat0', 2),
+         'platform': 'Linux', 'y': ('button', 5), 'guide': ('button', 8),
          'name': 'X360 Controller', 'lefty': ('axis', 1), 'start': ('button', 7),
-         'righttrigger': ('axis', 5), 'rightx': ('axis', 3), 'x': ('button', 2),
+         'righttrigger': ('axis', 2), 'rightx': ('axis', 3), 'x': ('button', 4),
          'dpdown': ('hat0', 4), 'dpleft': ('hat0', 8), 'back': ('button', 6), 'dpup': ('hat0', 1),
          'righty': ('axis', 4), 'a': ('button', 0), 'b': ('button', 1), 'leftx': ('axis', 0),
-         'rightstick': ('button', 10), 'leftstick': ('button', 9), 'rightshoulder': ('button', 5),
+         'rightstick': ('button', 10), 'leftstick': ('button', 9), 'rightshoulder': ('button', 3),
          'guid': '030000005e0400008e02000014010000'},
+
+
         {'lefttrigger': ('axis', 2), 'leftshoulder': ('button', 4), 'dpright': ('hat0', 2),
          'platform': 'Linux', 'y': ('button', 3), 'guide': ('button', 8),
          'name': 'X360 Controller', 'lefty': ('axis', 1), 'start': ('button', 7),
