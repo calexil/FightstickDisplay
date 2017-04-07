@@ -20,6 +20,7 @@ Beta 1.0
 * [ShaggyTwoDope](https://github.com/shaggytwodope)
 
 # To do
+* fix crashing when no gamepad connected
 * implement custom button mapping
 * add/simplify color selection
 * add bg image/gamepad type selection
