@@ -20,7 +20,7 @@ Beta 1.0
 * [ShaggyTwoDope](https://github.com/shaggytwodope)
 
 # To do
-* implement custom button mapping and base definitions
+* implement custom button mapping
 * add/simplify color selection
 * add bg image/gamepad type selection
-* add preferences save/load menu
+* add preferences/theme save/load menu
