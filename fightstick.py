@@ -1,8 +1,10 @@
 import pyglet
+from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
+
 import sys
 import json
 
-
+# Some initial pyglet setup:
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
@@ -148,10 +150,52 @@ def on_trigger_motion(controller, trigger, value):
             rb_sprite.visible = False
 
 
+####################################################
+#   User interface starts here:
+####################################################
+frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
+window.push_handlers(frame)
+
+# TODO: use this in trigger and stick events above ^^^
+DEADZONE = 0.15
+
+
+def toggle_menu(button):
+    if options_window.parent is not None:
+        frame.remove(options_window)
+    else:
+        frame.add(options_window)
+
+
+def update_deadzone(slider):
+    global DEADZONE
+    DEADZONE = slider.value
+    deadzone_label = frame.get_element_by_name("deadzone")
+    deadzone_label.text = "Analog Deadzone: {}".format(round(slider.value, 2))
+
+
+def remap_buttons(button):
+    # TODO: add code here to remap buttons
+    pass
+
+
+config_layout = VLayout(children=[
+    Label("Analog Deadzone: {}".format(round(DEADZONE, 2)), name="deadzone"),
+    Slider(w=200, min=0.0, max=1.0, value=0.2, action=update_deadzone),
+    Button("Remap Buttons", w=2, action=remap_buttons)
+])
+
+options_button = Button("Toggle Menu", name="options_button", x=520, y=365, action=toggle_menu)
+options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
+
+frame.add(options_button)
+
+
 @window.event
 def on_draw():
     window.clear()
     batch.draw()
+    frame.draw()
 
 
 if __name__ == "__main__":
