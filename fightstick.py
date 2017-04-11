@@ -1,9 +1,8 @@
 import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
-
 import sys
 import json
-
+import io
 # Some initial pyglet setup:
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
@@ -176,7 +175,40 @@ def update_deadzone(slider):
 
 def remap_buttons(button):
     # TODO: add code here to remap buttons
-    pass
+    try:
+        to_unicode = unicode
+    except NameError:
+        to_unicode = str
+
+# Define data
+data = {
+  "background": [0, 0],
+  "stick":      [118, 155],
+  "select":     [0, 0],
+  "start":      [0, 0],
+  "lp":         [257, 85],
+  "mp":         [337, 115],
+  "hk":         [422, 114],
+  "rb":         [508, 111],
+  "lk":         [276, 175],
+  "mk":         [355, 205],
+  "lb":         [441, 204],
+  "hp":         [528, 201]
+}
+
+# Write JSON file
+with io.open('layout.json', 'w', encoding='utf8') as outfile:
+    str_ = json.dumps(data,
+                      indent=4, sort_keys=True,
+                      separators=(',', ': '), ensure_ascii=False)
+    outfile.write(to_unicode(str_))
+
+# Read JSON file
+with open('layout.json') as data_file:
+    data_loaded = json.load(data_file)
+
+print(data == data_loaded)
+
 
 
 config_layout = VLayout(children=[
