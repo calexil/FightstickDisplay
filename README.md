@@ -1,4 +1,4 @@
-# FightstickDisplay
+# FightstickDisplay [![CodeFactor](https://www.codefactor.io/repository/github/calexil/fightstickdisplay/badge)](https://www.codefactor.io/repository/github/calexil/fightstickdisplay)
 A simple program written in python to display fightstick inputs
 # Screenshot
 ![Alt text](/theme/fightstick.gif?raw=true)
