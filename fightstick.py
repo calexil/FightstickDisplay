@@ -155,5 +155,5 @@ def on_draw():
 
 
 if __name__ == "__main__":
-    pyglet.clock.schedule_interval(lambda dt: None, 1/30.0)
+    pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
