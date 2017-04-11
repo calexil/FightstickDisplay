@@ -23,10 +23,3 @@ Beta 1.0
 * [benmoran56](https://github.com/benmoran56)
 * [Scootadash](https://www.reddit.com/user/wonderful72pike) 
 * [ShaggyTwoDope](https://github.com/shaggytwodope)
-
-# To do
-* fix crashing when no gamepad connected
-* implement custom button mapping
-* add/simplify color selection
-* add bg image/gamepad type selection
-* add preferences/theme save/load menu
