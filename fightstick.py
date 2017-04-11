@@ -174,14 +174,14 @@ def update_deadzone(slider):
 
 
 def remap_buttons(button):
-    # TODO: add code here to remap buttons
+    # in process TODO
     try:
         to_unicode = unicode
     except NameError:
         to_unicode = str
 
 # Define data
-data = {
+data = {{
   "background": [0, 0],
   "stick":      [118, 155],
   "select":     [0, 0],
@@ -194,7 +194,7 @@ data = {
   "mk":         [355, 205],
   "lb":         [441, 204],
   "hp":         [528, 201]
-}
+}}
 
 # Write JSON file
 with io.open('layout.json', 'w', encoding='utf8') as outfile:
