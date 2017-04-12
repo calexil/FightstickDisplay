@@ -25,12 +25,12 @@ layout = {
     "start": (0, 0),
     "x": (257, 85),
     "y": (337, 115),
-    "rb": (422, 114),
-    "lb": (508, 111),
+    "rt": (422, 114),
+    "lt": (508, 111),
     "a": (276, 175),
     "b": (355, 205),
-    "rt": (441, 204),
-    "lt": (528, 201),
+    "lb": (441, 204),
+    "rb": (528, 201),
 }
 
 # Attempt to load in an alternate layout file for different themes:
@@ -174,7 +174,7 @@ def update_deadzone(slider):
 
 
 def remap_buttons(button):
-    # in process TODO
+    # in process TODO REMAP
     pass
 
 
@@ -184,7 +184,7 @@ config_layout = VLayout(children=[
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
 
-options_button = Button("Menu", name="options_button", x=555, y=370, action=toggle_menu)
+options_button = Button("Menu", name="options_button", x=565, y=370, action=toggle_menu)
 options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
 
 frame.add(options_button)
