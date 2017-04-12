@@ -183,11 +183,11 @@ config_layout = VLayout(children=[
     Slider(w=200, min=0.0, max=1.0, value=0.2, action=update_deadzone),
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
+# Removing this until its more elegant, very ugly right now
+# options_button = Button("Menu", name="options_button", x=565, y=370, action=toggle_menu)
+#options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
 
-options_button = Button("Menu", name="options_button", x=565, y=370, action=toggle_menu)
-options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
-
-frame.add(options_button)
+# frame.add(options_button)
 
 
 @window.event
