@@ -19,7 +19,7 @@ A simple program written in python to display fightstick inputs
 * Install Linux
 * See above
 # Current Version
-Beta 1.0
+Beta 1.1
 # Contributors:
 * [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)
