@@ -152,42 +152,42 @@ def on_trigger_motion(controller, trigger, value):
 ####################################################
 #   User interface starts here:
 ####################################################
-#frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
-#window.push_handlers(frame)
+frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
+window.push_handlers(frame)
 
 # TODO: use this in trigger and stick events above ^^^
-#DEADZONE = 0.15
+DEADZONE = 0.15
 
 
-#def toggle_menu(button):
-#    if options_window.parent is not None:
-#        frame.remove(options_window)
-#    else:
-#        frame.add(options_window)
-#
-#
-#def update_deadzone(slider):
-#    global DEADZONE
-#    DEADZONE = slider.value
-#    deadzone_label = frame.get_element_by_name("deadzone")
-#    deadzone_label.text = "Analog Deadzone: {}".format(round(slider.value, 2))
+def toggle_menu(button):
+    if options_window.parent is not None:
+        frame.remove(options_window)
+    else:
+        frame.add(options_window)
 
 
-#def remap_buttons(button):
+def update_deadzone(slider):
+    global DEADZONE
+    DEADZONE = slider.value
+    deadzone_label = frame.get_element_by_name("deadzone")
+    deadzone_label.text = "Analog Deadzone: {}".format(round(slider.value, 2))
+
+
+def remap_buttons(button):
     # in process TODO REMAP
-#    pass
+    pass
 
 
-#config_layout = VLayout(children=[
-#    Label("Analog Deadzone: {}".format(round(DEADZONE, 2)), name="deadzone"),
-#    Slider(w=200, min=0.0, max=1.0, value=0.2, action=update_deadzone),
-#    Button("Remap Buttons", w=2, action=remap_buttons)
-#])
-# Removing this until its more elegant, very ugly right now
-# options_button = Button("Menu", name="options_button", x=565, y=370, action=toggle_menu)
-#options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
+config_layout = VLayout(children=[
+    Label("Analog Deadzone: {}".format(round(DEADZONE, 2)), name="deadzone"),
+    Slider(w=200, min=0.0, max=1.0, value=0.2, action=update_deadzone),
+    Button("Remap Buttons", w=2, action=remap_buttons)
+])
 
-# frame.add(options_button)
+options_button = Button("Menu", name="options_button", x=565, y=370, action=toggle_menu)
+options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
+
+frame.add(options_button)
 
 
 @window.event
