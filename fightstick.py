@@ -15,7 +15,7 @@ if len(controllers) > 0:
     fightstick = controllers[0]
     fightstick.open()
 else:
-    print("No FightStick detected. Please attach and try again!")
+    print("No FightStick detected. Please reconnect and try again!")
     sys.exit(1)
 
 layout = {
@@ -23,14 +23,14 @@ layout = {
     "stick": (119, 155),
     "select": (0, 0),
     "start": (0, 0),
-    "lp": (257, 85),
-    "mp": (337, 115),
-    "hp": (422, 114),
+    "x": (257, 85),
+    "y": (337, 115),
+    "rb": (422, 114),
     "lb": (508, 111),
-    "lk": (276, 175),
-    "mk": (355, 205),
-    "hk": (441, 204),
-    "rb": (528, 201),
+    "a": (276, 175),
+    "b": (355, 205),
+    "rt": (441, 204),
+    "lt": (528, 201),
 }
 
 # Attempt to load in an alternate layout file for different themes:
@@ -60,27 +60,27 @@ background_sprite = pyglet.sprite.Sprite(background_img, *layout['background'], 
 stick_sprite = pyglet.sprite.Sprite(stick_img, *layout['stick'], batch=batch, group=fg)
 select_sprite = pyglet.sprite.Sprite(select_img, *layout['select'], batch=batch, group=fg)
 start_sprite = pyglet.sprite.Sprite(start_img, *layout['start'], batch=batch, group=fg)
-lp_sprite = pyglet.sprite.Sprite(button_img, *layout['lp'], batch=batch, group=fg)
-mp_sprite = pyglet.sprite.Sprite(button_img, *layout['mp'], batch=batch, group=fg)
-hp_sprite = pyglet.sprite.Sprite(button_img, *layout['hp'], batch=batch, group=fg)
-lb_sprite = pyglet.sprite.Sprite(button_img, *layout['lb'], batch=batch, group=fg)
-lk_sprite = pyglet.sprite.Sprite(button_img, *layout['lk'], batch=batch, group=fg)
-mk_sprite = pyglet.sprite.Sprite(button_img, *layout['mk'], batch=batch, group=fg)
-hk_sprite = pyglet.sprite.Sprite(button_img, *layout['hk'], batch=batch, group=fg)
+x_sprite = pyglet.sprite.Sprite(button_img, *layout['x'], batch=batch, group=fg)
+y_sprite = pyglet.sprite.Sprite(button_img, *layout['y'], batch=batch, group=fg)
 rb_sprite = pyglet.sprite.Sprite(button_img, *layout['rb'], batch=batch, group=fg)
+lb_sprite = pyglet.sprite.Sprite(button_img, *layout['lb'], batch=batch, group=fg)
+a_sprite = pyglet.sprite.Sprite(button_img, *layout['a'], batch=batch, group=fg)
+b_sprite = pyglet.sprite.Sprite(button_img, *layout['b'], batch=batch, group=fg)
+rt_sprite = pyglet.sprite.Sprite(button_img, *layout['rt'], batch=batch, group=fg)
+lt_sprite = pyglet.sprite.Sprite(button_img, *layout['lt'], batch=batch, group=fg)
 background_sprite.visible = True
 stick_sprite.visible = True
 
 
 button_mapping = {
-    "a": lp_sprite,
-    "b": mp_sprite,
-    "x": hp_sprite,
+    "a": x_sprite,
+    "b": y_sprite,
+    "x": rb_sprite,
     "y": lb_sprite,
-    "leftshoulder": lk_sprite,
-    "rightshoulder": mk_sprite,
-    None: hk_sprite,
-    None: rb_sprite,
+    "leftshoulder": a_sprite,
+    "rightshoulder": b_sprite,
+    None: rt_sprite,
+    None: lt_sprite,
     "back": select_sprite,
     "start": start_sprite,
 }
@@ -111,13 +111,13 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
     elif stick == "rightstick":
         # TODO: confirm these are setting the right buttons:
         if xvalue > 0.8:
-            hk_sprite.visible = True
+            rt_sprite.visible = True
         elif xvalue < -0.8:
-            hk_sprite.visible = False
+            rt_sprite.visible = False
         if yvalue > 0.8:
-            rb_sprite.visible = True
+            lt_sprite.visible = True
         elif yvalue < -0.8:
-            rb_sprite.visible = False
+            lt_sprite.visible = False
 
 
 @fightstick.event
@@ -139,14 +139,14 @@ def on_trigger_motion(controller, trigger, value):
     # TODO: confirm these are setting the right buttons:
     if trigger == "lefttrigger":
         if value > 0.8:
-            hk_sprite.visible = True
+            rt_sprite.visible = True
         elif value < -0.8:
-            hk_sprite.visible = False
+            rt_sprite.visible = False
     if trigger == "righttrigger":
         if value > 0.8:
-            rb_sprite.visible = True
+            lt_sprite.visible = True
         elif value < -0.8:
-            rb_sprite.visible = False
+            lt_sprite.visible = False
 
 
 ####################################################
