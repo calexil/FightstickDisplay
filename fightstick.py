@@ -184,7 +184,7 @@ config_layout = VLayout(children=[
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
 
-options_button = Button("Menu", name="options_button", x=565, y=370, action=toggle_menu)
+options_button = Button("Menu", name="options_button", x=570, y=2, action=toggle_menu)
 options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
 
 frame.add(options_button)
