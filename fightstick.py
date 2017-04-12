@@ -2,7 +2,7 @@ import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import sys
 import json
-import io
+
 # Some initial pyglet setup:
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
