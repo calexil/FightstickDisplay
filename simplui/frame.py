@@ -86,8 +86,9 @@ class Frame(Container):
         if len(self.focus) > 0:
             return self.focus[-1].on_mouse_press(x, y, button, modifiers)
 
-        if self.children[0].hit_test(x, y):
-            return self.children[0].on_mouse_press(x, y, button, modifiers)
+        if len(self.children) > 0:
+            if self.children[0].hit_test(x, y):
+                return self.children[0].on_mouse_press(x, y, button, modifiers)
 
         for c in self.children:
             if c.hit_test(x, y):
