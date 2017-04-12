@@ -156,38 +156,38 @@ frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
 # TODO: use this in trigger and stick events above ^^^
-DEADZONE = 0.15
+TRIGGERPOINT = 0.8
 
 
-def toggle_menu(button):
-    if options_window.parent is not None:
-        frame.remove(options_window)
-    else:
-        frame.add(options_window)
+@window.event
+def on_key_press(key, modifiers):
+    # Toggle the menu when pressing the space key.
+    if key == pyglet.window.key.SPACE:
+        if config_window.parent is not None:
+            frame.remove(config_window)
+        else:
+            frame.add(config_window)
 
 
-def update_deadzone(slider):
-    global DEADZONE
-    DEADZONE = slider.value
-    deadzone_label = frame.get_element_by_name("deadzone")
-    deadzone_label.text = "Analog Deadzone: {}".format(round(slider.value, 2))
+def update_trigger_point(slider):
+    global TRIGGERPOINT
+    TRIGGERPOINT = slider.value
+    deadzone_label = frame.get_element_by_name("triggerpoint")
+    deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
 
 
 def remap_buttons(button):
-    # in process TODO REMAP
+    # TODO: add code here to remap buttons
     pass
 
 
 config_layout = VLayout(children=[
-    Label("Analog Deadzone: {}".format(round(DEADZONE, 2)), name="deadzone"),
-    Slider(w=200, min=0.0, max=1.0, value=0.2, action=update_deadzone),
+    Label("Analog Trigger Point: {}".format(round(TRIGGERPOINT, 2)), name="triggerpoint"),
+    Slider(w=200, min=0.0, max=1.0, value=TRIGGERPOINT, action=update_trigger_point),
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
+config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
-options_button = Button("Menu", name="options_button", x=570, y=2, action=toggle_menu)
-options_window = Dialogue("Options", name="options_window", x=300, y=360, content=config_layout)
-
-frame.add(options_button)
 
 
 @window.event
