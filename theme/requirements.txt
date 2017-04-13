@@ -1,3 +1,0 @@
-python3==3.5.3
-simplui==1.01
-pyglet==1.2.4
