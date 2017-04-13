@@ -7,12 +7,13 @@ A simple program written in python to display fightstick inputs
 # Prerequisites
 * python3
 
-# Installation
+# Installation & Usage
 **Linux**
 * Clone the git  
 `git clone https://github.com/calexil/FightstickDisplay.git`
 * Make a launcher with fightstick.sh as the start script
 * Edit the ..theme/layout.json to your liking to get the buttons displaying correctly if they are not
+* To bring up the menu hit **spacebar**
 * Enjoy
 
 **Windoze**
