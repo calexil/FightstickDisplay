@@ -1,4 +1,4 @@
-# FightstickDisplay [![Updates](https://pyup.io/repos/github/calexil/FightstickDisplay/shield.svg)](https://pyup.io/repos/github/calexil/FightstickDisplay/) [![Python 3](https://pyup.io/repos/github/calexil/FightstickDisplay/python-3-shield.svg)](https://pyup.io/repos/github/calexil/FightstickDisplay/)
+# FightstickDisplay [![Updates](https://pyup.io/repos/github/calexil/FightstickDisplay/shield.svg)](https://pyup.io/repos/github/calexil/FightstickDisplay/) [![Python 3](https://pyup.io/repos/github/calexil/FightstickDisplay/python-3-shield.svg)](https://pyup.io/repos/github/calexil/FightstickDisplay/)[![CodeFactor](https://www.codefactor.io/repository/github/calexil/fightstickdisplay/badge)](https://www.codefactor.io/repository/github/calexil/fightstickdisplay)
 
 
 A simple program written in python to display fightstick inputs
