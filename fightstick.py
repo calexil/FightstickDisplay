@@ -3,7 +3,6 @@ from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import sys
 import json
 
-# Some initial pyglet setup:
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
