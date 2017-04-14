@@ -79,8 +79,8 @@ button_mapping = {
     "y": lb_sprite,
     "leftshoulder": a_sprite,
     "rightshoulder": b_sprite,
-    None: rt_sprite,
-    None: lt_sprite,
+    "righttrigger": rt_sprite,
+    "lefttrigger": lt_sprite,
     "back": select_sprite,
     "start": start_sprite,
 }
