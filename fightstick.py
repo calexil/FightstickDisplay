@@ -1,5 +1,5 @@
 import pyglet
-from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
+from simplui import Theme, Frame, Dialogue, Button, VLayout
 import sys
 import json
 
