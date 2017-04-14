@@ -88,7 +88,7 @@ button_mapping = {
 @fightstick.event
 def on_button_press(controller, button):
     pressed_button = button_mapping.get(button)
-# XXX: avoid crash if the button is not mapped:
+# avoid crash if the button is not mapped:
     if pressed_button:
         pressed_button.visible = True
 
