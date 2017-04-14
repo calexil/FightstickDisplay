@@ -33,14 +33,15 @@ layout = {
 }
 
 # Attempt to load in an alternate layout file for different themes:
-try:
-    default_layout = layout.copy()
-    loaded_layout = json.load(pyglet.resource.file("layout.json"))
-    for key in loaded_layout:
-        default_layout[key] = loaded_layout[key]
-    layout = default_layout.copy()
-except:
-    print("Invalid layout.json file. Falling back to default layout.")
+def layout_default():
+    try:
+        default_layout = layout.copy()
+        loaded_layout = json.load(pyglet.resource.file("layout.json"))
+        for key in loaded_layout:
+            default_layout[key] = loaded_layout[key]
+        layout = default_layout.copy()
+    except:
+        print("Invalid layout.json file. Falling back to default layout.")
 
 # Load some images to be used by the program:
 background_img = pyglet.resource.image("background.png")
