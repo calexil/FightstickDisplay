@@ -40,7 +40,7 @@ def layout_default():
         for key in loaded_layout:
             default_layout[key] = loaded_layout[key]
         layout = default_layout.copy()
-    except:
+    except Exception as:
         print("Invalid layout.json file. Falling back to default layout.")
 
 # Load some images to be used by the program:
