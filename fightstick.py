@@ -108,7 +108,7 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
         center_y += (yvalue * 50)
         stick_sprite.position = center_x, center_y
     elif stick == "rightstick":
-# TODO: confirm these are setting the right buttons:
+# TODO confirm these are setting the right buttons:
         if xvalue > 0.8:
             rt_sprite.visible = True
         elif xvalue < -0.8:
