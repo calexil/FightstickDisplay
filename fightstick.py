@@ -3,13 +3,6 @@ from simplui import Theme, Frame, Dialogue, Button, VLayout
 import sys
 import json
 
-# Load some images to be used by the program:
-background_img = pyglet.resource.image("background.png")
-stick_img = pyglet.resource.image("stick.png")
-button_img = pyglet.resource.image("button.png")
-select_img = pyglet.resource.image("select.png")
-start_img = pyglet.resource.image("start.png")
-
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
@@ -38,6 +31,13 @@ layout = {
     "lb": (440, 203),
     "rb": (527, 200),
 }
+
+# Load some images to be used by the program:
+background_img = pyglet.resource.image("background.png")
+stick_img = pyglet.resource.image("stick.png")
+button_img = pyglet.resource.image("button.png")
+select_img = pyglet.resource.image("select.png")
+start_img = pyglet.resource.image("start.png")
 
 # Attempt to load in an alternate layout file for different themes:
 def layout_default():
