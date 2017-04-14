@@ -84,7 +84,6 @@ button_mapping = {
     "start": start_sprite,
 }
 
-
 @fightstick.event
 def on_button_press(controller, button):
     pressed_button = button_mapping.get(button)
@@ -168,7 +167,6 @@ config_layout = VLayout(children=[
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
 config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
-
 
 @window.event
 def on_draw():
