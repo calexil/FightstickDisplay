@@ -9,7 +9,7 @@ window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display
 window.set_icon(pyglet.resource.image("icon.png"))
 batch = pyglet.graphics.Batch()
 controllers = pyglet.input.get_game_controllers()
-
+e = ("Invalid layout.json file. Falling back to default layout.")
 if len(controllers) > 0:
     fightstick = controllers[0]
     fightstick.open()
@@ -41,7 +41,7 @@ def layout_default():
             default_layout[key] = loaded_layout[key]
         layout = default_layout.copy()
     except Exception as e:
-        print("Invalid layout.json file. Falling back to default layout.")
+        print(e)
 
 # Load some images to be used by the program:
 background_img = pyglet.resource.image("background.png")
