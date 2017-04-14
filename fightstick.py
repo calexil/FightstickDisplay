@@ -3,6 +3,7 @@ from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import sys
 import json
 
+# Some initial pyglet setup:
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
@@ -88,7 +89,7 @@ button_mapping = {
 @fightstick.event
 def on_button_press(controller, button):
     pressed_button = button_mapping.get(button)
-# XXX: avoid crash if the button is not mapped:
+    # XXX: avoid crash if the button is not mapped:
     if pressed_button:
         pressed_button.visible = True
 
@@ -108,7 +109,7 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
         center_y += (yvalue * 50)
         stick_sprite.position = center_x, center_y
     elif stick == "rightstick":
-# TODO: confirm these are setting the right buttons:
+        # TODO: confirm these are setting the right buttons:
         if xvalue > 0.8:
             rt_sprite.visible = True
         elif xvalue < -0.8:
@@ -135,7 +136,7 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
 
 @fightstick.event
 def on_trigger_motion(controller, trigger, value):
-# TODO: confirm these are setting the right buttons:
+    # TODO: confirm these are setting the right buttons:
     if trigger == "lefttrigger":
         if value > 0.8:
             rt_sprite.visible = True
@@ -160,7 +161,7 @@ TRIGGERPOINT = 0.8
 
 @window.event
 def on_key_press(key, modifiers):
-# Toggle the menu when pressing the space key.
+    # Toggle the menu when pressing the space key.
     if key == pyglet.window.key.SPACE:
         if config_window.parent is not None:
             frame.remove(config_window)
@@ -176,7 +177,7 @@ def update_trigger_point(slider):
 
 
 def remap_buttons(button):
-# TODO: add code here to remap buttons
+    # TODO: add code here to remap buttons
     pass
 
 
