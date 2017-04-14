@@ -155,10 +155,6 @@ def on_trigger_motion(controller, trigger, value):
 frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
-# ttd use this in trigger and stick events above:
-TRIGGERPOINT = 0.8
-
-
 @window.event
 def on_key_press(key, modifiers):
 # Toggle the menu when pressing the space key.
@@ -168,6 +164,12 @@ def on_key_press(key, modifiers):
         else:
             frame.add(config_window)
 
+
+# ttd use this in trigger and stick events above:
+triggerpoint = 0.8
+class Triggerpoint:
+    def __init_(self, triggerpoint)
+        self.triggerpoint = triggerpoint
 
 def update_trigger_point(slider):
     global TRIGGERPOINT
