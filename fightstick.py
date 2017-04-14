@@ -3,6 +3,13 @@ from simplui import Theme, Frame, Dialogue, Button, VLayout
 import sys
 import json
 
+# Load some images to be used by the program:
+background_img = pyglet.resource.image("background.png")
+stick_img = pyglet.resource.image("stick.png")
+button_img = pyglet.resource.image("button.png")
+select_img = pyglet.resource.image("select.png")
+start_img = pyglet.resource.image("start.png")
+
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
@@ -43,13 +50,6 @@ def layout_default():
     except Exception as e:
         print(e)
 
-# Load some images to be used by the program:
-background_img = pyglet.resource.image("background.png")
-stick_img = pyglet.resource.image("stick.png")
-button_img = pyglet.resource.image("button.png")
-select_img = pyglet.resource.image("select.png")
-start_img = pyglet.resource.image("start.png")
-
 # Ordered Groups to handle draw order of the sprites:
 bg = pyglet.graphics.OrderedGroup(0)
 fg = pyglet.graphics.OrderedGroup(1)
@@ -70,7 +70,6 @@ rt_sprite = pyglet.sprite.Sprite(button_img, *layout['rt'], batch=batch, group=f
 lt_sprite = pyglet.sprite.Sprite(button_img, *layout['lt'], batch=batch, group=fg)
 background_sprite.visible = True
 stick_sprite.visible = True
-
 
 button_mapping = {
     "a": x_sprite,
@@ -93,13 +92,11 @@ def on_button_press(controller, button):
     if pressed_button:
         pressed_button.visible = True
 
-
 @fightstick.event
 def on_button_release(controller, button):
     pressed_button = button_mapping.get(button)
     if pressed_button:
         pressed_button.visible = False
-
 
 @fightstick.event
 def on_stick_motion(controller, stick, xvalue, yvalue):
@@ -119,7 +116,6 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
         elif yvalue < -0.8:
             lt_sprite.visible = False
 
-
 @fightstick.event
 def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
     center_x, center_y = layout["stick"]
@@ -132,7 +128,6 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
     elif dpright:
         center_x += 50
     stick_sprite.position = center_x, center_y
-
 
 @fightstick.event
 def on_trigger_motion(controller, trigger, value):
@@ -147,7 +142,6 @@ def on_trigger_motion(controller, trigger, value):
             lt_sprite.visible = True
         elif value < -0.8:
             lt_sprite.visible = False
-
 
 ####################################################
 #   User interface starts here:
@@ -176,13 +170,11 @@ config_layout = VLayout(children=[
 config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
 
-
 @window.event
 def on_draw():
     window.clear()
     batch.draw()
     frame.draw()
-
 
 if __name__ == "__main__":
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
