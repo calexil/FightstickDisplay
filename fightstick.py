@@ -108,7 +108,7 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
         center_y += (yvalue * 50)
         stick_sprite.position = center_x, center_y
     elif stick == "rightstick":
-# TODO confirm these are setting the right buttons:
+# ttd confirm these are setting the right buttons:
         if xvalue > 0.8:
             rt_sprite.visible = True
         elif xvalue < -0.8:
@@ -135,7 +135,7 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
 
 @fightstick.event
 def on_trigger_motion(controller, trigger, value):
-# TODO confirm these are setting the right buttons:
+# ttd confirm these are setting the right buttons:
     if trigger == "lefttrigger":
         if value > 0.8:
             rt_sprite.visible = True
@@ -154,7 +154,7 @@ def on_trigger_motion(controller, trigger, value):
 frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
-# TODO use this in trigger and stick events above:
+# ttd use this in trigger and stick events above:
 TRIGGERPOINT = 0.8
 
 
@@ -176,7 +176,7 @@ def update_trigger_point(slider):
 
 
 def remap_buttons(button):
-# TODO: add code here to remap buttons
+# ttd add code here to remap buttons
     pass
 
 
