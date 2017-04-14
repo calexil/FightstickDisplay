@@ -135,7 +135,7 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
 
 @fightstick.event
 def on_trigger_motion(controller, trigger, value):
-# TODO: confirm these are setting the right buttons:
+# TODO confirm these are setting the right buttons:
     if trigger == "lefttrigger":
         if value > 0.8:
             rt_sprite.visible = True
@@ -154,7 +154,7 @@ def on_trigger_motion(controller, trigger, value):
 frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
-# TODO: use this in trigger and stick events above ^^^
+# TODO use this in trigger and stick events above:
 TRIGGERPOINT = 0.8
 
 
