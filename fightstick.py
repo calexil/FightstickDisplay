@@ -168,12 +168,11 @@ def on_key_press(key, modifiers):
 # ttd use this in trigger and stick events above:
 triggerpoint = 0.8
 class Triggerpoint:
-    def __init_(self, triggerpoint)
+    def __init_(self, triggerpoint):
         self.triggerpoint = triggerpoint
 
 def update_trigger_point(slider):
-    global TRIGGERPOINT
-    TRIGGERPOINT = slider.value
+    triggerpoint = slider.value
     deadzone_label = frame.get_element_by_name("triggerpoint")
     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
 
@@ -184,8 +183,8 @@ def remap_buttons(button):
 
 
 config_layout = VLayout(children=[
-    Label("Analog Trigger Point: {}".format(round(TRIGGERPOINT, 2)), name="triggerpoint"),
-    Slider(w=200, min=0.0, max=1.0, value=TRIGGERPOINT, action=update_trigger_point),
+    Label("Analog Trigger Point: {}".format(round(triggerpoint, 2)), name="triggerpoint"),
+    Slider(w=200, min=0.0, max=1.0, value=triggerpoint, action=update_trigger_point),
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
 config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
