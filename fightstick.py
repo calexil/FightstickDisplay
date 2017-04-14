@@ -109,7 +109,7 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
         center_y += (yvalue * 50)
         stick_sprite.position = center_x, center_y
     elif stick == "rightstick":
-# ttd confirm these are setting the right buttons:
+# TTD confirm these are setting the right buttons:
         if xvalue > 0.8:
             rt_sprite.visible = True
         elif xvalue < -0.8:
@@ -136,7 +136,7 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
 
 @fightstick.event
 def on_trigger_motion(controller, trigger, value):
-# ttd confirm these are setting the right buttons:
+# TTD confirm these are setting the right buttons:
     if trigger == "lefttrigger":
         if value > 0.8:
             rt_sprite.visible = True
@@ -164,27 +164,13 @@ def on_key_press(key, modifiers):
         else:
             frame.add(config_window)
 
-
-# ttd use this in trigger and stick events above:
-triggerpoint = 0.8
-class triggerpoint:
-    def __init_(self, triggerpoint):
-        self.triggerpoint = triggerpoint
-
-def update_trigger_point(slider):
-    triggerpoint = slider.value
-    deadzone_label = frame.get_element_by_name("triggerpoint")
-    deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-
+# TTD use this in trigger and stick events above:
 
 def remap_buttons(button):
-# ttd add code here to remap buttons
+# TTD add code here to remap buttons
     pass
 
-
 config_layout = VLayout(children=[
-    Label("Analog Trigger Point: {}".format(round(triggerpoint, 2)), name="triggerpoint"),
-    Slider(w=200, min=0.0, max=1.0, value=triggerpoint, action=update_trigger_point),
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
 config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
