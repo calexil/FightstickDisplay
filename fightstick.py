@@ -167,7 +167,7 @@ def on_key_press(key, modifiers):
 
 # ttd use this in trigger and stick events above:
 triggerpoint = 0.8
-class Triggerpoint:
+class triggerpoint:
     def __init_(self, triggerpoint):
         self.triggerpoint = triggerpoint
 
