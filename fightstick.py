@@ -152,7 +152,12 @@ frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
 # TTD: use this in trigger and stick events above ^^^
+class Triggerpoint:
+    def __init__(self, triggerpoint)
+        self.triggerpoint = triggerpoint
+
 TRIGGERPOINT = 0.8
+triggerpoint = TRIGGERPOINT
 
 @window.event
 def on_key_press(key, modifiers):
@@ -164,7 +169,7 @@ def on_key_press(key, modifiers):
             frame.add(config_window)
 
 def update_trigger_point(slider):
-    global TRIGGERPOINT
+    float(triggerpoint)
     TRIGGERPOINT = slider.value
     deadzone_label = frame.get_element_by_name("triggerpoint")
     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
