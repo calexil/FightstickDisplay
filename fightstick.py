@@ -153,7 +153,7 @@ window.push_handlers(frame)
 
 # TTD: use this in trigger and stick events above ^^^
 class Triggerpoint:
-    def __init__(self, triggerpoint)
+    def __init__(self, triggerpoint):
         self.triggerpoint = triggerpoint
 
 TRIGGERPOINT = 0.8
