@@ -1,5 +1,5 @@
 import pyglet
-from simplui import Theme, Frame, Dialogue, Button, VLayout
+from simplui import Theme, Frame, Dialogue,Slider, Button, Label, VLayout
 import sys
 import json
 
@@ -151,6 +151,9 @@ def on_trigger_motion(controller, trigger, value):
 frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
+# TTD: use this in trigger and stick events above ^^^
+TRIGGERPOINT = 0.8
+
 @window.event
 def on_key_press(key, modifiers):
 # Toggle the menu when pressing the space key.
@@ -160,13 +163,19 @@ def on_key_press(key, modifiers):
         else:
             frame.add(config_window)
 
-# TTD use this in trigger and stick events above:
+def update_trigger_point(slider):
+    global TRIGGERPOINT
+    TRIGGERPOINT = slider.value
+    deadzone_label = frame.get_element_by_name("triggerpoint")
+    deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
 
 def remap_buttons(button):
 # TTD add code here to remap buttons
     pass
 
 config_layout = VLayout(children=[
+    Label("Analog Trigger Point: {}".format(round(TRIGGERPOINT, 2)), name="triggerpoint"),
+    Slider(w=200, min=0.0, max=1.0, value=TRIGGERPOINT, action=update_trigger_point),
     Button("Remap Buttons", w=2, action=remap_buttons)
 ])
 config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
