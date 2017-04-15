@@ -164,10 +164,10 @@ def on_key_press(key, modifiers):
             frame.add(config_window)
 
 def update_trigger_point(slider):
-    global TRIGGERPOINT
-    TRIGGERPOINT = slider.value
-    deadzone_label = frame.get_element_by_name("triggerpoint")
-    deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
+    class TRIGGERPOINT:
+        TRIGGERPOINT = slider.value
+        deadzone_label = frame.get_element_by_name("triggerpoint")
+        deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
 
 def remap_buttons(button):
 # TTD add code here to remap buttons
