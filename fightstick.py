@@ -25,7 +25,7 @@ layout = {
 }
 missing_sprite = pyglet.sprite.Sprite(missing_img, *layout['missing'], batch=batch, group=mg)
 missing_sprite.visible = False
-
+#Run the controller check
 if len(controllers) > 0:
     fightstick = controllers[0]
     fightstick.open()
@@ -180,6 +180,7 @@ def update_trigger_point(slider):
     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
     print(triggerpoint)
 #This ^^ is reauired, do not move it
+
 def remap_buttons(button):
 # TTD add code here to remap buttons
     pass
