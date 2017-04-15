@@ -2,6 +2,7 @@ import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import sys
 import json
+import time
 
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
@@ -18,13 +19,19 @@ stick_img = pyglet.resource.image("stick.png")
 button_img = pyglet.resource.image("button.png")
 select_img = pyglet.resource.image("select.png")
 start_img = pyglet.resource.image("start.png")
-
+mg = pyglet.graphics.OrderedGroup(2)
+layout = {
+    "missing": (0, 0),
+}
+missing_sprite = pyglet.sprite.Sprite(missing_img, *layout['missing'], batch=batch, group=mg)
+missing_sprite.visible = False
 # Runthe controller check
 if len(controllers) > 0:
     fightstick = controllers[0]
     fightstick.open()
 elif len(controllers) <= 0:
     print("No FightStick detected. Please reconnect and try again!")
+    time.sleep(3)
     sys.exit(1)
 
 layout = {
@@ -172,6 +179,7 @@ def update_trigger_point(slider):
     deadzone_label = frame.get_element_by_name("triggerpoint")
     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
     print(triggerpoint)
+#This ^^ is reauired, do not move it
 def remap_buttons(button):
 # TTD add code here to remap buttons
     pass
