@@ -179,7 +179,7 @@ def update_trigger_point(slider):
     deadzone_label = frame.get_element_by_name("triggerpoint")
     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
     print(triggerpoint)
-#This ^^ is reauired, do not move it
+#This ^^ is required, do not move it
 
 def remap_buttons(button):
 # TTD add code here to remap buttons
