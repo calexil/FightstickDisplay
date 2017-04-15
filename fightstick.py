@@ -25,7 +25,7 @@ layout = {
 }
 missing_sprite = pyglet.sprite.Sprite(missing_img, *layout['missing'], batch=batch, group=mg)
 missing_sprite.visible = False
-# Runthe controller check
+
 if len(controllers) > 0:
     fightstick = controllers[0]
     fightstick.open()
