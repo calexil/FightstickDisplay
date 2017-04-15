@@ -152,7 +152,7 @@ frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
 # TTD: use this in trigger and stick events above ^^^
-class Triggerpoint:
+class triggerpoint:
     def __init__(self, triggerpoint):
         self.triggerpoint = triggerpoint
 
@@ -171,7 +171,7 @@ def update_trigger_point(slider):
     triggerpoint = slider.value
     deadzone_label = frame.get_element_by_name("triggerpoint")
     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-
+    print(triggerpoint)
 def remap_buttons(button):
 # TTD add code here to remap buttons
     pass
