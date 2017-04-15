@@ -10,10 +10,20 @@ window.set_icon(pyglet.resource.image("icon.png"))
 batch = pyglet.graphics.Batch()
 controllers = pyglet.input.get_game_controllers()
 e = ("Invalid layout.json file. Falling back to default layout.")
+
+# Load some images to be used by the program:
+background_img = pyglet.resource.image("background.png")
+missing_img = pyglet.resource.image("missing.png")
+stick_img = pyglet.resource.image("stick.png")
+button_img = pyglet.resource.image("button.png")
+select_img = pyglet.resource.image("select.png")
+start_img = pyglet.resource.image("start.png")
+
+# Runthe controller check
 if len(controllers) > 0:
     fightstick = controllers[0]
     fightstick.open()
-else:
+elif len(controllers) <= 0:
     print("No FightStick detected. Please reconnect and try again!")
     sys.exit(1)
 
@@ -31,13 +41,6 @@ layout = {
     "lb": (440, 203),
     "rb": (527, 200),
 }
-
-# Load some images to be used by the program:
-background_img = pyglet.resource.image("background.png")
-stick_img = pyglet.resource.image("stick.png")
-button_img = pyglet.resource.image("button.png")
-select_img = pyglet.resource.image("select.png")
-start_img = pyglet.resource.image("start.png")
 
 # Attempt to load in an alternate layout file for different themes:
 def layout_default():
