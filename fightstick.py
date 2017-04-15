@@ -97,7 +97,6 @@ button_mapping = {
 @fightstick.event
 def on_button_press(controller, button):
     pressed_button = button_mapping.get(button)
-# avoid crash if the button is not mapped:
     if pressed_button:
         pressed_button.visible = True
 
@@ -114,16 +113,6 @@ def on_stick_motion(controller, stick, xvalue, yvalue):
         center_x += (xvalue * 50)
         center_y += (yvalue * 50)
         stick_sprite.position = center_x, center_y
-    elif stick == "rightstick":
-# TTD confirm these are setting the right buttons:
-        if xvalue > 0.8:
-            rt_sprite.visible = True
-        elif xvalue < -0.8:
-            rt_sprite.visible = False
-        if yvalue > 0.8:
-            lt_sprite.visible = True
-        elif yvalue < -0.8:
-            lt_sprite.visible = False
 
 @fightstick.event
 def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
@@ -140,7 +129,6 @@ def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
 
 @fightstick.event
 def on_trigger_motion(controller, trigger, value):
-# TTD confirm these are setting the right buttons:
     if trigger == "lefttrigger":
         if value > 0.8:
             rt_sprite.visible = True
@@ -158,7 +146,6 @@ def on_trigger_motion(controller, trigger, value):
 frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
 window.push_handlers(frame)
 
-# TTD: use this in trigger and stick events above ^^^
 class triggerpoint:
     def __init__(self, triggerpoint):
         self.triggerpoint = triggerpoint
@@ -167,7 +154,6 @@ triggerpoint = 0.8
 
 @window.event
 def on_key_press(key, modifiers):
-# Toggle the menu when pressing the space key.
     if key == pyglet.window.key.SPACE:
         if config_window.parent is not None:
             frame.remove(config_window)
