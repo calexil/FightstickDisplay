@@ -2,39 +2,18 @@ import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import sys
 import json
-import time
 
+
+#######################################################
+#   These are constant no matter which scene:
+#######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
-batch = pyglet.graphics.Batch()
-controllers = pyglet.input.get_game_controllers()
-e = ("Invalid layout.json file. Falling back to default layout.")
 
-# Load some images to be used by the program:
-background_img = pyglet.resource.image("background.png")
-missing_img = pyglet.resource.image("missing.png")
-stick_img = pyglet.resource.image("stick.png")
-button_img = pyglet.resource.image("button.png")
-select_img = pyglet.resource.image("select.png")
-start_img = pyglet.resource.image("start.png")
-mg = pyglet.graphics.OrderedGroup(2)
-layout = {
-    "missing": (0, 0),
-}
-missing_sprite = pyglet.sprite.Sprite(missing_img, *layout['missing'], batch=batch, group=mg)
-missing_sprite.visible = False
-#Run the controller check
-if len(controllers) > 0:
-    fightstick = controllers[0]
-    fightstick.open()
-elif len(controllers) <= 0:
-    print("No FightStick detected. Please reconnect and try again!")
-    time.sleep(3)
-    sys.exit(1)
 
-layout = {
+_layout = {
     "background": (0, 0),
     "stick": (119, 155),
     "select": (0, 0),
@@ -49,141 +28,169 @@ layout = {
     "rb": (527, 200),
 }
 
-# Attempt to load in an alternate layout file for different themes:
+
 def layout_default():
+    global _layout
     try:
-        default_layout = layout.copy()
         loaded_layout = json.load(pyglet.resource.file("layout.json"))
+        default_layout = _layout.copy()
         for key in loaded_layout:
             default_layout[key] = loaded_layout[key]
-        layout = default_layout.copy()
+        _layout = default_layout.copy()
     except Exception as e:
         print(e)
 
-# Ordered Groups to handle draw order of the sprites:
-bg = pyglet.graphics.OrderedGroup(0)
-fg = pyglet.graphics.OrderedGroup(1)
 
-# Create all of the sprites for everything. Some are not visible by default:
-pyglet.sprite.Sprite._visible = False
-background_sprite = pyglet.sprite.Sprite(background_img, *layout['background'], batch=batch, group=bg)
-stick_sprite = pyglet.sprite.Sprite(stick_img, *layout['stick'], batch=batch, group=fg)
-select_sprite = pyglet.sprite.Sprite(select_img, *layout['select'], batch=batch, group=fg)
-start_sprite = pyglet.sprite.Sprite(start_img, *layout['start'], batch=batch, group=fg)
-x_sprite = pyglet.sprite.Sprite(button_img, *layout['x'], batch=batch, group=fg)
-y_sprite = pyglet.sprite.Sprite(button_img, *layout['y'], batch=batch, group=fg)
-rb_sprite = pyglet.sprite.Sprite(button_img, *layout['rb'], batch=batch, group=fg)
-lb_sprite = pyglet.sprite.Sprite(button_img, *layout['lb'], batch=batch, group=fg)
-a_sprite = pyglet.sprite.Sprite(button_img, *layout['a'], batch=batch, group=fg)
-b_sprite = pyglet.sprite.Sprite(button_img, *layout['b'], batch=batch, group=fg)
-rt_sprite = pyglet.sprite.Sprite(button_img, *layout['rt'], batch=batch, group=fg)
-lt_sprite = pyglet.sprite.Sprite(button_img, *layout['lt'], batch=batch, group=fg)
-background_sprite.visible = True
-stick_sprite.visible = True
+def _make_sprite(img, pos, batch, group, visible=True):
+    """Helper function to make a sprite"""
+    image = pyglet.resource.image(img)
+    sprite = pyglet.sprite.Sprite(image, *pos, batch=batch, group=group)
+    sprite.visible = visible
+    return sprite
 
-button_mapping = {
-    "a": x_sprite,
-    "b": y_sprite,
-    "x": rb_sprite,
-    "y": lb_sprite,
-    "leftshoulder": a_sprite,
-    "rightshoulder": b_sprite,
-    "righttrigger": rt_sprite,
-    "lefttrigger": lt_sprite,
-    "back": select_sprite,
-    "start": start_sprite,
-}
 
-@fightstick.event
-def on_button_press(controller, button):
-    pressed_button = button_mapping.get(button)
-    if pressed_button:
-        pressed_button.visible = True
+class TryAgainScene:
+    """A scene that tells you to try again if no stick is detected."""
+    def __init__(self, window_instance):
+        self.window = window_instance
+        self.missing_img = pyglet.resource.image("missing.png")
 
-@fightstick.event
-def on_button_release(controller, button):
-    pressed_button = button_mapping.get(button)
-    if pressed_button:
-        pressed_button.visible = False
+        @self.window.event
+        def on_draw():
+            window.clear()
+            self.missing_img.blit(0, 0)
 
-@fightstick.event
-def on_stick_motion(controller, stick, xvalue, yvalue):
-    if stick == "leftstick":
-        center_x, center_y = layout['stick']
-        center_x += (xvalue * 50)
-        center_y += (yvalue * 50)
-        stick_sprite.position = center_x, center_y
 
-@fightstick.event
-def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
-    center_x, center_y = layout["stick"]
-    if dpup:
-        center_y += 50
-    elif dpdown:
-        center_y -= 50
-    if dpleft:
-        center_x -= 50
-    elif dpright:
-        center_x += 50
-    stick_sprite.position = center_x, center_y
+class MainScene:
+    """The main cene, with all fightstick events wired up."""
+    def __init__(self, window_instance, fightstick):
+        self.window = window_instance
+        self.batch = pyglet.graphics.Batch()
+        self.fightstick = fightstick
+        self.fightstick.open()
 
-@fightstick.event
-def on_trigger_motion(controller, trigger, value):
-    if trigger == "lefttrigger":
-        if value > 0.8:
-            rt_sprite.visible = True
-        elif value < -0.8:
-            rt_sprite.visible = False
-    if trigger == "righttrigger":
-        if value > 0.8:
-            lt_sprite.visible = True
-        elif value < -0.8:
-            lt_sprite.visible = False
+        # Ordered Groups to handle draw order of the sprites:
+        self.bg = pyglet.graphics.OrderedGroup(0)
+        self.fg = pyglet.graphics.OrderedGroup(1)
 
-####################################################
-#   User interface starts here:
-####################################################
-frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
-window.push_handlers(frame)
+        # Create all sprites using helper function (image name, position, batch, group, visible):
+        self.background = _make_sprite("background.png", _layout['background'], self.batch, self.bg)
+        self.stick_spr = _make_sprite("stick.png", _layout['stick'], self.batch, self.fg)
+        self.select_spr = _make_sprite("select.png", _layout['select'], self.batch, self.fg, False)
+        self.start_spr = _make_sprite("start.png", _layout['start'], self.batch, self.fg, False)
+        self.x_spr = _make_sprite("button.png", _layout['x'], self.batch, self.fg, False)
+        self.y_spr = _make_sprite("button.png", _layout['y'], self.batch, self.fg, False)
+        self.a_spr = _make_sprite("button.png", _layout['a'], self.batch, self.fg, False)
+        self.b_spr = _make_sprite("button.png", _layout['b'], self.batch, self.fg, False)
+        self.lb_spr = _make_sprite("button.png", _layout['lb'], self.batch, self.fg, False)
+        self.rb_spr = _make_sprite("button.png", _layout['rb'], self.batch, self.fg, False)
+        self.rt_spr = _make_sprite("button.png", _layout['lt'], self.batch, self.fg, False)
+        self.lt_spr = _make_sprite("button.png", _layout['rt'], self.batch, self.fg, False)
 
-class triggerpoint:
-    def __init__(self, triggerpoint):
-        self.triggerpoint = triggerpoint
+        button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
+                          "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
+                          "righttrigger": self.rt_spr,"lefttrigger": self.lt_spr,
+                          "back": self.select_spr, "start": self.start_spr}
 
-triggerpoint = 0.8
+        @self.window.event
+        def on_draw():
+            window_instance.clear()
+            self.batch.draw()
 
-@window.event
-def on_key_press(key, modifiers):
-    if key == pyglet.window.key.SPACE:
-        if config_window.parent is not None:
-            frame.remove(config_window)
-        else:
-            frame.add(config_window)
+        @fightstick.event
+        def on_button_press(controller, button):
+            pressed_button = button_mapping.get(button)
+            if pressed_button:
+                pressed_button.visible = True
 
-def update_trigger_point(slider):
-    triggerpoint = slider.value
-    deadzone_label = frame.get_element_by_name("triggerpoint")
-    deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-    print(triggerpoint)
-#This ^^ is required, do not move it
+        @fightstick.event
+        def on_button_release(controller, button):
+            pressed_button = button_mapping.get(button)
+            if pressed_button:
+                pressed_button.visible = False
 
-def remap_buttons(button):
-# TTD add code here to remap buttons
-    pass
+        @fightstick.event
+        def on_stick_motion(controller, stick, xvalue, yvalue):
+            if stick == "leftstick":
+                center_x, center_y = _layout['stick']
+                center_x += (xvalue * 50)
+                center_y += (yvalue * 50)
+                self.stick_spr.position = center_x, center_y
 
-config_layout = VLayout(children=[
-    Label("Analog Trigger Point: {}".format(round(triggerpoint, 2)), name="triggerpoint"),
-    Slider(w=200, min=0.0, max=1.0, value=triggerpoint, action=update_trigger_point),
-    Button("Remap Buttons", w=2, action=remap_buttons)
-])
-config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
+        @fightstick.event
+        def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
+            center_x, center_y = _layout["stick"]
+            if dpup:
+                center_y += 50
+            elif dpdown:
+                center_y -= 50
+            if dpleft:
+                center_x -= 50
+            elif dpright:
+                center_x += 50
+            self.stick_spr.position = center_x, center_y
 
-@window.event
-def on_draw():
-    window.clear()
-    batch.draw()
-    frame.draw()
+        @fightstick.event
+        def on_trigger_motion(controller, trigger, value):
+            if trigger == "lefttrigger":
+                if value > 0.8:
+                    self.rt_spr.visible = True
+                elif value < -0.8:
+                    self.rt_spr.visible = False
+            if trigger == "righttrigger":
+                if value > 0.8:
+                    self.lt_spr.visible = True
+                elif value < -0.8:
+                    self.lt_spr.visible = False
+
+    # ####################################################
+    # #   User interface starts here:
+    # ####################################################
+    # frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
+    # window.push_handlers(frame)
+    #
+    # class triggerpoint:
+    #     def __init__(self, triggerpoint):
+    #         self.triggerpoint = triggerpoint
+    #
+    # triggerpoint = 0.8
+    #
+    # @window.event
+    # def on_key_press(key, modifiers):
+    #     if key == pyglet.window.key.SPACE:
+    #         if config_window.parent is not None:
+    #             frame.remove(config_window)
+    #         else:
+    #             frame.add(config_window)
+    #
+    # def update_trigger_point(slider):
+    #     triggerpoint = slider.value
+    #     deadzone_label = frame.get_element_by_name("triggerpoint")
+    #     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
+    #     print(triggerpoint)
+    # #This ^^ is required, do not move it
+    #
+    # def remap_buttons(button):
+    # # TTD add code here to remap buttons
+    #     pass
+    #
+    # config_layout = VLayout(children=[
+    #     Label("Analog Trigger Point: {}".format(round(triggerpoint, 2)), name="triggerpoint"),
+    #     Slider(w=200, min=0.0, max=1.0, value=triggerpoint, action=update_trigger_point),
+    #     Button("Remap Buttons", w=2, action=remap_buttons)
+    # ])
+    # config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
+
 
 if __name__ == "__main__":
+    controllers = pyglet.input.get_game_controllers()
+
+    # Load up either the full scene, or just the "try again" scene.
+    if len(controllers) > 0:
+        controller = controllers[0]
+        scene = MainScene(window, controller)
+    elif len(controllers) <= 0:
+        scene = TryAgainScene(window)
+
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
