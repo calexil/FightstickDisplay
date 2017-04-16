@@ -92,11 +92,6 @@ class MainScene:
                           "righttrigger": self.rt_spr,"lefttrigger": self.lt_spr,
                           "back": self.select_spr, "start": self.start_spr}
 
-        @self.window.event
-        def on_draw():
-            window_instance.clear()
-            self.batch.draw()
-
         @fightstick.event
         def on_button_press(controller, button):
             pressed_button = button_mapping.get(button)
@@ -113,8 +108,10 @@ class MainScene:
         def on_stick_motion(controller, stick, xvalue, yvalue):
             if stick == "leftstick":
                 center_x, center_y = _layout['stick']
-                center_x += (xvalue * 50)
-                center_y += (yvalue * 50)
+                if abs(xvalue) > self.deadzone:
+                    center_x += (xvalue * 50)
+                if abs(yvalue) > self.deadzone:
+                    center_y += (yvalue * 50)
                 self.stick_spr.position = center_x, center_y
 
         @fightstick.event
@@ -133,53 +130,56 @@ class MainScene:
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
             if trigger == "lefttrigger":
-                if value > 0.8:
+                if value > self.triggerpoint:
                     self.rt_spr.visible = True
-                elif value < -0.8:
+                elif value < -self.triggerpoint:
                     self.rt_spr.visible = False
             if trigger == "righttrigger":
-                if value > 0.8:
+                if value > self.triggerpoint:
                     self.lt_spr.visible = True
-                elif value < -0.8:
+                elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
 
-    # ####################################################
-    # #   User interface starts here:
-    # ####################################################
-    # frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
-    # window.push_handlers(frame)
-    #
-    # class triggerpoint:
-    #     def __init__(self, triggerpoint):
-    #         self.triggerpoint = triggerpoint
-    #
-    # triggerpoint = 0.8
-    #
-    # @window.event
-    # def on_key_press(key, modifiers):
-    #     if key == pyglet.window.key.SPACE:
-    #         if config_window.parent is not None:
-    #             frame.remove(config_window)
-    #         else:
-    #             frame.add(config_window)
-    #
-    # def update_trigger_point(slider):
-    #     triggerpoint = slider.value
-    #     deadzone_label = frame.get_element_by_name("triggerpoint")
-    #     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-    #     print(triggerpoint)
-    # #This ^^ is required, do not move it
-    #
-    # def remap_buttons(button):
-    # # TTD add code here to remap buttons
-    #     pass
-    #
-    # config_layout = VLayout(children=[
-    #     Label("Analog Trigger Point: {}".format(round(triggerpoint, 2)), name="triggerpoint"),
-    #     Slider(w=200, min=0.0, max=1.0, value=triggerpoint, action=update_trigger_point),
-    #     Button("Remap Buttons", w=2, action=remap_buttons)
-    # ])
-    # config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
+        ####################################################
+        #   User interface starts here:
+        ####################################################
+        self.triggerpoint = 0.8
+        self.deadzone = 0.2
+        self.frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
+        self.window.push_handlers(self.frame)
+
+        @self.window.event
+        def on_key_press(key, modifiers):
+            if key == pyglet.window.key.SPACE:
+                if config_window.parent is not None:
+                    self.frame.remove(config_window)
+                else:
+                    self.frame.add(config_window)
+
+        def update_trigger_point(slider):
+            self.triggerpoint = slider.value
+            deadzone_label = self.frame.get_element_by_name("triggerpoint")
+            deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
+
+        def remap_buttons(button):
+            # TTD add code here to remap buttons
+            pass
+
+        config_layout = VLayout(children=[
+            Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
+            Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
+            Button("Remap Buttons", w=2, action=remap_buttons)
+        ])
+        config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
+
+        ###################################################
+        #   Window event to draw everything when necessary:
+        ###################################################
+        @self.window.event
+        def on_draw():
+            window_instance.clear()
+            self.batch.draw()
+            self.frame.draw()
 
 
 if __name__ == "__main__":
