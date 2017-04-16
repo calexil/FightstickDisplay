@@ -157,20 +157,27 @@ class MainScene:
                     self.frame.add(config_window)
 
         def update_trigger_point(slider):
-            self.triggerpoint = slider.value
+            self.triggerpoint = round(slider.value, 2)
             deadzone_label = self.frame.get_element_by_name("triggerpoint")
-            deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
+            deadzone_label.text = "Analog Trigger Point: {}".format(self.triggerpoint)
+
+        def update_stick_deadzone(slider):
+            self.deadzone = round(slider.value, 2)
+            deadzone_label = self.frame.get_element_by_name("deadzone")
+            deadzone_label.text = "Analog Stick Deadzone: {}".format(self.deadzone)
 
         def remap_buttons(button):
             # TTD add code here to remap buttons
             pass
 
         config_layout = VLayout(children=[
-            Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
-            Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
+            Label("Analog Trigger Point: {}".format(self.triggerpoint), name="triggerpoint"),
+            Slider(w=235, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
+            Label("Analog Stick Deadzone: {}".format(self.deadzone), name="deadzone"),
+            Slider(w=235, min=0.0, max=1.0, value=self.deadzone, action=update_stick_deadzone),
             Button("Remap Buttons", w=2, action=remap_buttons)
         ])
-        config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
+        config_window = Dialogue("Configuration", name="config_window", x=380, y=360, content=config_layout)
 
         ###################################################
         #   Window event to draw everything when necessary:
