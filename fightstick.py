@@ -1,6 +1,5 @@
 import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
-import sys
 import json
 
 
@@ -89,7 +88,7 @@ class MainScene:
 
         button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
                           "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
-                          "righttrigger": self.rt_spr,"lefttrigger": self.lt_spr,
+                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                           "back": self.select_spr, "start": self.start_spr}
 
         @fightstick.event
