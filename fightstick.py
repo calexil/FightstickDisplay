@@ -2,7 +2,6 @@ import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import json
 
-
 #######################################################
 #   These are constant no matter which scene:
 #######################################################
@@ -10,7 +9,6 @@ pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
-
 
 _layout = {
     "background": (0, 0),
