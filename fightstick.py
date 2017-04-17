@@ -1,11 +1,6 @@
 import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import json
-import io
-try:
-    to_unicode = unicode
-except NameError:
-    to_unicode = str
 
 #######################################################
 #   These are constant no matter which scene:
@@ -166,7 +161,9 @@ class MainScene:
 
         def remap_buttons(button):
             # TTD add code here to remap buttons
-            pass
+            with open('layout.json') as data_file:
+                data_loaded = json.load(data_file)
+            print (data == data_loaded)
 
         config_layout = VLayout(children=[
             Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
