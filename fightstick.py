@@ -163,7 +163,7 @@ class MainScene:
             # TTD add code here to remap buttons
             with open('layout.json') as data_file:
                 data_loaded = json.load(data_file)
-            print (data == data_loaded)
+            print (data_loaded)
 
         config_layout = VLayout(children=[
             Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
