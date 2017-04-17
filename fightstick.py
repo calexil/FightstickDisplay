@@ -1,5 +1,5 @@
 import pyglet
-from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
+from simplui import Theme, Frame, Dialogue, Slider, Label, VLayout
 import json
 
 #######################################################
@@ -90,6 +90,7 @@ class MainScene:
                           "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                           "back": self.select_spr, "start": self.start_spr}
 
+
         @fightstick.event
         def on_button_press(controller, button):
             pressed_button = button_mapping.get(button)
@@ -159,16 +160,10 @@ class MainScene:
             deadzone_label = self.frame.get_element_by_name("triggerpoint")
             deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
 
-        def remap_buttons(button):
-            # TTD add code here to remap buttons
-            with open('layout.json') as data_file:
-                data_loaded = json.load(data_file)
-            print (data_loaded)
 
         config_layout = VLayout(children=[
             Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
             Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
-            Button("Remap Buttons", w=2, action=remap_buttons)
         ])
         config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
