@@ -1,6 +1,11 @@
 import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
 import json
+import io
+try:
+    to_unicode = unicode
+except NameError:
+    to_unicode = str
 
 #######################################################
 #   These are constant no matter which scene:
