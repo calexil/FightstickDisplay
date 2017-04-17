@@ -10,9 +10,10 @@ A simple program written in python to display fightstick inputs.
 **Linux**
 * Clone the git  
 `git clone https://github.com/calexil/FightstickDisplay.git`
-* Make a launcher with fightstick.sh as the start script.
-* Edit the ..theme/layout.json to your liking to get the buttons displaying correctly if they are not.
-* To bring up the menu hit **spacebar**.
+* If you desire, make a launcher with fightstick.sh as the start script.
+* To bring up the deadzone menu hit **Spacebar**.
+* Basically all fightsticks should be mapped correctly by default, but if yours is not
+simply open the **theme/layout.json** file and tinker with it until its mapped correctly. Usually only the rt/lt/rb/lb buttons get mixed up a little
 * Enjoy
 
 # Current Version
