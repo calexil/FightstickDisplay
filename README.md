@@ -17,7 +17,7 @@ simply open the **theme/layout.json** file and tinker with it until its mapped c
 * Enjoy
 
 # Current Version
-Beta 1.2 [**Watch it in action here**](https://twitch.tv/calexil)
+Beta 1.3 [**Watch it in action here**](https://twitch.tv/calexil)
 # Contributors:
 * [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)
