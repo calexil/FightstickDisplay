@@ -1,6 +1,6 @@
 import pyglet
 from simplui import Theme, Frame, Dialogue, Slider, Label, VLayout
-import json
+from configparser import ConfigParser
 
 #######################################################
 #   These are constant no matter which scene:
@@ -9,7 +9,8 @@ pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
-e = ("Invalid layout.json file. Falling back to default layout.")
+config = ConfigParser()
+
 
 _layout = {
     "background": (0, 0),
@@ -26,17 +27,39 @@ _layout = {
     "rb": (527, 200),
 }
 
+_images = {
+    'background': 'background.png',
+    'stick': 'stick.png',
+    'select': 'select.png',
+    'start': 'start.png',
+    'x': 'button.png',
+    'y': 'button.png',
+    'lt': 'button.png',
+    'rt': 'button.png',
+    'a': 'button.png',
+    'b': 'button.png',
+    'lb': 'button.png',
+    'rb': 'button.png',
+}
 
-def layout_default():
-    global _layout
-    try:
-        loaded_layout = json.load(pyglet.resource.file("layout.json"))
-        default_layout = _layout.copy()
-        for key in loaded_layout:
-            default_layout[key] = loaded_layout[key]
-        _layout = default_layout.copy()
-    except Exception as e:
-        print(e)
+
+def load_configuration():
+    global _layout, _images
+    lyout = _layout.copy()
+    images = _images.copy()
+    loaded_configs = config.read('theme/layout.ini')
+    if len(loaded_configs) > 0:
+        try:
+            for key, value in config['layout'].items():
+                lyout[key] = value
+            for key, value in config['images'].items():
+                images[key] = value
+            _layout = lyout.copy()
+            _images = images.copy()
+        except KeyError:
+            print("Invalid theme/layout.ini file. Falling back to default.")
+    else:
+        print("No theme/layout.ini file found. Falling back to default.")
 
 
 def _make_sprite(img, pos, batch, group, visible=True):
@@ -89,7 +112,6 @@ class MainScene:
                           "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
                           "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                           "back": self.select_spr, "start": self.start_spr}
-
 
         @fightstick.event
         def on_button_press(controller, button):
@@ -160,7 +182,6 @@ class MainScene:
             deadzone_label = self.frame.get_element_by_name("triggerpoint")
             deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
 
-
         config_layout = VLayout(children=[
             Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
             Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
@@ -178,6 +199,7 @@ class MainScene:
 
 
 if __name__ == "__main__":
+    load_configuration()
     controllers = pyglet.input.get_game_controllers()
 
     # Load up either the full scene, or just the "try again" scene.
