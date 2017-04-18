@@ -207,7 +207,7 @@ if __name__ == "__main__":
     if len(controllers) > 0:
         controller = controllers[0]
         scene = MainScene(window, controller)
-    elif len(controllers) <= 0:
+    else:
         scene = TryAgainScene(window)
 
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
