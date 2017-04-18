@@ -62,10 +62,11 @@ def load_configuration():
         print("No theme/layout.ini file found. Falling back to default.")
 
 
-def _make_sprite(img, pos, batch, group, visible=True):
+def _make_sprite(name, batch, group, visible=True):
     """Helper function to make a sprite"""
-    image = pyglet.resource.image(img)
-    sprite = pyglet.sprite.Sprite(image, *pos, batch=batch, group=group)
+    image = pyglet.resource.image(_images[name])
+    position = _layout[name]
+    sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
     sprite.visible = visible
     return sprite
 
@@ -94,19 +95,19 @@ class MainScene:
         self.bg = pyglet.graphics.OrderedGroup(0)
         self.fg = pyglet.graphics.OrderedGroup(1)
 
-        # Create all sprites using helper function (image name, position, batch, group, visible):
-        self.background = _make_sprite("background.png", _layout['background'], self.batch, self.bg)
-        self.stick_spr = _make_sprite("stick.png", _layout['stick'], self.batch, self.fg)
-        self.select_spr = _make_sprite("select.png", _layout['select'], self.batch, self.fg, False)
-        self.start_spr = _make_sprite("start.png", _layout['start'], self.batch, self.fg, False)
-        self.x_spr = _make_sprite("button.png", _layout['x'], self.batch, self.fg, False)
-        self.y_spr = _make_sprite("button.png", _layout['y'], self.batch, self.fg, False)
-        self.a_spr = _make_sprite("button.png", _layout['a'], self.batch, self.fg, False)
-        self.b_spr = _make_sprite("button.png", _layout['b'], self.batch, self.fg, False)
-        self.lb_spr = _make_sprite("button.png", _layout['lb'], self.batch, self.fg, False)
-        self.rb_spr = _make_sprite("button.png", _layout['rb'], self.batch, self.fg, False)
-        self.rt_spr = _make_sprite("button.png", _layout['lt'], self.batch, self.fg, False)
-        self.lt_spr = _make_sprite("button.png", _layout['rt'], self.batch, self.fg, False)
+        # Create all sprites using helper function (name, batch, group, visible):
+        self.background = _make_sprite('background', self.batch, self.bg)
+        self.stick_spr = _make_sprite('stick', self.batch, self.fg)
+        self.select_spr = _make_sprite('select', self.batch, self.fg, False)
+        self.start_spr = _make_sprite('start', self.batch, self.fg, False)
+        self.x_spr = _make_sprite('x', self.batch, self.fg, False)
+        self.y_spr = _make_sprite('y', self.batch, self.fg, False)
+        self.a_spr = _make_sprite('a', self.batch, self.fg, False)
+        self.b_spr = _make_sprite('b', self.batch, self.fg, False)
+        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
+        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
+        self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
+        self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
 
         button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
                           "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
