@@ -4,7 +4,7 @@ A simple program written in python to display fightstick inputs.
 # Screenshot
 ![Alt text](/theme/fightstick.gif?raw=true)
 # Prerequisites
-* python3
+* python(2.7+)
 
 # Installation & Usage
 **Linux**
