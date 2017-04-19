@@ -15,8 +15,8 @@ config = ConfigParser()
 _layout = {
     "background": (0, 0),
     "stick": (119, 155),
-    "select": (0, 0),
-    "start": (0, 0),
+    "select": (50, 319),
+    "start": (50, 319),
     "x": (256, 84),
     "y": (336, 114),
     "lt": (421, 113),
