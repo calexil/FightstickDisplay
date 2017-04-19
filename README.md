@@ -7,7 +7,6 @@
 * python(2.7+)
 
 # Installation & Usage
-**Linux**
 * Clone the git  
 `git clone https://github.com/calexil/FightstickDisplay.git`
 * If you desire, make a launcher with fightstick.sh as the start script.
@@ -20,7 +19,7 @@ at all, let us know!
 * Enjoy
 
 # Current Version
-Beta 1.3 [**Watch it in action here**](https://twitch.tv/calexil)
+1.0rc [**Watch it in action here**](https://twitch.tv/calexil)
 # Contributors:
 * [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)

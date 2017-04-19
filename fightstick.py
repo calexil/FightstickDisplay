@@ -84,7 +84,7 @@ class TryAgainScene:
 
 
 class MainScene:
-    """The main cene, with all fightstick events wired up."""
+    """The main scene, with all fightstick events wired up."""
     def __init__(self, window_instance, fightstick):
         self.window = window_instance
         self.batch = pyglet.graphics.Batch()
