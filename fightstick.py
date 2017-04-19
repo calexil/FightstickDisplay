@@ -15,8 +15,8 @@ config = ConfigParser()
 _layout = {
     "background": (0, 0),
     "stick": (119, 155),
-    "select": (0, 0),
-    "start": (0, 0),
+    "select": (50, 319),
+    "start": (50, 319),
     "x": (256, 84),
     "y": (336, 114),
     "lt": (421, 113),
@@ -45,16 +45,16 @@ _images = {
 
 def load_configuration():
     global _layout, _images
-    lyout = _layout.copy()
+    layout = _layout.copy()
     images = _images.copy()
     loaded_configs = config.read('theme/layout.ini')
     if len(loaded_configs) > 0:
         try:
             for key, value in config['layout'].items():
-                lyout[key] = value
+                layout[key] = value
             for key, value in config['images'].items():
                 images[key] = value
-            _layout = lyout.copy()
+            _layout = layout.copy()
             _images = images.copy()
         except KeyError:
             print("Invalid theme/layout.ini file. Falling back to default.")
@@ -84,7 +84,7 @@ class TryAgainScene:
 
 
 class MainScene:
-    """The main cene, with all fightstick events wired up."""
+    """The main scene, with all fightstick events wired up."""
     def __init__(self, window_instance, fightstick):
         self.window = window_instance
         self.batch = pyglet.graphics.Batch()
@@ -200,7 +200,7 @@ class MainScene:
 
 
 if __name__ == "__main__":
-    load_configuration()
+#    load_configuration()
     controllers = pyglet.input.get_game_controllers()
 
     # Load up either the full scene, or just the "try again" scene.

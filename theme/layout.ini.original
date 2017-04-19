@@ -1,8 +1,9 @@
+#This section can be edited to fix mis-mapped buttons.
 [layout]
 background = [0, 0]
 stick = [119, 155]
-select = [0, 0]
-start = [0, 0]
+select = [50, 319]
+start = [50, 319]
 x = [256, 84]
 y = [336, 114]
 lt = [507, 110]
@@ -12,6 +13,7 @@ b = [354, 204]
 lb = [440, 203]
 rb = [527, 200]
 
+#Here you can set your own custom images.
 [images]
 background = background.png
 stick = stick.png
