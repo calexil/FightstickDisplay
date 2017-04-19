@@ -1,8 +1,6 @@
 import pyglet
-from simplui import Theme, Frame, Dialogue, Slider, Button, Label, VLayout
-import sys
-import json
-
+from simplui import Theme, Frame, Dialogue, Slider, Label, VLayout
+from configparser import ConfigParser
 
 #######################################################
 #   These are constant no matter which scene:
@@ -11,6 +9,7 @@ pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
+config = ConfigParser()
 
 
 _layout = {
@@ -20,31 +19,54 @@ _layout = {
     "start": (0, 0),
     "x": (256, 84),
     "y": (336, 114),
-    "rt": (421, 113),
-    "lt": (507, 110),
+    "lt": (421, 113),
+    "rt": (507, 110),
     "a": (275, 174),
     "b": (354, 204),
     "lb": (440, 203),
     "rb": (527, 200),
 }
 
+_images = {
+    'background': 'background.png',
+    'stick': 'stick.png',
+    'select': 'select.png',
+    'start': 'start.png',
+    'x': 'button.png',
+    'y': 'button.png',
+    'lt': 'button.png',
+    'rt': 'button.png',
+    'a': 'button.png',
+    'b': 'button.png',
+    'lb': 'button.png',
+    'rb': 'button.png',
+}
 
-def layout_default():
-    global _layout
-    try:
-        loaded_layout = json.load(pyglet.resource.file("layout.json"))
-        default_layout = _layout.copy()
-        for key in loaded_layout:
-            default_layout[key] = loaded_layout[key]
-        _layout = default_layout.copy()
-    except Exception as e:
-        print(e)
+
+def load_configuration():
+    global _layout, _images
+    lyout = _layout.copy()
+    images = _images.copy()
+    loaded_configs = config.read('theme/layout.ini')
+    if len(loaded_configs) > 0:
+        try:
+            for key, value in config['layout'].items():
+                lyout[key] = value
+            for key, value in config['images'].items():
+                images[key] = value
+            _layout = lyout.copy()
+            _images = images.copy()
+        except KeyError:
+            print("Invalid theme/layout.ini file. Falling back to default.")
+    else:
+        print("No theme/layout.ini file found. Falling back to default.")
 
 
-def _make_sprite(img, pos, batch, group, visible=True):
+def _make_sprite(name, batch, group, visible=True):
     """Helper function to make a sprite"""
-    image = pyglet.resource.image(img)
-    sprite = pyglet.sprite.Sprite(image, *pos, batch=batch, group=group)
+    image = pyglet.resource.image(_images[name])
+    position = _layout[name]
+    sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
     sprite.visible = visible
     return sprite
 
@@ -73,23 +95,23 @@ class MainScene:
         self.bg = pyglet.graphics.OrderedGroup(0)
         self.fg = pyglet.graphics.OrderedGroup(1)
 
-        # Create all sprites using helper function (image name, position, batch, group, visible):
-        self.background = _make_sprite("background.png", _layout['background'], self.batch, self.bg)
-        self.stick_spr = _make_sprite("stick.png", _layout['stick'], self.batch, self.fg)
-        self.select_spr = _make_sprite("select.png", _layout['select'], self.batch, self.fg, False)
-        self.start_spr = _make_sprite("start.png", _layout['start'], self.batch, self.fg, False)
-        self.x_spr = _make_sprite("button.png", _layout['x'], self.batch, self.fg, False)
-        self.y_spr = _make_sprite("button.png", _layout['y'], self.batch, self.fg, False)
-        self.a_spr = _make_sprite("button.png", _layout['a'], self.batch, self.fg, False)
-        self.b_spr = _make_sprite("button.png", _layout['b'], self.batch, self.fg, False)
-        self.lb_spr = _make_sprite("button.png", _layout['lb'], self.batch, self.fg, False)
-        self.rb_spr = _make_sprite("button.png", _layout['rb'], self.batch, self.fg, False)
-        self.rt_spr = _make_sprite("button.png", _layout['lt'], self.batch, self.fg, False)
-        self.lt_spr = _make_sprite("button.png", _layout['rt'], self.batch, self.fg, False)
+        # Create all sprites using helper function (name, batch, group, visible):
+        self.background = _make_sprite('background', self.batch, self.bg)
+        self.stick_spr = _make_sprite('stick', self.batch, self.fg)
+        self.select_spr = _make_sprite('select', self.batch, self.fg, False)
+        self.start_spr = _make_sprite('start', self.batch, self.fg, False)
+        self.x_spr = _make_sprite('x', self.batch, self.fg, False)
+        self.y_spr = _make_sprite('y', self.batch, self.fg, False)
+        self.a_spr = _make_sprite('a', self.batch, self.fg, False)
+        self.b_spr = _make_sprite('b', self.batch, self.fg, False)
+        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
+        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
+        self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
+        self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
 
         button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
                           "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
-                          "righttrigger": self.rt_spr,"lefttrigger": self.lt_spr,
+                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                           "back": self.select_spr, "start": self.start_spr}
 
         @fightstick.event
@@ -157,27 +179,15 @@ class MainScene:
                     self.frame.add(config_window)
 
         def update_trigger_point(slider):
-            self.triggerpoint = round(slider.value, 2)
+            self.triggerpoint = slider.value
             deadzone_label = self.frame.get_element_by_name("triggerpoint")
-            deadzone_label.text = "Analog Trigger Point: {}".format(self.triggerpoint)
-
-        def update_stick_deadzone(slider):
-            self.deadzone = round(slider.value, 2)
-            deadzone_label = self.frame.get_element_by_name("deadzone")
-            deadzone_label.text = "Analog Stick Deadzone: {}".format(self.deadzone)
-
-        def remap_buttons(button):
-            # TTD add code here to remap buttons
-            pass
+            deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
 
         config_layout = VLayout(children=[
-            Label("Analog Trigger Point: {}".format(self.triggerpoint), name="triggerpoint"),
-            Slider(w=235, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
-            Label("Analog Stick Deadzone: {}".format(self.deadzone), name="deadzone"),
-            Slider(w=235, min=0.0, max=1.0, value=self.deadzone, action=update_stick_deadzone),
-            Button("Remap Buttons", w=2, action=remap_buttons)
+            Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
+            Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
         ])
-        config_window = Dialogue("Configuration", name="config_window", x=380, y=360, content=config_layout)
+        config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
         ###################################################
         #   Window event to draw everything when necessary:
@@ -190,13 +200,14 @@ class MainScene:
 
 
 if __name__ == "__main__":
+    load_configuration()
     controllers = pyglet.input.get_game_controllers()
 
     # Load up either the full scene, or just the "try again" scene.
     if len(controllers) > 0:
         controller = controllers[0]
         scene = MainScene(window, controller)
-    elif len(controllers) <= 0:
+    else:
         scene = TryAgainScene(window)
 
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)

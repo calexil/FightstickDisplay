@@ -1,6 +1,5 @@
 # FightstickDisplay [![CodeFactor](https://www.codefactor.io/repository/github/calexil/fightstickdisplay/badge)](https://www.codefactor.io/repository/github/calexil/fightstickdisplay)  [![GitHub forks](https://img.shields.io/github/forks/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/network)  [![GitHub stars](https://img.shields.io/github/stars/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/stargazers)  [![GitHub issues](https://img.shields.io/github/issues/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/issues)
 
-
 A simple program written in python to display fightstick inputs.
 # Screenshot
 ![Alt text](/theme/fightstick.gif?raw=true)
@@ -11,16 +10,16 @@ A simple program written in python to display fightstick inputs.
 **Linux**
 * Clone the git  
 `git clone https://github.com/calexil/FightstickDisplay.git`
-* Make a launcher with fightstick.sh as the start script.
-* Edit the ..theme/layout.json to your liking to get the buttons displaying correctly if they are not.
-* To bring up the menu hit **spacebar**.
+* If you desire, make a launcher with fightstick.sh as the start script.
+* To bring up the deadzone menu hit **Spacebar**.
+* Most fightsticks will be mapped correctly by default, but if yours is not
+simply open the **theme/layout.ini** file and tinker with it until its mapped correctly.
+Usually only the rt/lt/rb/lb buttons get mixed up a little. If your fightstick is not detected
+at all, let us know!
 * Enjoy
 
-**Windoze**
-* Install Linux
-* See above
 # Current Version
-Beta 1.2 [**Watch it in action here**](https://twitch.tv/calexil)
+Beta 1.3 [**Watch it in action here**](https://twitch.tv/calexil)
 # Contributors:
 * [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)
