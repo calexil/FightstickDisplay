@@ -16,6 +16,7 @@ A simple program written in python to display fightstick inputs.
 simply open the **theme/layout.ini** file and tinker with it until its mapped correctly.
 Usually only the rt/lt/rb/lb buttons get mixed up a little. If your fightstick is not detected
 at all, let us know!
+* You can also use your own images for all items, and if you like different color buttons, just be sure to edit the image names to match in the main program
 * Enjoy
 
 # Current Version
