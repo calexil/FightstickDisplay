@@ -1,6 +1,6 @@
-# FightstickDisplay [![CodeFactor](https://www.codefactor.io/repository/github/calexil/fightstickdisplay/badge)](https://www.codefactor.io/repository/github/calexil/fightstickdisplay)  [![GitHub forks](https://img.shields.io/github/forks/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/network)  [![GitHub stars](https://img.shields.io/github/stars/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/stargazers)  [![GitHub issues](https://img.shields.io/github/issues/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/issues)
+# Fightstick Display [![CodeFactor](https://www.codefactor.io/repository/github/calexil/fightstickdisplay/badge)](https://www.codefactor.io/repository/github/calexil/fightstickdisplay)  [![GitHub forks](https://img.shields.io/github/forks/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/network)  [![GitHub stars](https://img.shields.io/github/stars/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/stargazers)  [![GitHub issues](https://img.shields.io/github/issues/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/issues)
 
-A simple program written in python to display fightstick inputs.
+**A simple program written in python to display fightstick inputs.**
 # Screenshot
 ![Alt text](/theme/fightstick.gif?raw=true)
 # Prerequisites
