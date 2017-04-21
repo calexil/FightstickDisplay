@@ -11,7 +11,6 @@ window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 
-
 _layout = {
     "background": (0, 0),
     "stick": (119, 155),
@@ -42,7 +41,6 @@ _images = {
     'rb': 'button.png',
 }
 
-
 def load_configuration():
     global _layout, _images
     layout = _layout.copy()
@@ -62,7 +60,6 @@ def load_configuration():
     else:
         print("No theme/layout.ini file found. Falling back to default.")
 
-
 def _make_sprite(name, batch, group, visible=True):
     """Helper function to make a sprite"""
     image = pyglet.resource.image(_images[name])
@@ -70,7 +67,6 @@ def _make_sprite(name, batch, group, visible=True):
     sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
     sprite.visible = visible
     return sprite
-
 
 class TryAgainScene:
     """A scene that tells you to try again if no stick is detected."""
@@ -82,7 +78,6 @@ class TryAgainScene:
         def on_draw():
             window.clear()
             self.missing_img.blit(0, 0)
-
 
 class MainScene:
     """The main scene, with all fightstick events wired up."""
@@ -198,7 +193,6 @@ class MainScene:
             window_instance.clear()
             self.batch.draw()
             self.frame.draw()
-
 
 if __name__ == "__main__":
     load_configuration()
