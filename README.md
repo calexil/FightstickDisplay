@@ -21,7 +21,7 @@ at all, **[let us know!](https://github.com/calexil/FightstickDisplay/issues/new
 # Current Version
 1.0rc [**Watch it in action here**](https://twitch.tv/calexil)
 # Contributors:
-* [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)
+* [calexil](https://github.com/calexil)
 * [Scootadash](https://www.reddit.com/user/wonderful72pike) 
 * [ShaggyTwoDope](https://github.com/shaggytwodope)
