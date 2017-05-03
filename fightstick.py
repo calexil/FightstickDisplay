@@ -194,7 +194,7 @@ class MainScene:
         config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
         ###################################################
-        #   Window event to draw everything when necessary:
+        # Window event to draw everything when necessary:
         ###################################################
         @self.window.event
         def on_draw():
