@@ -206,7 +206,10 @@ if __name__ == "__main__":
     load_configuration()
     controllers = pyglet.input.get_game_controllers()
 
-    # Load up either the full scene, or just the "try again" scene.
+        ####################################################
+        # Load up either the full scene, or just the "try again" scene.
+        ####################################################
+
     if len(controllers) > 0:
         controller = controllers[0]
         scene = MainScene(window, controller)
@@ -215,4 +218,3 @@ if __name__ == "__main__":
 
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
-
