@@ -163,7 +163,7 @@ class MainScene:
                     self.lt_spr.visible = False
 
         ####################################################
-        #   User interface starts here:
+        #   Deadzone interface starts here:
         ####################################################
         self.triggerpoint = 0.8
         self.deadzone = 0.2
