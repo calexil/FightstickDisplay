@@ -3,7 +3,7 @@ from simplui import Theme, Frame, Dialogue, Slider, Label, VLayout
 from configparser import ConfigParser
 
 #######################################################
-#   These are constant no matter which scene:
+#   Main scene:
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
@@ -91,11 +91,15 @@ class MainScene:
         self.fightstick = fightstick
         self.fightstick.open()
 
+        ####################################################
         # Ordered Groups to handle draw order of the sprites:
+        ####################################################
         self.bg = pyglet.graphics.OrderedGroup(0)
         self.fg = pyglet.graphics.OrderedGroup(1)
 
+        ####################################################
         # Create all sprites using helper function (name, batch, group, visible):
+        ####################################################
         self.background = _make_sprite('background', self.batch, self.bg)
         self.stick_spr = _make_sprite('stick', self.batch, self.fg)
         self.select_spr = _make_sprite('select', self.batch, self.fg, False)
