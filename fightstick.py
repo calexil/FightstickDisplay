@@ -50,9 +50,10 @@ def load_configuration():
     loaded_configs = config.read('theme/layout.ini')
     if len(loaded_configs) > 0:
         try:
-            for key, value in config['layout'].items():
-                layout[key] = value
-            for key, value in config['images'].items():
+            for key, value in config.items('layout'):
+                x, y = value.split(', ')
+                layout[key] = int(x), int(y)
+            for key, value in config.items('images'):
                 images[key] = value
             _layout = layout.copy()
             _images = images.copy()
@@ -200,7 +201,7 @@ class MainScene:
 
 
 if __name__ == "__main__":
-#    load_configuration()
+    load_configuration()
     controllers = pyglet.input.get_game_controllers()
 
     # Load up either the full scene, or just the "try again" scene.
