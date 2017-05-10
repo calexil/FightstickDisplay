@@ -3,14 +3,14 @@ from simplui import Theme, Frame, Dialogue, Slider, Label, VLayout
 from configparser import ConfigParser
 
 #######################################################
-#   These are constant no matter which scene:
+#   Main scene:
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
-
+FIGHTSTICK_PLUGGED = False
 
 _layout = {
     "background": (0, 0),
@@ -92,11 +92,15 @@ class MainScene:
         self.fightstick = fightstick
         self.fightstick.open()
 
+        ####################################################
         # Ordered Groups to handle draw order of the sprites:
+        ####################################################
         self.bg = pyglet.graphics.OrderedGroup(0)
         self.fg = pyglet.graphics.OrderedGroup(1)
 
+        ####################################################
         # Create all sprites using helper function (name, batch, group, visible):
+        ####################################################
         self.background = _make_sprite('background', self.batch, self.bg)
         self.stick_spr = _make_sprite('stick', self.batch, self.fg)
         self.select_spr = _make_sprite('select', self.batch, self.fg, False)
@@ -164,7 +168,7 @@ class MainScene:
                     self.lt_spr.visible = False
 
         ####################################################
-        #   User interface starts here:
+        #   Deadzone interface starts here:
         ####################################################
         self.triggerpoint = 0.8
         self.deadzone = 0.2
@@ -191,7 +195,7 @@ class MainScene:
         config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
         ###################################################
-        #   Window event to draw everything when necessary:
+        # Window event to draw everything when necessary:
         ###################################################
         @self.window.event
         def on_draw():
@@ -199,17 +203,32 @@ class MainScene:
             self.batch.draw()
             self.frame.draw()
 
+        ####################################################
+        # Load up either the full scene, or just the "try again" scene.
+        ####################################################
+
+
+def set_scene(dt):
+    global FIGHTSTICK_PLUGGED
+
+    controllers = pyglet.input.get_game_controllers()
+    
+    if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
+        controller = controllers[0]
+        scene = MainScene(window, controller)
+        FIGHTSTICK_PLUGGED = True
+        print(len(controllers))
+        print(FIGHTSTICK_PLUGGED)
+    else:
+        FIGHTSTICK_PLUGGED = False
+        print(len(controllers))
+        print(FIGHTSTICK_PLUGGED)
+        scene = TryAgainScene(window)
+
 
 if __name__ == "__main__":
     load_configuration()
-    controllers = pyglet.input.get_game_controllers()
-
-    # Load up either the full scene, or just the "try again" scene.
-    if len(controllers) > 0:
-        controller = controllers[0]
-        scene = MainScene(window, controller)
-    else:
-        scene = TryAgainScene(window)
-
+    set_scene(0)     # Call it once immediately
+    pyglet.clock.schedule_interval(set_scene, 3.0)
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
