@@ -213,16 +213,11 @@ def set_scene(dt):
     controllers = pyglet.input.get_game_controllers()
         # need a check here, so we don't keep re-creating the scene if unnecessary.
     if len(controllers) > 0:
-        if FIGHTSTICK_PLUGGED is False:
-            print(len(controllers))
-            print(FIGHTSTICK_PLUGGED)
+        if FIGHTSTICK_PLUGGED is not True:
             controller = controllers[0]
             scene = MainScene(window, controller)
-            FIGHTSTICK_PLUGGED = True
     else:
         FIGHTSTICK_PLUGGED = False
-        print(len(controllers))
-        print(FIGHTSTICK_PLUGGED)
         scene = TryAgainScene(window)
 
 
