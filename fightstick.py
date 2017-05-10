@@ -10,7 +10,7 @@ pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
-
+FIGHTSTICK_PLUGGED = 0
 
 _layout = {
     "background": (0, 0),
@@ -206,17 +206,18 @@ class MainScene:
         ####################################################
         # Load up either the full scene, or just the "try again" scene.
         ####################################################
-FIGHTSTICK_PLUGGED = 0
 
 
 def set_scene(dt):
+    global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
-    
-    # need a check here, so we don't keep re-creating the scene if unnecessary.
+        # need a check here, so we don't keep re-creating the scene if unnecessary.
     if len(controllers) > 0:
-        controller = controllers[0]
-        scene = MainScene(window, controller)
+        if FIGHTSTICK_PLUGGED is not True:
+            controller = controllers[0]
+            scene = MainScene(window, controller)
     else:
+        FIGHTSTICK_PLUGGED = False
         scene = TryAgainScene(window)
 
 
