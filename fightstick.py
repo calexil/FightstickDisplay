@@ -80,7 +80,7 @@ class TryAgainScene:
 
         @self.window.event
         def on_draw():
-            window.clear()
+            self.window.clear()
             self.missing_img.blit(0, 0)
 
 
@@ -172,59 +172,57 @@ class MainScene:
         ####################################################
         self.triggerpoint = 0.8
         self.deadzone = 0.2
-        self.frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
-        self.window.push_handlers(self.frame)
-
-        @self.window.event
-        def on_key_press(key, modifiers):
-            if key == pyglet.window.key.SPACE:
-                if config_window.parent is not None:
-                    self.frame.remove(config_window)
-                else:
-                    self.frame.add(config_window)
-
-        def update_trigger_point(slider):
-            self.triggerpoint = slider.value
-            deadzone_label = self.frame.get_element_by_name("triggerpoint")
-            deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-
-        config_layout = VLayout(children=[
-            Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
-            Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
-        ])
-        config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
+        # self.frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
+        # self.window.push_handlers(self.frame)
+        #
+        # @self.window.event
+        # def on_key_press(key, modifiers):
+        #     if key == pyglet.window.key.SPACE:
+        #         if config_window.parent is not None:
+        #             self.frame.remove(config_window)
+        #         else:
+        #             self.frame.add(config_window)
+        #
+        # def update_trigger_point(slider):
+        #     self.triggerpoint = slider.value
+        #     deadzone_label = self.frame.get_element_by_name("triggerpoint")
+        #     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
+        #
+        # config_layout = VLayout(children=[
+        #     Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
+        #     Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
+        # ])
+        # config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
         ###################################################
         # Window event to draw everything when necessary:
         ###################################################
         @self.window.event
         def on_draw():
-            window_instance.clear()
+            self.window.clear()
             self.batch.draw()
-            self.frame.draw()
+            # self.frame.draw()
 
-        ####################################################
-        # Load up either the full scene, or just the "try again" scene.
-        ####################################################
+####################################################
+# Load up either the full scene, or just the "try again" scene.
+####################################################
 
 
 def set_scene(dt):
     global FIGHTSTICK_PLUGGED
-
     controllers = pyglet.input.get_game_controllers()
-    
+
+    # print(len(controllers), "controllers")
+    # print("plugged", FIGHTSTICK_PLUGGED)
+
     if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
         controller = controllers[0]
         scene = MainScene(window, controller)
-        print(len(controllers), "controllers")
-        print("plugged", FIGHTSTICK_PLUGGED)
         FIGHTSTICK_PLUGGED = True
     elif len(controllers) == 0:
-        print(len(controllers), "controllers")
-        print("plugged", FIGHTSTICK_PLUGGED)
         scene = TryAgainScene(window)
         FIGHTSTICK_PLUGGED = False
-    
+
 
 if __name__ == "__main__":
     load_configuration()
