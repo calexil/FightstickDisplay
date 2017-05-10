@@ -224,7 +224,7 @@ def set_scene(dt):
         print("plugged", FIGHTSTICK_PLUGGED)
         scene = TryAgainScene(window)
         FIGHTSTICK_PLUGGED = False
-
+    
 
 if __name__ == "__main__":
     load_configuration()
