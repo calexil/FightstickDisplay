@@ -216,14 +216,14 @@ def set_scene(dt):
     if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
         controller = controllers[0]
         scene = MainScene(window, controller)
+        print(len(controllers), "controllers")
+        print("plugged", FIGHTSTICK_PLUGGED)
         FIGHTSTICK_PLUGGED = True
-        print(len(controllers))
-        print(FIGHTSTICK_PLUGGED)
-    else:
-        FIGHTSTICK_PLUGGED = False
-        print(len(controllers))
-        print(FIGHTSTICK_PLUGGED)
+    elif len(controllers) == 0:
+        print(len(controllers), "controllers")
+        print("plugged", FIGHTSTICK_PLUGGED)
         scene = TryAgainScene(window)
+        FIGHTSTICK_PLUGGED = False
 
 
 if __name__ == "__main__":
