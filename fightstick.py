@@ -11,6 +11,7 @@ window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 
+
 _layout = {
     "background": (0, 0),
     "stick": (119, 155),
@@ -202,19 +203,26 @@ class MainScene:
             self.batch.draw()
             self.frame.draw()
 
-if __name__ == "__main__":
-    load_configuration()
-    controllers = pyglet.input.get_game_controllers()
-
         ####################################################
         # Load up either the full scene, or just the "try again" scene.
         ####################################################
+FIGHTSTICK_PLUGGED = 0
 
+
+def set_scene(dt):
+    controllers = pyglet.input.get_game_controllers()
+    
+    # need a check here, so we don't keep re-creating the scene if unnecessary.
     if len(controllers) > 0:
         controller = controllers[0]
         scene = MainScene(window, controller)
     else:
         scene = TryAgainScene(window)
 
+
+if __name__ == "__main__":
+    load_configuration()
+    set_scene(0)     # Call it once immediately
+    pyglet.clock.schedule_interval(set_scene, 3.0)
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
