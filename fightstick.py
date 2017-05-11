@@ -1,5 +1,4 @@
 import pyglet
-from simplui import Theme, Frame, Dialogue, Slider, Label, VLayout
 from configparser import ConfigParser
 
 #######################################################
@@ -167,32 +166,6 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
 
-        ####################################################
-        #   Deadzone interface starts here:
-        ####################################################
-        self.triggerpoint = 0.8
-        self.deadzone = 0.2
-        # self.frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
-        # self.window.push_handlers(self.frame)
-        #
-        # @self.window.event
-        # def on_key_press(key, modifiers):
-        #     if key == pyglet.window.key.SPACE:
-        #         if config_window.parent is not None:
-        #             self.frame.remove(config_window)
-        #         else:
-        #             self.frame.add(config_window)
-        #
-        # def update_trigger_point(slider):
-        #     self.triggerpoint = slider.value
-        #     deadzone_label = self.frame.get_element_by_name("triggerpoint")
-        #     deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-        #
-        # config_layout = VLayout(children=[
-        #     Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
-        #     Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
-        # ])
-        # config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
         ###################################################
         # Window event to draw everything when necessary:
