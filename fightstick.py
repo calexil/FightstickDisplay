@@ -1,5 +1,4 @@
 import pyglet
-from simplui import Theme, Frame, Dialogue, Slider, Label, VLayout
 from configparser import ConfigParser
 
 #######################################################
@@ -7,10 +6,19 @@ from configparser import ConfigParser
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
+window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", resizable=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
+
+
+@window.event
+def on_resize(width, height):
+    pyglet.gl.glLoadIdentity()
+    scale_x = width / 640
+    scale_y = height / 391
+    pyglet.gl.glScalef(scale_x, scale_y, 1.0)
+
 
 _layout = {
     "background": (0, 0),
@@ -80,7 +88,7 @@ class TryAgainScene:
 
         @self.window.event
         def on_draw():
-            window.clear()
+            self.window.clear()
             self.missing_img.blit(0, 0)
 
 
@@ -135,10 +143,8 @@ class MainScene:
         def on_stick_motion(controller, stick, xvalue, yvalue):
             if stick == "leftstick":
                 center_x, center_y = _layout['stick']
-                if abs(xvalue) > self.deadzone:
-                    center_x += (xvalue * 50)
-                if abs(yvalue) > self.deadzone:
-                    center_y += (yvalue * 50)
+                center_x += (xvalue * 50)
+                center_y += (yvalue * 50)
                 self.stick_spr.position = center_x, center_y
 
         @fightstick.event
@@ -157,73 +163,42 @@ class MainScene:
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
             if trigger == "lefttrigger":
-                if value > self.triggerpoint:
+                if value > 0.5:
                     self.rt_spr.visible = True
-                elif value < -self.triggerpoint:
+                elif value < -0.5:
                     self.rt_spr.visible = False
             if trigger == "righttrigger":
-                if value > self.triggerpoint:
+                if value > 0.5:
                     self.lt_spr.visible = True
-                elif value < -self.triggerpoint:
+                elif value < -0.5:
                     self.lt_spr.visible = False
-
-        ####################################################
-        #   Deadzone interface starts here:
-        ####################################################
-        self.triggerpoint = 0.8
-        self.deadzone = 0.2
-        self.frame = Frame(theme=Theme('theme/menutheme'), w=window.width, h=window.height)
-        self.window.push_handlers(self.frame)
-
-        @self.window.event
-        def on_key_press(key, modifiers):
-            if key == pyglet.window.key.SPACE:
-                if config_window.parent is not None:
-                    self.frame.remove(config_window)
-                else:
-                    self.frame.add(config_window)
-
-        def update_trigger_point(slider):
-            self.triggerpoint = slider.value
-            deadzone_label = self.frame.get_element_by_name("triggerpoint")
-            deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-
-        config_layout = VLayout(children=[
-            Label("Analog Trigger Point: {}".format(round(self.triggerpoint, 2)), name="triggerpoint"),
-            Slider(w=200, min=0.0, max=1.0, value=self.triggerpoint, action=update_trigger_point),
-        ])
-        config_window = Dialogue("Configuration", name="config_window", x=400, y=360, content=config_layout)
 
         ###################################################
         # Window event to draw everything when necessary:
         ###################################################
         @self.window.event
         def on_draw():
-            window_instance.clear()
+            self.window.clear()
             self.batch.draw()
-            self.frame.draw()
-
-        ####################################################
-        # Load up either the full scene, or just the "try again" scene.
-        ####################################################
 
 
+####################################################
+# Load up either the full scene, or just the "try again" scene.
+####################################################
 def set_scene(dt):
     global FIGHTSTICK_PLUGGED
-
     controllers = pyglet.input.get_game_controllers()
-    
+
+    # print(len(controllers), "controllers")
+    # print("plugged", FIGHTSTICK_PLUGGED)
+
     if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
         controller = controllers[0]
         scene = MainScene(window, controller)
         FIGHTSTICK_PLUGGED = True
-        print(len(controllers))
-        print(FIGHTSTICK_PLUGGED)
-    else:
-        FIGHTSTICK_PLUGGED = False
-        print(len(controllers))
-        print(FIGHTSTICK_PLUGGED)
+    elif len(controllers) == 0:
         scene = TryAgainScene(window)
+        FIGHTSTICK_PLUGGED = False
 
 
 if __name__ == "__main__":
