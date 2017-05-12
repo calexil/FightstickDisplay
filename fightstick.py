@@ -1,4 +1,5 @@
 import pyglet
+from pyglet.gl import *
 from configparser import ConfigParser
 
 #######################################################
@@ -6,10 +7,26 @@ from configparser import ConfigParser
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
+window = pyglet.window.Window(width=640, height=391,
+                              caption="Fightstick Display",
+                              resizable=True, vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
+
+
+@window.event
+def on_resize(width, height):
+    glViewport(0, 0, width, height)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    glOrtho(0, width, 0, height, -1, 1)
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+    scale_x = width / 640
+    scale_y = height / 391
+    glScalef(scale_x, scale_y, 1.0)
+
 
 _layout = {
     "background": (0, 0),
@@ -134,10 +151,8 @@ class MainScene:
         def on_stick_motion(controller, stick, xvalue, yvalue):
             if stick == "leftstick":
                 center_x, center_y = _layout['stick']
-                if abs(xvalue) > self.deadzone:
-                    center_x += (xvalue * 50)
-                if abs(yvalue) > self.deadzone:
-                    center_y += (yvalue * 50)
+                center_x += (xvalue * 50)
+                center_y += (yvalue * 50)
                 self.stick_spr.position = center_x, center_y
 
         @fightstick.event
@@ -156,16 +171,15 @@ class MainScene:
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
             if trigger == "lefttrigger":
-                if value > self.triggerpoint:
+                if value > 0.5:
                     self.rt_spr.visible = True
-                elif value < -self.triggerpoint:
+                elif value < -0.5:
                     self.rt_spr.visible = False
             if trigger == "righttrigger":
-                if value > self.triggerpoint:
+                if value > 0.5:
                     self.lt_spr.visible = True
-                elif value < -self.triggerpoint:
+                elif value < -0.5:
                     self.lt_spr.visible = False
-
 
         ###################################################
         # Window event to draw everything when necessary:
@@ -174,13 +188,11 @@ class MainScene:
         def on_draw():
             self.window.clear()
             self.batch.draw()
-            # self.frame.draw()
+
 
 ####################################################
 # Load up either the full scene, or just the "try again" scene.
 ####################################################
-
-
 def set_scene(dt):
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
