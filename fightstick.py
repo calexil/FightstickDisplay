@@ -11,6 +11,7 @@ window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
+
 _layout = {
     "background": (0, 0),
     "stick": (119, 155),
@@ -112,6 +113,8 @@ class MainScene:
         self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
         self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
         self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
+        self.triggerpoint = 0.8		
+        self.deadzone = 0.2
 
         button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
                           "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
