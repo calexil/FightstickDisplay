@@ -7,7 +7,9 @@ from configparser import ConfigParser
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", resizable=True)
+window = pyglet.window.Window(width=640, height=391,
+                              caption="Fightstick Display",
+                              resizable=True, vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
