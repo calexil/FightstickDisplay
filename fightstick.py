@@ -1,4 +1,5 @@
 import pyglet
+from pyglet.gl import *
 from configparser import ConfigParser
 
 #######################################################
@@ -6,10 +7,25 @@ from configparser import ConfigParser
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", vsync=True)
+window = pyglet.window.Window(width=640, height=391,
+                              caption="Fightstick Display",
+                              resizable=True, vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
+
+
+@window.event
+def on_resize(width, height):
+    glViewport(0, 0, width, height)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    glOrtho(0, width, 0, height, -1, 1)
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+    scale_x = width / 640
+    scale_y = height / 391
+    glScalef(scale_x, scale_y, 1.0)
 
 
 _layout = {
@@ -113,7 +129,7 @@ class MainScene:
         self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
         self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
         self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
-        self.triggerpoint = 0.8		
+        self.triggerpoint = 0.8
         self.deadzone = 0.2
 
         button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
@@ -169,7 +185,6 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
 
-
         ###################################################
         # Window event to draw everything when necessary:
         ###################################################
@@ -177,13 +192,11 @@ class MainScene:
         def on_draw():
             self.window.clear()
             self.batch.draw()
-            # self.frame.draw()
+
 
 ####################################################
 # Load up either the full scene, or just the "try again" scene.
 ####################################################
-
-
 def set_scene(dt):
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
