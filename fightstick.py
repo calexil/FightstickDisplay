@@ -1,4 +1,5 @@
 import pyglet
+from pyglet.gl import *
 from configparser import ConfigParser
 
 #######################################################
@@ -6,7 +7,9 @@ from configparser import ConfigParser
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=391, caption="Fightstick Display", resizable=True)
+window = pyglet.window.Window(width=640, height=391,
+                              caption="Fightstick Display",
+                              resizable=True, vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
@@ -14,10 +17,15 @@ FIGHTSTICK_PLUGGED = False
 
 @window.event
 def on_resize(width, height):
-    pyglet.gl.glLoadIdentity()
+    glViewport(0, 0, width, height)
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    glOrtho(0, width, 0, height, -1, 1)
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
     scale_x = width / 640
     scale_y = height / 391
-    pyglet.gl.glScalef(scale_x, scale_y, 1.0)
+    glScalef(scale_x, scale_y, 1.0)
 
 
 _layout = {
