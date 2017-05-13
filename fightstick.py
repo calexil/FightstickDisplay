@@ -121,6 +121,8 @@ class MainScene:
         self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
         self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
         self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
+        self.triggerpoint = 0.8
+        self.deadzone = 0.2
 
         button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
                           "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
@@ -143,8 +145,10 @@ class MainScene:
         def on_stick_motion(controller, stick, xvalue, yvalue):
             if stick == "leftstick":
                 center_x, center_y = _layout['stick']
-                center_x += (xvalue * 50)
-                center_y += (yvalue * 50)
+                if abs(xvalue) > self.deadzone:
+                    center_x += (xvalue * 50)
+                if abs(yvalue) > self.deadzone:
+                    center_y += (yvalue * 50)
                 self.stick_spr.position = center_x, center_y
 
         @fightstick.event
@@ -163,14 +167,14 @@ class MainScene:
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
             if trigger == "lefttrigger":
-                if value > 0.5:
+                if value > self.triggerpoint:
                     self.rt_spr.visible = True
-                elif value < -0.5:
+                elif value < -self.triggerpoint:
                     self.rt_spr.visible = False
             if trigger == "righttrigger":
-                if value > 0.5:
+                if value > self.triggerpoint:
                     self.lt_spr.visible = True
-                elif value < -0.5:
+                elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
 
         ###################################################
