@@ -1,5 +1,4 @@
 import pyglet
-from pyglet.gl import *
 from configparser import ConfigParser
 
 #######################################################
@@ -13,20 +12,6 @@ window = pyglet.window.Window(width=640, height=391,
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
-
-
-@window.event
-def on_resize(width, height):
-    glViewport(0, 0, width, height)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glOrtho(0, width, 0, height, -1, 1)
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
-    scale_x = width / 640
-    scale_y = height / 391
-    glScalef(scale_x, scale_y, 1.0)
-
 
 _layout = {
     "background": (0, 0),
