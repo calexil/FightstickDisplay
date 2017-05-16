@@ -8,7 +8,7 @@ from configparser import ConfigParser
 #######################################################
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=391,
+window = pyglet.window.Window(width=640, height=390,
                               caption="Fightstick Display",
                               resizable=True, vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
@@ -25,23 +25,23 @@ def on_resize(width, height):
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
     scale_x = width / 640.0
-    scale_y = height / 391.0
+    scale_y = height / 390.0
     glScalef(scale_x, scale_y, 1.0)
 
 
 _layout = {
     "background": (0, 0),
-    "stick": (119, 155),
-    "select": (50, 319),
-    "start": (50, 319),
-    "x": (256, 84),
-    "y": (336, 114),
-    "lt": (421, 113),
-    "rt": (507, 110),
-    "a": (275, 174),
-    "b": (354, 204),
-    "lb": (440, 203),
-    "rb": (527, 200),
+    "stick": (119, 154),
+    "select": (50, 318),
+    "start": (50, 318),
+    "x": (256, 83),
+    "y": (336, 113),
+    "lt": (421, 112),
+    "rt": (507, 109),
+    "a": (275, 173),
+    "b": (354, 203),
+    "lb": (440, 202),
+    "rb": (527, 199),
 }
 
 _images = {
