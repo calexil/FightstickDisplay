@@ -1,5 +1,5 @@
 import pyglet
-from pyglet.gl import glViewport, glMatrixMode, glOrtho, glLoadIdentity, glScalef
+from pyglet.gl import glViewport, glMatrixMode, glOrtho, glLoadIdentity, glScalef, gluPerspective
 from pyglet.gl import GL_PROJECTION, GL_MODELVIEW
 from configparser import ConfigParser
 
@@ -24,9 +24,13 @@ def on_resize(width, height):
     glOrtho(0, width, 0, height, -1, 1)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
+# cant get this line right
+# gluPerspective(60, 64/39*float(width)/float(height), 0.01, 100.0)
     scale_x = width / 640.0
     scale_y = height / 390.0
     glScalef(scale_x, scale_y, 1.0)
+
+
 
 
 _layout = {
