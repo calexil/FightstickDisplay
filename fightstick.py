@@ -24,8 +24,8 @@ def on_resize(width, height):
     glOrtho(0, width, 0, height, -1, 1)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
-# cant get this line right
-# gluPerspective(60, 64/39*float(width)/float(height), 0.01, 100.0)
+#TODO cant get this line right to lock aspect
+#    gluPerspective(60, 64/39*float(width)/float(height), 0.01, 100.0)
     scale_x = width / 640.0
     scale_y = height / 390.0
     glScalef(scale_x, scale_y, 1.0)
