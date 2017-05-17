@@ -15,7 +15,6 @@ window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
-
 @window.event
 def on_resize(width, height):
     glViewport(0, 0, width, height)
@@ -28,9 +27,6 @@ def on_resize(width, height):
     scale_y = height / 390.0
     glScalef(scale_x, scale_y, 1.0)
 
-@window.event
-def on_resize(width, height)
-    target_width = 
 
 _layout = {
     "background": (0, 0),
