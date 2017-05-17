@@ -31,8 +31,6 @@ def on_resize(width, height):
     glScalef(scale_x, scale_y, 1.0)
 
 
-
-
 _layout = {
     "background": (0, 0),
     "stick": (119, 154),
