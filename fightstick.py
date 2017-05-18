@@ -3,9 +3,7 @@ from pyglet.gl import glViewport, glMatrixMode, glOrtho, glLoadIdentity, glScale
 from pyglet.gl import GL_PROJECTION, GL_MODELVIEW
 from configparser import ConfigParser
 
-#######################################################
-#   Main scene:
-#######################################################
+"""Main scene:"""
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=390,
@@ -87,9 +85,8 @@ def _make_sprite(name, batch, group, visible=True):
     sprite.visible = visible
     return sprite
 
-
+"""A scene that tells you to try again if no stick is detected."""
 class TryAgainScene:
-    """A scene that tells you to try again if no stick is detected."""
     def __init__(self, window_instance):
         self.window = window_instance
         self.missing_img = pyglet.resource.image("missing.png")
@@ -99,24 +96,21 @@ class TryAgainScene:
             self.window.clear()
             self.missing_img.blit(0, 0)
 
-
+"""The main scene, with all fightstick events wired up."""
 class MainScene:
-    """The main scene, with all fightstick events wired up."""
     def __init__(self, window_instance, fightstick):
         self.window = window_instance
         self.batch = pyglet.graphics.Batch()
         self.fightstick = fightstick
         self.fightstick.open()
 
-        ####################################################
-        # Ordered Groups to handle draw order of the sprites:
-        ####################################################
+
+        """Ordered groups to handle draw order of the sprites:"""
         self.bg = pyglet.graphics.OrderedGroup(0)
         self.fg = pyglet.graphics.OrderedGroup(1)
 
-        ####################################################
-        # Create all sprites using helper function (name, batch, group, visible):
-        ####################################################
+
+        """Create all sprites using helper function (name, batch, group, visible):"""
         self.background = _make_sprite('background', self.batch, self.bg)
         self.stick_spr = _make_sprite('stick', self.batch, self.fg)
         self.select_spr = _make_sprite('select', self.batch, self.fg, False)
@@ -185,25 +179,19 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
 
-        ###################################################
-        # Window event to draw everything when necessary:
-        ###################################################
+
+        """Window event to draw everything when necessary:"""
         @self.window.event
         def on_draw():
             self.window.clear()
             self.batch.draw()
 
 
-####################################################
-# Load up either the full scene, or just the "try again" scene.
-####################################################
+
+"""Load up either the full scene, or just the "try again" scene."""
 def set_scene(dt):
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
-
-    # print(len(controllers), "controllers")
-    # print("plugged", FIGHTSTICK_PLUGGED)
-
     if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
         controller = controllers[0]
         scene = MainScene(window, controller)
