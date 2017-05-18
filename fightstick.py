@@ -20,7 +20,7 @@ def on_resize(width, height):
     target_width = int(height * aspect_ratio)
     target_height = int(width / aspect_ratio)
     if window.width != target_width and window.height != target_height:
-        window.set_maximum_size(target_width+10, target_width+10)
+        window.set_maximum_size(target_width+100, target_height+100)
         window.set_size(window.width, target_height)    
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
