@@ -13,15 +13,19 @@ window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
+##Lock the window aspect ratio##
+def set_size(width, height):
+    aspect_ratio = 640.0/390.0
+    target_width = int(height * aspect_ratio)
+    target_height = int(width / aspect_ratio)
+    if window.width != target_width and window.height != target_height:
+        window.set_maximum_size(target_width+10, target_height+10)
+        window.set_size(window.width, target_height)
 
+
+##Project the window contents to allow resizing##
 @window.event
 def on_resize(width, height):
-#    aspect_ratio = 640.0/390.0
-#    target_width = int(height * aspect_ratio)
-#    target_height = int(width / aspect_ratio)
-#    if window.width != target_width and window.height != target_height:
-#        window.set_maximum_size(target_width+100, target_height+100)
-#        window.set_size(window.width, target_height)
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -63,7 +67,7 @@ _images = {
     'rb': 'button.png',
 }
 
-
+##This section loads the default button layout##
 def load_configuration():
     global _layout, _images
     layout = _layout.copy()
