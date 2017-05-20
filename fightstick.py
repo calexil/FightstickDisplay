@@ -15,7 +15,7 @@ FIGHTSTICK_PLUGGED = False
 
 ##Lock the window aspect ratio##
 def set_size(width, height):
-    aspect_ratio = 640.0/390.0
+    aspect_ratio = 64.0/39.0
     set_aspect('equal', 'datalim')
     window.width = int(height * aspect_ratio)
     target_height = int(width / aspect_ratio)
