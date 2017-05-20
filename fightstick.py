@@ -14,7 +14,6 @@ config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
 
-##Project the window contents to allow resizing##
 @window.event
 def on_resize(width, height):
     glViewport(0, 0, width, height)
@@ -27,22 +26,6 @@ def on_resize(width, height):
     scale_y = height / 390.0
     glScalef(scale_x, scale_y, 1.0)
 
-def set_projection3D(self):
-    """Sets a 3D projection mantaining the aspect ratio of the original window size"""
-    # virtual (desired) view size
-    vw, vh = self.get_window_size()
- 
-    gl.glViewport(self._offset_x, self._offset_y, self._usable_width, self._usable_height)
-    gl.glMatrixMode(gl.GL_PROJECTION)
-    gl.glLoadIdentity()
-    gl.gluPerspective(60, self._usable_width / float(self._usable_height), 0.1, 3000.0)
-    gl.glMatrixMode(gl.GL_MODELVIEW)
- 
-    gl.glLoadIdentity()
-    gl.gluLookAt(vw / 2.0, vh / 2.0, vh / 1.1566,   # eye
-              vw / 2.0, vh / 2.0, 0,             # center
-              0.0, 1.0, 0.0                      # up vector
-              )
 
 _layout = {
     "background": (0, 0),
@@ -74,7 +57,7 @@ _images = {
     'rb': 'button.png',
 }
 
-##This section loads the default button layout##
+
 def load_configuration():
     global _layout, _images
     layout = _layout.copy()
@@ -204,6 +187,15 @@ class MainScene:
             self.batch.draw()
 
 
+def enforce_aspect_ratio(dt):
+    """Enforce aspect ratio by readjusting the window height."""
+    aspect_ratio = 640.0 / 390.0
+    target_width = int(window.height * aspect_ratio)
+    target_height = int(window.width / aspect_ratio)
+
+    if window.width != target_width and window.height != target_height:
+        window.set_size(window.width, target_height)
+
 
 ##Load up either the full scene, or just the "try again" scene.##
 def set_scene(dt):
@@ -222,5 +214,6 @@ if __name__ == "__main__":
     load_configuration()
     set_scene(0)     # Call it once immediately
     pyglet.clock.schedule_interval(set_scene, 3.0)
+    pyglet.clock.schedule_interval(enforce_aspect_ratio, 1.0)
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
