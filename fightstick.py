@@ -126,6 +126,7 @@ class MainScene:
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
+        ##Mapping and press/axis/abs event section below##
         button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
                           "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
                           "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
