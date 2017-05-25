@@ -57,7 +57,7 @@ _images = {
     'rb': 'button.png',
 }
 
-
+##Load the button mapping config##
 def load_configuration():
     global _layout, _images
     layout = _layout.copy()
@@ -188,7 +188,7 @@ class MainScene:
 
 ##Enforce aspect ratio by readjusting the window height.##
 def enforce_aspect_ratio(dt):
-    aspect_ratio = 640.0 / 390.0
+    aspect_ratio = 1.641025641
     target_width = int(window.height * aspect_ratio)
     target_height = int(window.width / aspect_ratio)
 
