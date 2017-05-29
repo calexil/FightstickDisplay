@@ -1,17 +1,17 @@
 #This section can be edited to fix mis-mapped buttons.
 [layout]
-background = [0, 0]
-stick = [119, 155]
-select = [50, 319]
-start = [50, 319]
-x = [256, 84]
-y = [336, 114]
-rt = [507, 110]
-lt = [421, 113]
-a = [275, 174]
-b = [354, 204]
-lb = [440, 203]
-rb = [527, 200]
+background = 0, 0
+stick = 119, 154
+select = 50, 318
+start = 50, 318
+x = 256, 83
+y = 336, 113
+lt = 421, 112
+rt = 507, 109
+a = 275, 173
+b = 354, 203
+lb = 440, 202
+rb = 527, 199
 
 #Here you can set your own custom images.
 [images]
