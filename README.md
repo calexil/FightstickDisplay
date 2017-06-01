@@ -2,7 +2,7 @@
 
 **A simple program written in python to display fightstick inputs.**
 # Screenshot
-![Alt text](/theme/fightstick.gif?){:height="50%" width="50%"}
+![Alt text](/theme/fightstick.gif?raw=true)
 # Prerequisites
 * python(2.7+)
 
