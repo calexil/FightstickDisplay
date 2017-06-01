@@ -3,6 +3,7 @@
 **A simple program written in python to display fightstick inputs.**
 # Screenshot
 <img src="/theme/fightstick.gif" width="320" height="195">
+
 # Prerequisites
 * python(2.7+)
 
