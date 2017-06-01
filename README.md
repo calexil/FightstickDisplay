@@ -2,7 +2,7 @@
 
 **A simple program written in python to display fightstick inputs.**
 # Screenshot
-![Alt text](/theme/fightstick.gif?raw=true)
+![Alt text](/theme/fightstick.gif?){:height="50%" width="50%"}
 # Prerequisites
 * python(2.7+)
 
@@ -18,9 +18,8 @@ at all, **[let us know by clicking here!](https://github.com/calexil/FightstickD
 * Enjoy
 
 # Current Version
-1.0rc [**Watch it in action here**](https://twitch.tv/calexil)
+1.1rc [**Watch it in action here**](https://twitch.tv/calexil)
 # Contributors:
 * [benmoran56](https://github.com/benmoran56)
 * [calexil](https://github.com/calexil)
 * [Scootadash](https://www.reddit.com/user/wonderful72pike) 
-* [ShaggyTwoDope](https://github.com/shaggytwodope)
