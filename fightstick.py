@@ -215,6 +215,6 @@ if __name__ == "__main__":
     set_scene(0)
 ##Schedulers for scene change, aspect enforce, and main display cycle.##
     pyglet.clock.schedule_interval(set_scene, 3.0)
-    pyglet.clock.schedule_interval(enforce_aspect_ratio, 1.0)
+    pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
