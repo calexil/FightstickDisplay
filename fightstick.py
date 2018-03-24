@@ -13,7 +13,6 @@ window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
-
 @window.event
 def on_resize(width, height):
     glViewport(0, 0, width, height)
@@ -25,7 +24,6 @@ def on_resize(width, height):
     scale_x = width / 640.0
     scale_y = height / 390.0
     glScalef(scale_x, scale_y, 1.0)
-
 
 _layout = {
     "background": (0, 0),
@@ -103,13 +101,9 @@ class MainScene:
         self.batch = pyglet.graphics.Batch()
         self.fightstick = fightstick
         self.fightstick.open()
-
-
         ##Ordered groups to handle draw order of the sprites.##
         self.bg = pyglet.graphics.OrderedGroup(0)
         self.fg = pyglet.graphics.OrderedGroup(1)
-
-
         ##Create all sprites using helper function (name, batch, group, visible).##
         self.background = _make_sprite('background', self.batch, self.bg)
         self.stick_spr = _make_sprite('stick', self.batch, self.fg)
@@ -180,7 +174,6 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
 
-
         ##Window event to draw everything when necessary.##
         @self.window.event
         def on_draw():
@@ -196,7 +189,6 @@ def enforce_aspect_ratio(dt):
     if window.width != target_width and window.height != target_height:
         window.set_size(window.width, target_height)
 
-
 ##Load up either the full scene, or just the "try again" scene.##
 def set_scene(dt):
     global FIGHTSTICK_PLUGGED
@@ -209,12 +201,11 @@ def set_scene(dt):
         scene = TryAgainScene(window)
         FIGHTSTICK_PLUGGED = False
 
-
 if __name__ == "__main__":
     load_configuration()
     set_scene(0)
 ##Schedulers for scene change, aspect enforce, and main display cycle.##
-    pyglet.clock.schedule_interval(set_scene, 3.0)
+    pyglet.clock.schedule_interval(set_scene, 2.0)
     pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
