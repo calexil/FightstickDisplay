@@ -196,6 +196,15 @@ def enforce_aspect_ratio(dt):
     if window.width != target_width and window.height != target_height:
         window.set_size(window.width, target_height)
 
+def enforce_aspect_ratio(dt):
+    """Enforce aspect ratio by readjusting the window height."""
+    aspect_ratio = 640.0 / 390.0
+    target_width = int(window.height * aspect_ratio)
+    target_height = int(window.width / aspect_ratio)
+
+    if window.width != target_width and window.height != target_height:
+        window.set_size(window.width, target_height)
+
 
 ##Load up either the full scene, or just the "try again" scene.##
 def set_scene(dt):
@@ -215,6 +224,10 @@ if __name__ == "__main__":
     set_scene(0)
 ##Schedulers for scene change, aspect enforce, and main display cycle.##
     pyglet.clock.schedule_interval(set_scene, 3.0)
+<<<<<<< HEAD
     pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
+=======
+    pyglet.clock.schedule_interval(enforce_aspect_ratio, 1.0)
+>>>>>>> cce2c6e4ac57fafb9e3f0f8be4c4bf372ad5ecce
     pyglet.clock.schedule_interval(lambda dt: None, 1/60.0)
     pyglet.app.run()
