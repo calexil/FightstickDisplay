@@ -12,4 +12,4 @@ install:
   - pip install pyglet configparser
 # run tests
 script:
-  - python fightstick.py
+  - python fightstick.py && exit
