@@ -7,7 +7,7 @@ before_install:
   - sh -e /etc/init.d/xvfb start
 # dependencies
 install:
-  - pip install pyglet
+  - pip install pyglet configparser
 # run tests
 script:
   - python fightstick.py
