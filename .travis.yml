@@ -1,11 +1,12 @@
 language: python
+sudo: true
 python:
   - "2.7"
 env:
   - DISPLAY=:99.0
 before_install:
   - sh -e /etc/init.d/xvfb start
-  - mkdir /dev/input
+  - su mkdir /dev/input
 # dependencies
 install:
   - pip install pyglet configparser
