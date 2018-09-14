@@ -9,7 +9,7 @@ before_install:
   - sudo touch /dev/input/js0
 # dependencies
 install:
-  - pip install pyglet configparser
+  - pip install pyglet configparser pytest
 # run tests
 script:
-  - python fightstick.py && exit
+  - py.test fightstick.py
