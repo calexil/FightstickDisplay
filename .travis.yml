@@ -5,6 +5,7 @@ env:
   - DISPLAY=:99.0
 before_install:
   - sh -e /etc/init.d/xvfb start
+  - sh mkdir /dev/input
 # dependencies
 install:
   - pip install pyglet configparser
