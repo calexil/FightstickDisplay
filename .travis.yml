@@ -6,4 +6,4 @@ install:
   - pip install pyglet
 # run tests
 script:
-  - pytest
+  - python fightstickdisplay.py
