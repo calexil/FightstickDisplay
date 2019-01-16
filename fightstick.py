@@ -4,7 +4,7 @@ from pyglet.gl import GL_PROJECTION, GL_MODELVIEW
 from configparser import ConfigParser
 
 ##Main scene##
-pyglet.resource.path.append("theme")
+pyglet.resource.path.append('theme')
 pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=390,
 caption="Fightstick Display",

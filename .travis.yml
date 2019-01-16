@@ -2,7 +2,6 @@ language: python
 sudo: true
 python:
   - "2.7"
-  - "3.5"
 env:
   - DISPLAY=:99.0
 before_install:
@@ -13,4 +12,4 @@ install:
   - pip install pyglet configparser pytest
 # run tests
 script:
-  - pytest
+  - py.test fightstick.py
