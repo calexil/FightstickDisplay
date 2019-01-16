@@ -9,7 +9,7 @@ pyglet.resource.reindex()
 window = pyglet.window.Window(width=640, height=390,
 caption="Fightstick Display",
 resizable=True, vsync=True)
-window.set_icon(pyglet.resource.image("icon.png"))
+window.set_icon(pyglet.resource.image("theme/icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
