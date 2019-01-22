@@ -67,6 +67,9 @@ def _parse_raw_mappings(rawstring):
 
     def _map_pair(raw_relation):
         relation = raw_relation.split(":")[1]
+        # TODO: handle inverted axis (~)
+        if "~" in relation:
+            return None
         if relation.startswith("b"):
             return "button", int(relation[1:])
         elif relation.startswith("a"):
