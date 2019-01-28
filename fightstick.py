@@ -18,7 +18,7 @@ if os.path.exists("gamecontrollerdb.txt"):
     try:
         pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
         print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-    except DataMissing:
+    except Exception:
         print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
 
 
