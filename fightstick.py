@@ -14,6 +14,11 @@ config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
 # Parse and add additional SDL style controller mappings.
+import urllib.request
+url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
+with urllib.request.urlopen(url) as response, open("gamecontrollerdb.txt", 'wb') as f:
+    f.write(response.read())
+
 if os.path.exists("gamecontrollerdb.txt"):
     try:
         pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
