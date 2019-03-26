@@ -5,7 +5,7 @@
 <img src="/theme/fightstick.gif" width="320" height="195">
 
 # Prerequisites
-* python(2.7+)
+* python(3.0+)
 
 # Installation & Usage
 * Clone the git  
