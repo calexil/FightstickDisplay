@@ -72,7 +72,7 @@ _images = {
 
 
 def load_configuration():
-    """Load the button mapping configuration."""
+    # Load the button mapping configuration.
     global _layout, _images
     layout = _layout.copy()
     images = _images.copy()
@@ -93,7 +93,7 @@ def load_configuration():
 
 
 def _make_sprite(name, batch, group, visible=True):
-    """Helper function to make a Sprite"""
+    # Helper function to make a Sprite
     image = pyglet.resource.image(_images[name])
     position = _layout[name]
     sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
@@ -102,7 +102,7 @@ def _make_sprite(name, batch, group, visible=True):
 
 
 class TryAgainScene:
-    """A scene that tells you to try again if no stick is detected"""
+    # A scene that tells you to try again if no stick is detected
     def __init__(self, window_instance):
         self.window = window_instance
         self.missing_img = pyglet.resource.image("missing.png")
@@ -114,7 +114,7 @@ class TryAgainScene:
 
 
 class MainScene:
-    """The main scene, with all fightstick events wired up."""
+    # The main scene, with all fightstick events wired up.
     def __init__(self, window_instance, fightstick):
         self.window = window_instance
         self.batch = pyglet.graphics.Batch()
@@ -201,7 +201,7 @@ class MainScene:
 
 
 def enforce_aspect_ratio(dt):
-    """Enforce aspect ratio by readjusting the window height"""
+    # Enforce aspect ratio by readjusting the window height
     aspect_ratio = 1.641025641
     target_width = int(window.height * aspect_ratio)
     target_height = int(window.width / aspect_ratio)
@@ -211,7 +211,7 @@ def enforce_aspect_ratio(dt):
 
 
 def set_scene(dt):
-    """Load up either the full scene, or just the "try again" scene"""
+    # Load up either the full scene, or just the "try again" scene
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
     if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
