@@ -1,20 +1,28 @@
 import os
+import sys
+import urllib.request
+from configparser import ConfigParser
+
 import pyglet
 from pyglet.gl import glViewport, glMatrixMode, glOrtho, glLoadIdentity, glScalef
 from pyglet.gl import GL_PROJECTION, GL_MODELVIEW
-from configparser import ConfigParser
+from pyglet.debug import debug_print
+
+
+_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '--debug')
+_debug_print = debug_print(_debug_flag)
+
 
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-window = pyglet.window.Window(width=640, height=390,
-                              caption="Fightstick Display",
-                              resizable=True, vsync=True)
+
+window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=False)
 window.set_icon(pyglet.resource.image("icon.png"))
+
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
 # Parse and add additional SDL style controller mappings.
-import urllib.request
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 with urllib.request.urlopen(url) as response, open("gamecontrollerdb.txt", 'wb') as f:
     f.write(response.read())
@@ -147,13 +155,14 @@ class MainScene:
 
         @fightstick.event
         def on_button_press(controller, button):
-            pressed_button = button_mapping.get(button)
+            assert _debug_print(f"Pressed Button: {button}")
+            pressed_button = button_mapping.get(button, None)
             if pressed_button:
                 pressed_button.visible = True
 
         @fightstick.event
         def on_button_release(controller, button):
-            pressed_button = button_mapping.get(button)
+            pressed_button = button_mapping.get(button, None)
             if pressed_button:
                 pressed_button.visible = False
 
@@ -163,12 +172,15 @@ class MainScene:
                 center_x, center_y = _layout['stick']
                 if abs(xvalue) > self.deadzone:
                     center_x += (xvalue * 50)
+                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
                 if abs(yvalue) > self.deadzone:
                     center_y += (yvalue * 50)
+                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
                 self.stick_spr.position = center_x, center_y
 
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
+            assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
             center_x, center_y = _layout["stick"]
             if dpup:
                 center_y += 50
@@ -182,6 +194,7 @@ class MainScene:
 
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
+            assert _debug_print(f"Pulled Trigger: {trigger}")
             if trigger == "lefttrigger":
                 if value > self.triggerpoint:
                     self.rt_spr.visible = True

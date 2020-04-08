@@ -3,6 +3,7 @@ dist: xenial
 sudo: true
 python:
   - "3.7"
+  - "3.8"
 env:
   - DISPLAY=:99.0
 services:
