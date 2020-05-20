@@ -20,7 +20,7 @@ at all, **[let us know by clicking here!](https://github.com/calexil/FightstickD
 * Enjoy
 
 # Current Version
-**1.1rc** **[Watch it in action here](https://twitch.tv/calexil)**
+**1.0** **[Watch it in action here](https://twitch.tv/calexil)**
 # Contributors:
 * [benmoran56](https://github.com/benmoran56)
 * [calexil](https://github.com/calexil)
