@@ -25,3 +25,7 @@ at all, **[let us know by clicking here!](https://github.com/calexil/FightstickD
 * [benmoran56](https://github.com/benmoran56)
 * [calexil](https://github.com/calexil)
 * [Scootadash](https://www.reddit.com/user/wonderful72pike) 
+
+# Donate
+This software is provided free opf charge, but it certainly took time and effort to make, please consider
+* [Making a donation](https://calexil.com/#donate) to support the project, and my other works.
