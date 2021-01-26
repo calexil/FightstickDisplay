@@ -35,7 +35,7 @@ except Exception:
         except Exception:
             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
 
-
+# Draw the main display window and set layout and image vars
 @window.event
 def on_resize(width, height):
     glViewport(0, 0, width, height)
@@ -240,7 +240,7 @@ def set_scene(dt):
 if __name__ == "__main__":
     load_configuration()
     set_scene(0)
-    # Schedulers for scene change, aspect enforce, and main display cycle
+    # Schedulers for scene change, aspect enforce, and main display cycles(fps)
     pyglet.clock.schedule_interval(set_scene, 2.0)
     pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
     pyglet.clock.schedule_interval(lambda dt: None, 1 / 60.0)
