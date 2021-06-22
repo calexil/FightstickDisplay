@@ -1,32 +1,59 @@
-#!/usr/bin/env python
-
-'''
-'''
-from builtins import range
-from builtins import object
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id: $'
+# ----------------------------------------------------------------------------
+# pyglet
+# Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+#  * Neither the name of pyglet nor the names of its
+#    contributors may be used to endorse or promote products
+#    derived from this software without specific prior written
+#    permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# ----------------------------------------------------------------------------
 
 import ctypes
 import pyglet
-from pyglet.input.base import \
-    Device, DeviceException, DeviceOpenException, \
-    Control, Button, RelativeAxis, AbsoluteAxis
+from pyglet.input.base import Device, DeviceOpenException
+from pyglet.input.base import Button, RelativeAxis, AbsoluteAxis
 from pyglet.libs.x11 import xlib
-from pyglet.compat import asstr
+from pyglet.util import asstr
 
 try:
     from pyglet.libs.x11 import xinput as xi
+
     _have_xinput = True
 except:
     _have_xinput = False
+
 
 def ptr_add(ptr, offset):
     address = ctypes.addressof(ptr.contents) + offset
     return ctypes.pointer(type(ptr.contents).from_address(address))
 
-class DeviceResponder(object):
+
+class DeviceResponder:
     def _key_press(self, e):
         pass
 
@@ -47,6 +74,7 @@ class DeviceResponder(object):
 
     def _proximity_out(self, e):
         pass
+
 
 class XInputDevice(DeviceResponder, Device):
     def __init__(self, display, device_info):
@@ -75,7 +103,8 @@ class XInputDevice(DeviceResponder, Device):
             elif cls_class == xi.ButtonClass:
                 cp = ctypes.cast(ptr, ctypes.POINTER(xi.XButtonInfo))
                 num_buttons = cp.contents.num_buttons
-                for i in range(num_buttons):
+                # Pointer buttons start at index 1, with 0 as 'AnyButton'
+                for i in range(num_buttons + 1):
                     self.buttons.append(Button('button%d' % i))
 
             elif cls_class == xi.ValuatorClass:
@@ -87,9 +116,7 @@ class XInputDevice(DeviceResponder, Device):
                 for i in range(num_axes):
                     axis = axes[i]
                     if mode == xi.Absolute:
-                        self.axes.append(AbsoluteAxis('axis%d' % i,
-                            min=axis.min_value,
-                            max=axis.max_value))
+                        self.axes.append(AbsoluteAxis('axis%d' % i, min=axis.min_value, max=axis.max_value))
                     elif mode == xi.Relative:
                         self.axes.append(RelativeAxis('axis%d' % i))
 
@@ -130,7 +157,7 @@ class XInputDevice(DeviceResponder, Device):
         if not self._device:
             self.is_open = False
             raise DeviceOpenException('Cannot open device')
-        
+
         self._install_events(window)
 
     def close(self):
@@ -172,7 +199,8 @@ class XInputDevice(DeviceResponder, Device):
         if self.proximity_control:
             self.proximity_control.value = False
 
-class XInputWindowEventDispatcher(object):
+
+class XInputWindowEventDispatcher:
     def __init__(self, window):
         self.window = window
         self._responders = {}
@@ -182,8 +210,7 @@ class XInputWindowEventDispatcher(object):
         try:
             dispatcher = window.__xinput_window_event_dispatcher
         except AttributeError:
-            dispatcher = window.__xinput_window_event_dispatcher = \
-                XInputWindowEventDispatcher(window)
+            dispatcher = window.__xinput_window_event_dispatcher = XInputWindowEventDispatcher(window)
         return dispatcher
 
     def set_responder(self, device_id, responder):
@@ -218,46 +245,35 @@ class XInputWindowEventDispatcher(object):
         for i in range(device.num_classes):
             class_info = device.classes[i]
             if class_info.input_class == xi.KeyClass:
-                add(class_info, xi._deviceKeyPress,
-                    self._event_xinput_key_press)
-                add(class_info, xi._deviceKeyRelease,
-                    self._event_xinput_key_release)
+                add(class_info, xi._deviceKeyPress, self._event_xinput_key_press)
+                add(class_info, xi._deviceKeyRelease, self._event_xinput_key_release)
 
             elif class_info.input_class == xi.ButtonClass:
-                add(class_info, xi._deviceButtonPress,
-                    self._event_xinput_button_press)
-                add(class_info, xi._deviceButtonRelease,
-                    self._event_xinput_button_release)
+                add(class_info, xi._deviceButtonPress, self._event_xinput_button_press)
+                add(class_info, xi._deviceButtonRelease, self._event_xinput_button_release)
 
             elif class_info.input_class == xi.ValuatorClass:
-                add(class_info, xi._deviceMotionNotify,
-                    self._event_xinput_motion)
+                add(class_info, xi._deviceMotionNotify, self._event_xinput_motion)
 
             elif class_info.input_class == xi.ProximityClass:
-                add(class_info, xi._proximityIn,
-                    self._event_xinput_proximity_in)
-                add(class_info, xi._proximityOut,
-                    self._event_xinput_proximity_out)
+                add(class_info, xi._proximityIn, self._event_xinput_proximity_in)
+                add(class_info, xi._proximityOut, self._event_xinput_proximity_out)
 
             elif class_info.input_class == xi.FeedbackClass:
                 pass
 
             elif class_info.input_class == xi.FocusClass:
                 pass
-                
+
             elif class_info.input_class == xi.OtherClass:
                 pass
 
         array = (xi.XEventClass * len(events))(*events)
-        xi.XSelectExtensionEvent(self.window._x_display,
-                                 self.window._window,
-                                 array,
-                                 len(array))
+        xi.XSelectExtensionEvent(self.window._x_display, self.window._window, array, len(array))
 
     @pyglet.window.xlib.XlibEventHandler(0)
     def _event_xinput_key_press(self, ev):
-        e = ctypes.cast(ctypes.byref(ev),
-            ctypes.POINTER(xi.XDeviceKeyEvent)).contents
+        e = ctypes.cast(ctypes.byref(ev), ctypes.POINTER(xi.XDeviceKeyEvent)).contents
 
         device = self._responders.get(e.deviceid)
         if device is not None:
@@ -265,8 +281,7 @@ class XInputWindowEventDispatcher(object):
 
     @pyglet.window.xlib.XlibEventHandler(0)
     def _event_xinput_key_release(self, ev):
-        e = ctypes.cast(ctypes.byref(ev),
-            ctypes.POINTER(xi.XDeviceKeyEvent)).contents
+        e = ctypes.cast(ctypes.byref(ev), ctypes.POINTER(xi.XDeviceKeyEvent)).contents
 
         device = self._responders.get(e.deviceid)
         if device is not None:
@@ -274,8 +289,7 @@ class XInputWindowEventDispatcher(object):
 
     @pyglet.window.xlib.XlibEventHandler(0)
     def _event_xinput_button_press(self, ev):
-        e = ctypes.cast(ctypes.byref(ev),
-            ctypes.POINTER(xi.XDeviceButtonEvent)).contents
+        e = ctypes.cast(ctypes.byref(ev), ctypes.POINTER(xi.XDeviceButtonEvent)).contents
 
         device = self._responders.get(e.deviceid)
         if device is not None:
@@ -283,8 +297,7 @@ class XInputWindowEventDispatcher(object):
 
     @pyglet.window.xlib.XlibEventHandler(0)
     def _event_xinput_button_release(self, ev):
-        e = ctypes.cast(ctypes.byref(ev),
-            ctypes.POINTER(xi.XDeviceButtonEvent)).contents
+        e = ctypes.cast(ctypes.byref(ev), ctypes.POINTER(xi.XDeviceButtonEvent)).contents
 
         device = self._responders.get(e.deviceid)
         if device is not None:
@@ -292,8 +305,7 @@ class XInputWindowEventDispatcher(object):
 
     @pyglet.window.xlib.XlibEventHandler(0)
     def _event_xinput_motion(self, ev):
-        e = ctypes.cast(ctypes.byref(ev),
-            ctypes.POINTER(xi.XDeviceMotionEvent)).contents
+        e = ctypes.cast(ctypes.byref(ev), ctypes.POINTER(xi.XDeviceMotionEvent)).contents
 
         device = self._responders.get(e.deviceid)
         if device is not None:
@@ -301,8 +313,7 @@ class XInputWindowEventDispatcher(object):
 
     @pyglet.window.xlib.XlibEventHandler(0)
     def _event_xinput_proximity_in(self, ev):
-        e = ctypes.cast(ctypes.byref(ev),
-            ctypes.POINTER(xi.XProximityNotifyEvent)).contents
+        e = ctypes.cast(ctypes.byref(ev), ctypes.POINTER(xi.XProximityNotifyEvent)).contents
 
         device = self._responders.get(e.deviceid)
         if device is not None:
@@ -310,22 +321,24 @@ class XInputWindowEventDispatcher(object):
 
     @pyglet.window.xlib.XlibEventHandler(-1)
     def _event_xinput_proximity_out(self, ev):
-        e = ctypes.cast(ctypes.byref(ev),
-            ctypes.POINTER(xi.XProximityNotifyEvent)).contents
+        e = ctypes.cast(ctypes.byref(ev), ctypes.POINTER(xi.XProximityNotifyEvent)).contents
 
         device = self._responders.get(e.deviceid)
         if device is not None:
             device._proximity_out(e)
 
+
 def _check_extension(display):
     major_opcode = ctypes.c_int()
     first_event = ctypes.c_int()
     first_error = ctypes.c_int()
-    xlib.XQueryExtension(display._display, b'XInputExtension',
+    xlib.XQueryExtension(display._display,
+                         b'XInputExtension',
                          ctypes.byref(major_opcode),
                          ctypes.byref(first_event),
                          ctypes.byref(first_error))
     return bool(major_opcode.value)
+
 
 def get_devices(display=None):
     if display is None:
@@ -345,4 +358,3 @@ def get_devices(display=None):
     xi.XFreeDeviceList(device_list)
 
     return devices
-

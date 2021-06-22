@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,17 +33,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
-
-from __future__ import absolute_import
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
-
 import os.path
 
-from pyglet.gl import *
 from pyglet.image import *
 from pyglet.image.codecs import *
 
@@ -51,11 +43,15 @@ try:
 except ImportError:
     from PIL import Image
 
+
 class PILImageDecoder(ImageDecoder):
     def get_file_extensions(self):
         # Only most common ones shown here
         return ['.bmp', '.cur', '.gif', '.ico', '.jpg', '.jpeg', '.pcx', '.png',
                 '.tga', '.tif', '.tiff', '.xbm', '.xpm']
+
+    # def get_animation_file_extensions(self):
+    #     return ['.gif', '.ani']
 
     def decode(self, file, filename):
         try:
@@ -67,8 +63,7 @@ class PILImageDecoder(ImageDecoder):
         try:
             image = image.transpose(Image.FLIP_TOP_BOTTOM)
         except Exception as e:
-            raise ImageDecodeException(
-                'PIL failed to transpose %r: %s' % (filename or file, e))
+            raise ImageDecodeException('PIL failed to transpose %r: %s' % (filename or file, e))
 
         # Convert bitmap and palette images to component
         if image.mode in ('1', 'P'):
@@ -76,13 +71,46 @@ class PILImageDecoder(ImageDecoder):
 
         if image.mode not in ('L', 'LA', 'RGB', 'RGBA'):
             raise ImageDecodeException('Unsupported mode "%s"' % image.mode)
-        type = GL_UNSIGNED_BYTE
         width, height = image.size
 
         # tostring is deprecated, replaced by tobytes in Pillow (PIL fork)
         # (1.1.7) PIL still uses it
-        image_data_fn = getattr(image, "tobytes", getattr(image, "tostring"))
+        try:
+            image_data_fn = getattr(image, "tobytes")
+        except AttributeError:
+            image_data_fn = getattr(image, "tostring")
         return ImageData(width, height, image.mode, image_data_fn())
+
+    # def decode_animation(self, file, filename):
+    #     try:
+    #         image = Image.open(file)
+    #     except Exception as e:
+    #         raise ImageDecodeException('PIL cannot read %r: %s' % (filename or file, e))
+    #
+    #     frames = []
+    #
+    #     for image in ImageSequence.Iterator(image):
+    #         try:
+    #             image = image.transpose(Image.FLIP_TOP_BOTTOM)
+    #         except Exception as e:
+    #             raise ImageDecodeException('PIL failed to transpose %r: %s' % (filename or file, e))
+    #
+    #         # Convert bitmap and palette images to component
+    #         if image.mode in ('1', 'P'):
+    #             image = image.convert()
+    #
+    #         if image.mode not in ('L', 'LA', 'RGB', 'RGBA'):
+    #             raise ImageDecodeException('Unsupported mode "%s"' % image.mode)
+    #
+    #         duration = None if image.info['duration'] == 0 else image.info['duration']
+    #         # Follow Firefox/Mac behaviour: use 100ms delay for any delay less than 10ms.
+    #         if duration <= 10:
+    #             duration = 100
+    #
+    #         frames.append(AnimationFrame(ImageData(*image.size, image.mode, image.tobytes()), duration / 1000))
+    #
+    #     return Animation(frames)
+
 
 class PILImageEncoder(ImageEncoder):
     def get_file_extensions(self):
@@ -99,25 +127,29 @@ class PILImageEncoder(ImageEncoder):
             pil_format = 'JPEG'
 
         image = image.get_image_data()
-        format = image.format
-        if format != 'RGB':
+        fmt = image.format
+        if fmt != 'RGB':
             # Only save in RGB or RGBA formats.
-            format = 'RGBA'
-        pitch = -(image.width * len(format))
+            fmt = 'RGBA'
+        pitch = -(image.width * len(fmt))
 
         # fromstring is deprecated, replaced by frombytes in Pillow (PIL fork)
         # (1.1.7) PIL still uses it
-        image_from_fn = getattr(Image, "frombytes", getattr(Image, "fromstring"))
-        pil_image = image_from_fn(
-            format, (image.width, image.height), image.get_data(format, pitch))
+        try:
+            image_from_fn = getattr(Image, "frombytes")
+        except AttributeError:
+            image_from_fn = getattr(Image, "fromstring")
+        pil_image = image_from_fn(fmt, (image.width, image.height), image.get_data(fmt, pitch))
 
         try:
             pil_image.save(file, pil_format)
         except Exception as e:
             raise ImageEncodeException(e)
 
+
 def get_decoders():
     return [PILImageDecoder()]
+
 
 def get_encoders():
     return [PILImageEncoder()]

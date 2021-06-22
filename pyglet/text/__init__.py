@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -31,7 +32,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
-# $Id: $
 
 """Text formatting, layout and display.
 
@@ -70,12 +70,8 @@ Refer to the Programming Guide for advanced usage of the document and layout
 classes, including interactive editing, embedding objects within documents and
 creating scrollable layouts.
 
-:since: pyglet 1.1
+.. versionadded:: 1.1
 """
-from builtins import object
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id: $'
 
 import os.path
 
@@ -88,7 +84,7 @@ class DocumentDecodeException(Exception):
     pass
 
 
-class DocumentDecoder(object):
+class DocumentDecoder:
     """Abstract document decoder.
     """
 
@@ -263,9 +259,9 @@ class DocumentLabel(layout.TextLayout):
                 characters.  You must also set the width of the label.
             `dpi` : float
                 Resolution of the fonts in this layout.  Defaults to 96.
-            `batch` : `Batch`
+            `batch` : `~pyglet.graphics.Batch`
                 Optional graphics batch to add the label to.
-            `group` : `Group`
+            `group` : `~pyglet.graphics.Group`
                 Optional graphics group to use.
 
         """
@@ -304,14 +300,13 @@ class DocumentLabel(layout.TextLayout):
 
     @color.setter
     def color(self, color):
-        self.document.set_style(0, len(self.document.text),
-                                {'color': color})
+        self.document.set_style(0, len(self.document.text), {'color': color})
 
     @property
     def font_name(self):
         """Font family name.
 
-        The font name, as passed to `pyglet.font.load`.  A list of names can
+        The font name, as passed to :py:func:`pyglet.font.load`.  A list of names can
         optionally be given: the first matching font will be used.
 
         :type: str or list
@@ -320,8 +315,7 @@ class DocumentLabel(layout.TextLayout):
 
     @font_name.setter
     def font_name(self, font_name):
-        self.document.set_style(0, len(self.document.text),
-                                {'font_name': font_name})
+        self.document.set_style(0, len(self.document.text), {'font_name': font_name})
 
     @property
     def font_size(self):
@@ -396,7 +390,7 @@ class Label(DocumentLabel):
     """
 
     def __init__(self, text='',
-                 font_name=None, font_size=None, bold=False, italic=False,
+                 font_name=None, font_size=None, bold=False, italic=False, stretch=False,
                  color=(255, 255, 255, 255),
                  x=0, y=0, width=None, height=None,
                  anchor_x='left', anchor_y='baseline',
@@ -412,10 +406,12 @@ class Label(DocumentLabel):
                 first matching name is used.
             `font_size` : float
                 Font size, in points.
-            `bold` : bool
+            `bold` : bool/str
                 Bold font style.
-            `italic` : bool
+            `italic` : bool/str
                 Italic font style.
+            `stretch` : bool/str
+                 Stretch font style.
             `color` : (int, int, int, int)
                 Font colour, as RGBA components in range [0, 255].
             `x` : int
@@ -441,9 +437,9 @@ class Label(DocumentLabel):
                 characters.  You must also set the width of the label.
             `dpi` : float
                 Resolution of the fonts in this layout.  Defaults to 96.
-            `batch` : `Batch`
+            `batch` : `~pyglet.graphics.Batch`
                 Optional graphics batch to add the label to.
-            `group` : `Group`
+            `group` : `~pyglet.graphics.Group`
                 Optional graphics group to use.
 
         """
@@ -457,6 +453,7 @@ class Label(DocumentLabel):
             'font_size': font_size,
             'bold': bold,
             'italic': italic,
+            'stretch': stretch,
             'color': color,
             'align': align,
         })
@@ -500,9 +497,9 @@ class HTMLLabel(DocumentLabel):
                 and line breaks.  You must also set the width of the label.
             `dpi` : float
                 Resolution of the fonts in this layout.  Defaults to 96.
-            `batch` : `Batch`
+            `batch` : `~pyglet.graphics.Batch`
                 Optional graphics batch to add the label to.
-            `group` : `Group`
+            `group` : `~pyglet.graphics.Group`
                 Optional graphics group to use.
 
         """

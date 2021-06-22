@@ -1,6 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,12 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id: $'
-
+import sys
 import ctypes
 from ctypes import *
 from ctypes.wintypes import *
@@ -54,6 +50,11 @@ for t in _int_types:
         c_ptrdiff_t = t
 del t
 del _int_types
+
+
+# PUINT is defined only from >= python 3.2
+if sys.version_info < (3, 2)[:2]:
+    PUINT = POINTER(UINT)
 
 
 class c_void(Structure):
@@ -78,6 +79,7 @@ def POINTER_(obj):
 
     return p
 
+
 c_void_p = POINTER_(c_void)
 INT = c_int
 LPVOID = c_void_p
@@ -94,6 +96,7 @@ UINT_PTR = HANDLE
 LONG_PTR = HANDLE
 HDROP = HANDLE
 LPTSTR = LPWSTR
+LPSTREAM = c_void_p
 
 LF_FACESIZE = 32
 CCHDEVICENAME = 32
@@ -103,6 +106,7 @@ WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
 TIMERPROC = WINFUNCTYPE(None, HWND, UINT, POINTER(UINT), DWORD)
 TIMERAPCPROC = WINFUNCTYPE(None, PVOID, DWORD, DWORD)
 MONITORENUMPROC = WINFUNCTYPE(BOOL, HMONITOR, HDC, LPRECT, LPARAM)
+
 
 def MAKEINTRESOURCE(i):
     return cast(ctypes.c_void_p(i & 0xFFFF), c_wchar_p)
@@ -122,6 +126,7 @@ class WNDCLASS(Structure):
         ('lpszClassName', c_wchar_p)
     ]
 
+
 class SECURITY_ATTRIBUTES(Structure):
     _fields_ = [
         ("nLength", DWORD),
@@ -129,6 +134,7 @@ class SECURITY_ATTRIBUTES(Structure):
         ("bInheritHandle", BOOL)
     ]
     __slots__ = [f[0] for f in _fields_]
+
 
 class PIXELFORMATDESCRIPTOR(Structure):
     _fields_ = [
@@ -160,6 +166,7 @@ class PIXELFORMATDESCRIPTOR(Structure):
         ('dwDamageMask', DWORD)
     ]
 
+
 class RGBQUAD(Structure):
     _fields_ = [
         ('rgbBlue', BYTE),
@@ -169,6 +176,7 @@ class RGBQUAD(Structure):
     ]
     __slots__ = [f[0] for f in _fields_]
 
+
 class CIEXYZ(Structure):
     _fields_ = [
         ('ciexyzX', DWORD),
@@ -177,6 +185,7 @@ class CIEXYZ(Structure):
     ]
     __slots__ = [f[0] for f in _fields_]
 
+
 class CIEXYZTRIPLE(Structure):
     _fields_ = [
         ('ciexyzRed', CIEXYZ),
@@ -184,6 +193,7 @@ class CIEXYZTRIPLE(Structure):
         ('ciexyzGreen', CIEXYZ),
     ]
     __slots__ = [f[0] for f in _fields_]
+
 
 class BITMAPINFOHEADER(Structure):
     _fields_ = [
@@ -199,6 +209,7 @@ class BITMAPINFOHEADER(Structure):
         ('biClrUsed', DWORD),
         ('biClrImportant', DWORD),
     ]
+
 
 class BITMAPV5HEADER(Structure):
     _fields_ = [
@@ -228,12 +239,14 @@ class BITMAPV5HEADER(Structure):
         ('bV5Reserved', DWORD),
     ]
 
+
 class BITMAPINFO(Structure):
     _fields_ = [
         ('bmiHeader', BITMAPINFOHEADER),
         ('bmiColors', RGBQUAD * 1)
     ]
     __slots__ = [f[0] for f in _fields_]
+
 
 class LOGFONT(Structure):
     _fields_ = [
@@ -253,6 +266,7 @@ class LOGFONT(Structure):
         ('lfFaceName', (c_char * LF_FACESIZE))  # Use ASCII
     ]
 
+
 class TRACKMOUSEEVENT(Structure):
     _fields_ = [
         ('cbSize', DWORD),
@@ -261,6 +275,7 @@ class TRACKMOUSEEVENT(Structure):
         ('dwHoverTime', DWORD)
     ]
     __slots__ = [f[0] for f in _fields_]
+
 
 class MINMAXINFO(Structure):
     _fields_ = [
@@ -272,6 +287,7 @@ class MINMAXINFO(Structure):
     ]
     __slots__ = [f[0] for f in _fields_]
 
+
 class ABC(Structure):
     _fields_ = [
         ('abcA', c_int),
@@ -279,6 +295,7 @@ class ABC(Structure):
         ('abcC', c_int)
     ]
     __slots__ = [f[0] for f in _fields_]
+
 
 class TEXTMETRIC(Structure):
     _fields_ = [
@@ -305,6 +322,7 @@ class TEXTMETRIC(Structure):
     ]
     __slots__ = [f[0] for f in _fields_]
 
+
 class MONITORINFOEX(Structure):
     _fields_ = [
         ('cbSize', DWORD),
@@ -314,6 +332,7 @@ class MONITORINFOEX(Structure):
         ('szDevice', WCHAR * CCHDEVICENAME)
     ]
     __slots__ = [f[0] for f in _fields_]
+
 
 class DEVMODE(Structure):
     _fields_ = [
@@ -354,6 +373,7 @@ class DEVMODE(Structure):
         ('dmPanningHeight', DWORD),
     ]
 
+
 class ICONINFO(Structure):
     _fields_ = [
         ('fIcon', BOOL),
@@ -363,3 +383,108 @@ class ICONINFO(Structure):
         ('hbmColor', HBITMAP)
     ]
     __slots__ = [f[0] for f in _fields_]
+
+
+class RAWINPUTDEVICE(Structure):
+    _fields_ = [
+        ('usUsagePage', USHORT),
+        ('usUsage', USHORT),
+        ('dwFlags', DWORD),
+        ('hwndTarget', HWND)
+    ]
+
+
+PCRAWINPUTDEVICE = POINTER(RAWINPUTDEVICE)
+HRAWINPUT = HANDLE
+
+
+class RAWINPUTHEADER(Structure):
+    _fields_ = [
+        ('dwType', DWORD),
+        ('dwSize', DWORD),
+        ('hDevice', HANDLE),
+        ('wParam', WPARAM),
+    ]
+
+
+class _Buttons(Structure):
+    _fields_ = [
+        ('usButtonFlags', USHORT),
+        ('usButtonData', USHORT),
+    ]
+
+
+class _U(Union):
+    _anonymous_ = ('_buttons',)
+    _fields_ = [
+        ('ulButtons', ULONG),
+        ('_buttons', _Buttons),
+    ]
+
+
+class RAWMOUSE(Structure):
+    _anonymous_ = ('u',)
+    _fields_ = [
+        ('usFlags', USHORT),
+        ('u', _U),
+        ('ulRawButtons', ULONG),
+        ('lLastX', LONG),
+        ('lLastY', LONG),
+        ('ulExtraInformation', ULONG),
+    ]
+
+
+class RAWKEYBOARD(Structure):
+    _fields_ = [
+        ('MakeCode', USHORT),
+        ('Flags', USHORT),
+        ('Reserved', USHORT),
+        ('VKey', USHORT),
+        ('Message', UINT),
+        ('ExtraInformation', ULONG),
+    ]
+
+
+class RAWHID(Structure):
+    _fields_ = [
+        ('dwSizeHid', DWORD),
+        ('dwCount', DWORD),
+        ('bRawData', POINTER(BYTE)),
+    ]
+
+
+class _RAWINPUTDEVICEUNION(Union):
+    _fields_ = [
+        ('mouse', RAWMOUSE),
+        ('keyboard', RAWKEYBOARD),
+        ('hid', RAWHID),
+    ]
+
+
+class RAWINPUT(Structure):
+    _fields_ = [
+        ('header', RAWINPUTHEADER),
+        ('data', _RAWINPUTDEVICEUNION),
+    ]
+
+
+# PROPVARIANT wrapper, doesn't require InitPropVariantFromInt64 this way.
+class _VarTable(ctypes.Union):
+    """Must be in an anonymous union or values will not work across various VT's."""
+    _fields_ = [
+        ('llVal', ctypes.c_longlong),
+        ('pwszVal', LPWSTR)
+    ]
+
+
+class PROPVARIANT(ctypes.Structure):
+    _anonymous_ = ['union']
+
+    _fields_ = [
+        ('vt', ctypes.c_ushort),
+        ('wReserved1', ctypes.c_ubyte),
+        ('wReserved2', ctypes.c_ubyte),
+        ('wReserved3', ctypes.c_ulong),
+        ('union', _VarTable)
+    ]
+

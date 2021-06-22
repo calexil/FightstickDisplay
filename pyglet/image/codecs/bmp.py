@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,21 +33,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''Decoder for BMP files.
+"""Decoder for BMP files.
 
 Currently supports version 3 and 4 bitmaps with BI_RGB and BI_BITFIELDS
 encoding.  Alpha channel is supported for 32-bit BI_RGB only.
-'''
-from builtins import range
+"""
 
 # Official docs are at
 # http://msdn2.microsoft.com/en-us/library/ms532311.aspx
 #
 # But some details including alignment and bit/byte order are omitted; see
 # http://www.fileformat.info/format/bmp/egff.htm
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
 
 import ctypes
 

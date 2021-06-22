@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,26 +33,19 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
-
 from ctypes import *
+from typing import Any, Callable
 
 import pyglet.lib
 from pyglet.gl.lib import missing_function, decorate_function
 
-from pyglet.compat import asbytes
+from pyglet.util import asbytes
 
-__all__ = ['link_GL', 'link_GLU', 'link_GLX']
+__all__ = ['link_GL', 'link_GLX']
 
 gl_lib = pyglet.lib.load_library('GL')
-glu_lib = pyglet.lib.load_library('GLU')
 
-# Look for glXGetProcAddressARB extension, use it as fallback (for
-# ATI fglrx and DRI drivers).
+# Look for glXGetProcAddressARB extension, use it as fallback (for ATI fglrx and DRI drivers).
 try:
     glXGetProcAddressARB = getattr(gl_lib, 'glXGetProcAddressARB')
     glXGetProcAddressARB.restype = POINTER(CFUNCTYPE(None))
@@ -59,8 +53,9 @@ try:
     _have_getprocaddress = True
 except AttributeError:
     _have_getprocaddress = False
-    
-def link_GL(name, restype, argtypes, requires=None, suggestions=None):
+
+
+def link_GL(name, restype, argtypes, requires=None, suggestions=None) -> Callable[..., Any]:
     try:
         func = getattr(gl_lib, name)
         func.restype = restype
@@ -80,15 +75,5 @@ def link_GL(name, restype, argtypes, requires=None, suggestions=None):
 
     return missing_function(name, requires, suggestions)
 
+
 link_GLX = link_GL
-
-def link_GLU(name, restype, argtypes, requires=None, suggestions=None):
-    try:
-        func = getattr(glu_lib, name)
-        func.restype = restype
-        func.argtypes = argtypes
-        decorate_function(func, name)
-        return func
-    except AttributeError:
-        return missing_function(name, requires, suggestions)
-

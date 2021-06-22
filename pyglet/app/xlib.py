@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,45 +33,38 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
-from builtins import object
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
-
 import os
 import select
 import threading
-from ctypes import *
 
 from pyglet import app
 from pyglet.app.base import PlatformEventLoop
-from pyglet.compat import asbytes
 
-class XlibSelectDevice(object):
+
+class XlibSelectDevice:
     def fileno(self):
-        '''Get the file handle for ``select()`` for this device.
+        """Get the file handle for ``select()`` for this device.
 
         :rtype: int
-        '''
+        """
         raise NotImplementedError('abstract')
 
     def select(self):
-        '''Perform event processing on the device.
+        """Perform event processing on the device.
 
         Called when ``select()`` returns this device in its list of active
         files.
-        '''
+        """
         raise NotImplementedError('abstract')
 
     def poll(self):
-        '''Check if the device has events ready to process.
+        """Check if the device has events ready to process.
 
         :rtype: bool
         :return: True if there are events to process, False otherwise.
-        '''
+        """
         return False
+
 
 class NotificationDevice(XlibSelectDevice):
     def __init__(self):
@@ -82,7 +76,7 @@ class NotificationDevice(XlibSelectDevice):
 
     def set(self):
         self._event.set()
-        os.write(self._sync_file_write, asbytes('1'))
+        os.write(self._sync_file_write, b'1')
 
     def select(self):
         self._event.clear()
@@ -92,12 +86,13 @@ class NotificationDevice(XlibSelectDevice):
     def poll(self):
         return self._event.isSet()
 
+
 class XlibEventLoop(PlatformEventLoop):
     def __init__(self):
         super(XlibEventLoop, self).__init__()
         self._notification_device = NotificationDevice()
-        self._select_devices = set()
-        self._select_devices.add(self._notification_device)
+        self.select_devices = set()
+        self.select_devices.add(self._notification_device)
 
     def notify(self):
         self._notification_device.set()
@@ -108,13 +103,13 @@ class XlibEventLoop(PlatformEventLoop):
 
         # Poll devices to check for already pending events (select.select is not enough)
         pending_devices = []
-        for device in self._select_devices:
+        for device in self.select_devices:
             if device.poll():
                 pending_devices.append(device)
 
         # If no devices were ready, wait until one gets ready
         if not pending_devices:
-            pending_devices, _, _ = select.select(self._select_devices, (), (), timeout)
+            pending_devices, _, _ = select.select(self.select_devices, (), (), timeout)
 
         if not pending_devices:
             # Notify caller that timeout expired without incoming events

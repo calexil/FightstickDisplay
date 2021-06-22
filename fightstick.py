@@ -4,9 +4,7 @@ import urllib.request
 from configparser import ConfigParser
 
 import pyglet
-from pyglet.gl import glViewport, glMatrixMode, glOrtho, glLoadIdentity, glScalef
-from pyglet.gl import GL_PROJECTION, GL_MODELVIEW
-from pyglet.debug import debug_print
+from pyglet.util import debug_print
 
 
 _debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '--debug')
@@ -35,18 +33,12 @@ except Exception:
         except Exception:
             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
 
-# Draw the main display window and set layout and image vars
+
 @window.event
 def on_resize(width, height):
-    glViewport(0, 0, width, height)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glOrtho(0, width, 0, height, -1, 1)
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
-    scale_x = width / 640.0
-    scale_y = height / 390.0
-    glScalef(scale_x, scale_y, 1.0)
+    # TODO: scale projection
+    window.projection = pyglet.math.Mat4.orthogonal_projection(0, width, 0, height, 0, 1)
+    return pyglet.event.EVENT_HANDLED
 
 
 _layout = {
@@ -130,8 +122,8 @@ class MainScene:
         self.fightstick = fightstick
         self.fightstick.open()
         # Ordered groups to handle draw order of the sprites
-        self.bg = pyglet.graphics.OrderedGroup(0)
-        self.fg = pyglet.graphics.OrderedGroup(1)
+        self.bg = pyglet.graphics.Group(0)
+        self.fg = pyglet.graphics.Group(1)
         # Create all sprites using helper function (name, batch, group, visible)
         self.background = _make_sprite('background', self.batch, self.bg)
         self.stick_spr = _make_sprite('stick', self.batch, self.fg)
@@ -224,7 +216,7 @@ def enforce_aspect_ratio(dt):
         window.set_size(window.width, target_height)
 
 
-def set_scene(dt):
+def set_scene(dt=0):
     # Load up either the full scene, or just the "try again" scene
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
@@ -239,9 +231,8 @@ def set_scene(dt):
 
 if __name__ == "__main__":
     load_configuration()
-    set_scene(0)
+    set_scene()
     # Schedulers for scene change, aspect enforce, and main display cycles(fps)
     pyglet.clock.schedule_interval(set_scene, 2.0)
     pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
-    pyglet.clock.schedule_interval(lambda dt: None, 1 / 60.0)
     pyglet.app.run()

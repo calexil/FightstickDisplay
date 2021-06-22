@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,23 +33,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id: $'
-
 from ctypes import *
 
 import pyglet.lib
 from pyglet.gl.lib import missing_function, decorate_function
 
-__all__ = ['link_GL', 'link_GLU', 'link_AGL']
+__all__ = ['link_GL', 'link_AGL']
 
-gl_lib = pyglet.lib.load_library(
-    framework='/System/Library/Frameworks/OpenGL.framework')
-agl_lib = pyglet.lib.load_library(
-    framework='/System/Library/Frameworks/AGL.framework')
+gl_lib = pyglet.lib.load_library(framework='OpenGL')
+agl_lib = pyglet.lib.load_library(framework='AGL')
+
 
 def link_GL(name, restype, argtypes, requires=None, suggestions=None):
     try:
@@ -60,7 +54,6 @@ def link_GL(name, restype, argtypes, requires=None, suggestions=None):
     except AttributeError:
         return missing_function(name, requires, suggestions)
 
-link_GLU = link_GL
 
 def link_AGL(name, restype, argtypes, requires=None, suggestions=None):
     try:
@@ -71,4 +64,3 @@ def link_AGL(name, restype, argtypes, requires=None, suggestions=None):
         return func
     except AttributeError:
         return missing_function(name, requires, suggestions)
-

@@ -1,6 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,68 +33,32 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''pyglet is a cross-platform games and multimedia package.
+"""pyglet is a cross-platform games and multimedia package.
 
-Detailed documentation is available at http://www.pyglet.org
-'''
-from __future__ import print_function
-from __future__ import absolute_import
-
-# Check if future is installed, if not use included batteries
-try:
-    import future
-except ImportError:
-    import os.path as op
-    import sys
-    future_base = op.abspath(op.join(op.dirname(__file__), 'extlibs', 'future'))
-    sys.path.insert(0, op.join(future_base, 'py2_3'))
-    if sys.version_info[:2] < (3, 0):
-        sys.path.insert(0, op.join(future_base, 'py2'))
-    del future_base
-    del sys
-    del op
-    try:
-        import future
-    except ImportError:
-        print('Failed to get python-future')
-        raise
-
-from builtins import range
-from builtins import object
+More information is available at http://www.pyglet.org
+"""
 
 import os
 import sys
-import warnings
 
-_is_epydoc = hasattr(sys, 'is_epydoc') and sys.is_epydoc
+from typing import TYPE_CHECKING
 
-#: The release version of this pyglet installation.
-#:
-#: Valid only if pyglet was installed from a source or binary distribution
-#: (i.e. not in a checked-out copy from SVN).
-#:
-#: Use setuptools if you need to check for a specific release version, e.g.::
-#:
-#:    >>> import pyglet
-#:    >>> from pkg_resources import parse_version
-#:    >>> parse_version(pyglet.version) >= parse_version('1.1')
-#:    True
-#:
-version = '1.2.2'
+#: The release version
+version = '2.0.dev5'
+__version__ = version
+
+if sys.version_info < (3, 6):
+    raise Exception('pyglet %s requires Python 3.6 or newer.' % version)
+
+if 'sphinx' in sys.modules:
+    setattr(sys, 'is_pyglet_doc_run', True)
+_is_pyglet_doc_run = hasattr(sys, "is_pyglet_doc_run") and sys.is_pyglet_doc_run
+
 
 # Pyglet platform treats *BSD systems as Linux
 compat_platform = sys.platform
 if "bsd" in compat_platform:
     compat_platform = "linux-compat"
-
-def _require_ctypes_version(version):
-    # Check ctypes version
-    import ctypes
-    req = [int(i) for i in version.split('.')]
-    have = [int(i) for i in ctypes.__version__.split('.')]
-    if not tuple(have) >= tuple(req):
-        raise ImportError('pyglet requires ctypes %s or later.' % version)
-_require_ctypes_version('1.0.0')
 
 _enable_optimisations = not __debug__
 if getattr(sys, 'frozen', None):
@@ -119,6 +84,7 @@ if getattr(sys, 'frozen', None):
 #:     A sequence of the names of audio modules to attempt to load, in
 #:     order of preference.  Valid driver names are:
 #:
+#:     * xaudio2, the Windows Xaudio2 audio module (Windows only)
 #:     * directsound, the Windows DirectSound audio module (Windows only)
 #:     * pulse, the PulseAudio module (Linux only)
 #:     * openal, the OpenAL audio module
@@ -145,7 +111,7 @@ if getattr(sys, 'frozen', None):
 #:     must be loaded after the window using them was created).  Recommended
 #:     for advanced developers only.
 #:
-#:     **Since:** pyglet 1.1
+#:     .. versionadded:: 1.1
 #: vsync
 #:     If set, the `pyglet.window.Window.vsync` property is ignored, and
 #:     this option overrides it (to either force vsync on or off).  If unset,
@@ -159,30 +125,22 @@ if getattr(sys, 'frozen', None):
 #:     X11 servers supporting the Xsync extension with a window manager
 #:     that implements the _NET_WM_SYNC_REQUEST protocol.
 #:
-#:     **Since:** pyglet 1.1
-#: darwin_cocoa
-#:     If True, the Cocoa-based pyglet implementation is used as opposed to
-#:     the 32-bit Carbon implementation.  When python is running in 64-bit mode
-#:     on Mac OS X 10.6 or later, this option is set to True by default.
-#:     Otherwise the Carbon implementation is preferred.
-#:
-#:     **Since:** pyglet 1.2
-#:
+#:     .. versionadded:: 1.1
 #: search_local_libs
 #:     If False, pyglet won't try to search for libraries in the script
 #:     directory and its `lib` subdirectory. This is useful to load a local
 #:     library instead of the system installed version. This option is set
 #:     to True by default.
 #:
-#:     **Since:** pyglet 1.2
+#:     .. versionadded:: 1.2
 #:
 options = {
-    'audio': ('directsound', 'pulse', 'openal', 'silent'),
-    'font': ('gdiplus', 'win32'), # ignored outside win32; win32 is deprecated
+    'audio': ('xaudio2', 'directsound', 'openal', 'pulse', 'silent'),
     'debug_font': False,
     'debug_gl': not _enable_optimisations,
     'debug_gl_trace': False,
     'debug_gl_trace_args': False,
+    'debug_gl_shaders': False,
     'debug_graphics_batch': False,
     'debug_lib': False,
     'debug_media': False,
@@ -193,22 +151,23 @@ options = {
     'debug_trace_flush': True,
     'debug_win32': False,
     'debug_x11': False,
-    'graphics_vbo': True,
     'shadow_window': True,
     'vsync': None,
     'xsync': True,
     'xlib_fullscreen_override_redirect': False,
-    'darwin_cocoa': False,
     'search_local_libs': True,
+    'advanced_font_features': False,
+    'headless': False,
+    'headless_device': 0,
 }
 
 _option_types = {
     'audio': tuple,
-    'font': tuple,
     'debug_font': bool,
     'debug_gl': bool,
     'debug_gl_trace': bool,
     'debug_gl_trace_args': bool,
+    'debug_gl_shaders': bool,
     'debug_graphics_batch': bool,
     'debug_lib': bool,
     'debug_media': bool,
@@ -219,33 +178,21 @@ _option_types = {
     'debug_trace_flush': bool,
     'debug_win32': bool,
     'debug_x11': bool,
-    'graphics_vbo': bool,
     'shadow_window': bool,
     'vsync': bool,
     'xsync': bool,
     'xlib_fullscreen_override_redirect': bool,
-    'darwin_cocoa': bool,
+    'search_local_libs': bool,
+    'advanced_font_features': bool,
+    'headless': bool,
+    'headless_device': int
 }
 
-def _choose_darwin_platform():
-    """Choose between Darwin's Carbon and Cocoa implementations."""
-    if compat_platform != 'darwin':
-        return
-    import struct
-    numbits = 8*struct.calcsize("P")
-    if numbits == 64:
-        import platform
-        osx_version = platform.mac_ver()[0].split(".")
-        if int(osx_version[0]) == 10 and int(osx_version[1]) < 6:
-            raise Exception('pyglet is not compatible with 64-bit Python for versions of Mac OS X prior to 10.6.')
-        options['darwin_cocoa'] = True
-    else:
-        options['darwin_cocoa'] = False
-_choose_darwin_platform()  # can be overridden by an environment variable below
 
 def _read_environment():
-    '''Read defaults for options from environment'''
+    """Read defaults for options from environment"""
     for key in options:
+        assert key in _option_types, f"Option '{key}' must have a type set in _option_types."
         env = 'PYGLET_%s' % key.upper()
         try:
             value = os.environ[env]
@@ -257,6 +204,8 @@ def _read_environment():
                 options[key] = int(value)
         except KeyError:
             pass
+
+
 _read_environment()
 
 if compat_platform == 'cygwin':
@@ -264,24 +213,24 @@ if compat_platform == 'cygwin':
     # functionality.  COM does not work with this hack, so there is no
     # DirectSound support.
     import ctypes
+
     ctypes.windll = ctypes.cdll
     ctypes.oledll = ctypes.cdll
     ctypes.WINFUNCTYPE = ctypes.CFUNCTYPE
     ctypes.HRESULT = ctypes.c_long
-
-if compat_platform == 'darwin' and not options['darwin_cocoa']:
-    warnings.warn('Carbon support is to be deprecated in Pyglet 1.4', PendingDeprecationWarning)
 
 # Call tracing
 # ------------
 
 _trace_filename_abbreviations = {}
 
+
 def _trace_repr(value, size=40):
     value = repr(value)
     if len(value) > size:
-        value = value[:size//2-2] + '...' + value[-size//2-1:]
+        value = value[:size // 2 - 2] + '...' + value[-size // 2 - 1:]
     return value
+
 
 def _trace_frame(thread, frame, indent):
     from pyglet import lib
@@ -334,6 +283,7 @@ def _trace_frame(thread, frame, indent):
     if _trace_flush:
         sys.stdout.flush()
 
+
 def _thread_trace_func(thread):
     def _trace_func(frame, event, arg):
         if event == 'call':
@@ -348,12 +298,15 @@ def _thread_trace_func(thread):
         elif event == 'exception':
             (exception, value, traceback) = arg
             print('First chance exception raised:', repr(exception))
+
     return _trace_func
+
 
 def _install_trace():
     global _trace_thread_count
     sys.setprofile(_thread_trace_func(_trace_thread_count))
     _trace_thread_count += 1
+
 
 _trace_thread_count = 0
 _trace_args = options['debug_trace_args']
@@ -362,10 +315,11 @@ _trace_flush = options['debug_trace_flush']
 if options['debug_trace']:
     _install_trace()
 
+
 # Lazy loading
 # ------------
 
-class _ModuleProxy(object):
+class _ModuleProxy:
     _module = None
 
     def __init__(self, name):
@@ -399,27 +353,10 @@ class _ModuleProxy(object):
             globals()[self._module_name] = module
             setattr(module, name, value)
 
-if True:
-    app = _ModuleProxy('app')
-    canvas = _ModuleProxy('canvas')
-    clock = _ModuleProxy('clock')
-    com = _ModuleProxy('com')
-    event = _ModuleProxy('event')
-    font = _ModuleProxy('font')
-    gl = _ModuleProxy('gl')
-    graphics = _ModuleProxy('graphics')
-    image = _ModuleProxy('image')
-    input = _ModuleProxy('input')
-    lib = _ModuleProxy('lib')
-    media = _ModuleProxy('media')
-    resource = _ModuleProxy('resource')
-    sprite = _ModuleProxy('sprite')
-    text = _ModuleProxy('text')
-    window = _ModuleProxy('window')
 
-# Fool py2exe, py2app into including all top-level modules (doesn't understand
-# lazy loading)
-if False:
+# Lazily load all modules, except if performing
+# type checking or code inspection.
+if TYPE_CHECKING:
     from . import app
     from . import canvas
     from . import clock
@@ -428,15 +365,36 @@ if False:
     from . import font
     from . import gl
     from . import graphics
+    from . import gui
     from . import input
     from . import image
     from . import lib
+    from . import math
     from . import media
+    from . import model
     from . import resource
     from . import sprite
+    from . import shapes
     from . import text
     from . import window
-
-# Hack around some epydoc bug that causes it to think pyglet.window is None.
-if False:
-    from . import window
+else:
+    app = _ModuleProxy('app')
+    canvas = _ModuleProxy('canvas')
+    clock = _ModuleProxy('clock')
+    com = _ModuleProxy('com')
+    event = _ModuleProxy('event')
+    font = _ModuleProxy('font')
+    gl = _ModuleProxy('gl')
+    graphics = _ModuleProxy('graphics')
+    gui = _ModuleProxy('gui')
+    image = _ModuleProxy('image')
+    input = _ModuleProxy('input')
+    lib = _ModuleProxy('lib')
+    math = _ModuleProxy('math')
+    media = _ModuleProxy('media')
+    model = _ModuleProxy('model')
+    resource = _ModuleProxy('resource')
+    sprite = _ModuleProxy('sprite')
+    shapes = _ModuleProxy('shapes')
+    text = _ModuleProxy('text')
+    window = _ModuleProxy('window')

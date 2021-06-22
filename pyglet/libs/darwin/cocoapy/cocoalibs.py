@@ -1,5 +1,3 @@
-from builtins import str
-
 from ctypes import *
 from ctypes import util
 
@@ -9,8 +7,13 @@ from .cocoatypes import *
 ######################################################################
 
 # CORE FOUNDATION
+lib = util.find_library('CoreFoundation')
 
-cf = cdll.LoadLibrary(util.find_library('CoreFoundation'))
+# Hack for compatibility with macOS > 11.0
+if lib is None:
+    lib = '/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation'
+
+cf = cdll.LoadLibrary(lib)
 
 kCFStringEncodingUTF8 = 0x08000100
 
@@ -166,7 +169,7 @@ def cfset_to_set(cfset):
     buffer = (c_void_p * count)()
     cf.CFSetGetValues(cfset, byref(buffer))
     return set([ cftype_to_value(c_void_p(buffer[i])) for i in range(count) ])
-    
+
 cf.CFArrayGetCount.restype = CFIndex
 cf.CFArrayGetCount.argtypes = [c_void_p]
 
@@ -176,7 +179,7 @@ cf.CFArrayGetValueAtIndex.argtypes = [c_void_p, CFIndex]
 def cfarray_to_list(cfarray):
     """Convert CFArray to python list."""
     count = cf.CFArrayGetCount(cfarray)
-    return [ cftype_to_value(c_void_p(cf.CFArrayGetValueAtIndex(cfarray, i))) 
+    return [ cftype_to_value(c_void_p(cf.CFArrayGetValueAtIndex(cfarray, i)))
              for i in range(count) ]
 
 
@@ -194,7 +197,13 @@ cf.CFRunLoopGetMain.argtypes = []
 
 # Even though we don't use this directly, it must be loaded so that
 # we can find the NSApplication, NSWindow, and NSView classes.
-appkit = cdll.LoadLibrary(util.find_library('AppKit'))
+lib = util.find_library('AppKit')
+
+# Hack for compatibility with macOS > 11.0
+if lib is None:
+    lib = '/System/Library/Frameworks/AppKit.framework/AppKit'
+
+appkit = cdll.LoadLibrary(lib)
 
 NSDefaultRunLoopMode = c_void_p.in_dll(appkit, 'NSDefaultRunLoopMode')
 NSEventTrackingRunLoopMode = c_void_p.in_dll(appkit, 'NSEventTrackingRunLoopMode')
@@ -248,43 +257,48 @@ NSTrackingCursorUpdate 		 = 0x04
 NSTrackingActiveInActiveApp 	 = 0x40
 
 # /System/Library/Frameworks/AppKit.framework/Headers/NSOpenGL.h
-NSOpenGLPFAAllRenderers       =   1   # choose from all available renderers          
-NSOpenGLPFADoubleBuffer       =   5   # choose a double buffered pixel format        
-NSOpenGLPFAStereo             =   6   # stereo buffering supported                   
-NSOpenGLPFAAuxBuffers         =   7   # number of aux buffers                        
-NSOpenGLPFAColorSize          =   8   # number of color buffer bits                  
-NSOpenGLPFAAlphaSize          =  11   # number of alpha component bits               
-NSOpenGLPFADepthSize          =  12   # number of depth buffer bits                  
-NSOpenGLPFAStencilSize        =  13   # number of stencil buffer bits                
-NSOpenGLPFAAccumSize          =  14   # number of accum buffer bits                  
-NSOpenGLPFAMinimumPolicy      =  51   # never choose smaller buffers than requested  
-NSOpenGLPFAMaximumPolicy      =  52   # choose largest buffers of type requested     
-NSOpenGLPFAOffScreen          =  53   # choose an off-screen capable renderer        
-NSOpenGLPFAFullScreen         =  54   # choose a full-screen capable renderer        
-NSOpenGLPFASampleBuffers      =  55   # number of multi sample buffers               
-NSOpenGLPFASamples            =  56   # number of samples per multi sample buffer    
-NSOpenGLPFAAuxDepthStencil    =  57   # each aux buffer has its own depth stencil    
-NSOpenGLPFAColorFloat         =  58   # color buffers store floating point pixels    
-NSOpenGLPFAMultisample        =  59   # choose multisampling                         
-NSOpenGLPFASupersample        =  60   # choose supersampling                         
-NSOpenGLPFASampleAlpha        =  61   # request alpha filtering                      
-NSOpenGLPFARendererID         =  70   # request renderer by ID                       
-NSOpenGLPFASingleRenderer     =  71   # choose a single renderer for all screens     
-NSOpenGLPFANoRecovery         =  72   # disable all failure recovery systems         
-NSOpenGLPFAAccelerated        =  73   # choose a hardware accelerated renderer       
-NSOpenGLPFAClosestPolicy      =  74   # choose the closest color buffer to request   
-NSOpenGLPFARobust             =  75   # renderer does not need failure recovery      
-NSOpenGLPFABackingStore       =  76   # back buffer contents are valid after swap    
-NSOpenGLPFAMPSafe             =  78   # renderer is multi-processor safe             
-NSOpenGLPFAWindow             =  80   # can be used to render to an onscreen window  
-NSOpenGLPFAMultiScreen        =  81   # single window can span multiple screens      
-NSOpenGLPFACompliant          =  83   # renderer is opengl compliant                 
-NSOpenGLPFAScreenMask         =  84   # bit mask of supported physical screens       
-NSOpenGLPFAPixelBuffer        =  90   # can be used to render to a pbuffer           
-NSOpenGLPFARemotePixelBuffer  =  91   # can be used to render offline to a pbuffer   
-NSOpenGLPFAAllowOfflineRenderers = 96 # allow use of offline renderers               
-NSOpenGLPFAAcceleratedCompute =  97   # choose a hardware accelerated compute device 
-NSOpenGLPFAVirtualScreenCount = 128   # number of virtual screens in this format     
+NSOpenGLPFAAllRenderers       =   1   # choose from all available renderers
+NSOpenGLPFADoubleBuffer       =   5   # choose a double buffered pixel format
+NSOpenGLPFAStereo             =   6   # stereo buffering supported
+NSOpenGLPFAAuxBuffers         =   7   # number of aux buffers
+NSOpenGLPFAColorSize          =   8   # number of color buffer bits
+NSOpenGLPFAAlphaSize          =  11   # number of alpha component bits
+NSOpenGLPFADepthSize          =  12   # number of depth buffer bits
+NSOpenGLPFAStencilSize        =  13   # number of stencil buffer bits
+NSOpenGLPFAAccumSize          =  14   # number of accum buffer bits
+NSOpenGLPFAMinimumPolicy      =  51   # never choose smaller buffers than requested
+NSOpenGLPFAMaximumPolicy      =  52   # choose largest buffers of type requested
+NSOpenGLPFAOffScreen          =  53   # choose an off-screen capable renderer
+NSOpenGLPFAFullScreen         =  54   # choose a full-screen capable renderer
+NSOpenGLPFASampleBuffers      =  55   # number of multi sample buffers
+NSOpenGLPFASamples            =  56   # number of samples per multi sample buffer
+NSOpenGLPFAAuxDepthStencil    =  57   # each aux buffer has its own depth stencil
+NSOpenGLPFAColorFloat         =  58   # color buffers store floating point pixels
+NSOpenGLPFAMultisample        =  59   # choose multisampling
+NSOpenGLPFASupersample        =  60   # choose supersampling
+NSOpenGLPFASampleAlpha        =  61   # request alpha filtering
+NSOpenGLPFARendererID         =  70   # request renderer by ID
+NSOpenGLPFASingleRenderer     =  71   # choose a single renderer for all screens
+NSOpenGLPFANoRecovery         =  72   # disable all failure recovery systems
+NSOpenGLPFAAccelerated        =  73   # choose a hardware accelerated renderer
+NSOpenGLPFAClosestPolicy      =  74   # choose the closest color buffer to request
+NSOpenGLPFARobust             =  75   # renderer does not need failure recovery
+NSOpenGLPFABackingStore       =  76   # back buffer contents are valid after swap
+NSOpenGLPFAMPSafe             =  78   # renderer is multi-processor safe
+NSOpenGLPFAWindow             =  80   # can be used to render to an onscreen window
+NSOpenGLPFAMultiScreen        =  81   # single window can span multiple screens
+NSOpenGLPFACompliant          =  83   # renderer is opengl compliant
+NSOpenGLPFAScreenMask         =  84   # bit mask of supported physical screens
+NSOpenGLPFAPixelBuffer        =  90   # can be used to render to a pbuffer
+NSOpenGLPFARemotePixelBuffer  =  91   # can be used to render offline to a pbuffer
+NSOpenGLPFAAllowOfflineRenderers = 96 # allow use of offline renderers
+NSOpenGLPFAAcceleratedCompute =  97   # choose a hardware accelerated compute device
+NSOpenGLPFAOpenGLProfile      =  99   # specify an OpenGL Profile to use
+NSOpenGLPFAVirtualScreenCount = 128   # number of virtual screens in this format
+
+NSOpenGLProfileVersionLegacy  = 0x1000    # choose a Legacy/Pre-OpenGL 3.0 Implementation
+NSOpenGLProfileVersion3_2Core = 0x3200    # choose an OpenGL 3.2 Core Implementation
+NSOpenGLProfileVersion4_1Core = 0x4100    # choose an OpenGL 4.1 Core Implementation
 
 NSOpenGLCPSwapInterval        = 222
 
@@ -327,8 +341,13 @@ NSApplicationActivationPolicyProhibited = 2
 ######################################################################
 
 # QUARTZ / COREGRAPHICS
+lib = util.find_library('Quartz')
 
-quartz = cdll.LoadLibrary(util.find_library('quartz'))
+# Hack for compatibility with macOS > 11.0
+if lib is None:
+    lib = '/System/Library/Frameworks/Quartz.framework/Quartz'
+
+quartz = cdll.LoadLibrary(lib)
 
 CGDirectDisplayID = c_uint32     # CGDirectDisplay.h
 CGError = c_int32                # CGError.h
@@ -373,7 +392,7 @@ quartz.CGDisplayModeGetRefreshRate.restype = c_double
 quartz.CGDisplayModeGetRefreshRate.argtypes = [c_void_p]
 
 quartz.CGDisplayModeRetain.restype = c_void_p
-quartz.CGDisplayModeRetain.argtypes = [c_void_p] 
+quartz.CGDisplayModeRetain.argtypes = [c_void_p]
 
 quartz.CGDisplayModeRelease.restype = None
 quartz.CGDisplayModeRelease.argtypes = [c_void_p]
@@ -477,7 +496,13 @@ quartz.CGContextSetShouldAntialias.argtypes = [c_void_p, c_bool]
 ######################################################################
 
 # CORETEXT
-ct = cdll.LoadLibrary(util.find_library('CoreText'))
+lib = util.find_library('CoreText')
+
+# Hack for compatibility with macOS > 11.0
+if lib is None:
+    lib = '/System/Library/Frameworks/CoreText.framework/CoreText'
+
+ct = cdll.LoadLibrary(lib)
 
 # Types
 CTFontOrientation = c_uint32      # CTFontDescriptor.h
@@ -536,8 +561,13 @@ ct.CTFontDescriptorCreateWithAttributes.argtypes = [c_void_p]
 ######################################################################
 
 # FOUNDATION
+lib = util.find_library('Foundation')
 
-foundation = cdll.LoadLibrary(util.find_library('Foundation'))
+# Hack for compatibility with macOS > 11.0
+if lib is None:
+    lib = '/System/Library/Frameworks/Foundation.framework/Foundation'
+
+foundation = cdll.LoadLibrary(lib)
 
 foundation.NSMouseInRect.restype = c_bool
 foundation.NSMouseInRect.argtypes = [NSPoint, NSRect, c_bool]

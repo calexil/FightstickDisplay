@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -31,6 +32,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
+import sys
+
 # Most of this file is win32con.py from Python for Windows Extensions:
 # http://www.python.net/crew/mhammond/win32/
 
@@ -1186,8 +1189,17 @@ VK_VOLUME_UP = 0xAF
 VK_MEDIA_NEXT_TRACK = 0xB0
 VK_MEDIA_PREV_TRACK = 0xB1
 VK_MEDIA_PLAY_PAUSE = 0xB3
+VK_LAUNCH_MAIL = 0xB4
+VK_LAUNCH_MEDIA_SELECT = 0xB5
+VK_LAUNCH_APP1 = 0xB6
+VK_LAUNCH_APP2 = 0xB
 VK_BROWSER_BACK = 0xA6
 VK_BROWSER_FORWARD = 0xA7
+VK_BROWSER_REFRESH = 0xA8
+VK_BROWSER_STOP = 0xA9
+VK_BROWSER_SEARCH = 0xAA
+VK_BROWSER_FAVORITES = 0xAB
+VK_BROWSER_HOME = 0xAC
 WH_MIN = (-1)
 WH_MSGFILTER = (-1)
 WH_JOURNALRECORD = 0
@@ -1365,6 +1377,7 @@ WM_COMMNOTIFY = 68
 WM_WINDOWPOSCHANGING = 70
 WM_WINDOWPOSCHANGED = 71
 WM_POWER = 72
+WM_COPYGLOBALDATA = 73
 PWR_OK = 1
 PWR_FAIL = (-1)
 PWR_SUSPENDREQUEST = 1
@@ -1538,6 +1551,7 @@ WM_AFXLAST = 895
 WM_PENWINFIRST = 896
 WM_PENWINLAST = 911
 WM_APP = 32768
+WM_INPUT = 0x00FF
 WMSZ_LEFT = 1
 WMSZ_RIGHT = 2
 WMSZ_TOP = 3
@@ -4275,21 +4289,23 @@ QS_TIMER = 16
 QS_PAINT = 32
 QS_SENDMESSAGE = 64
 QS_HOTKEY = 128
-QS_MOUSE = (QS_MOUSEMOVE     | \
-                            QS_MOUSEBUTTON)
-QS_INPUT = (QS_MOUSE         | \
-                            QS_KEY)
-QS_ALLEVENTS = (QS_INPUT         | \
-                            QS_POSTMESSAGE   | \
-                            QS_TIMER         | \
-                            QS_PAINT         | \
-                            QS_HOTKEY)
-QS_ALLINPUT = (QS_INPUT         | \
-                            QS_POSTMESSAGE   | \
-                            QS_TIMER         | \
-                            QS_PAINT         | \
-                            QS_HOTKEY        | \
-                            QS_SENDMESSAGE)
+QS_RAWINPUT = 0x400
+QS_MOUSE = (QS_MOUSEMOVE     |
+            QS_MOUSEBUTTON)
+QS_INPUT = (QS_MOUSE         |
+            QS_KEY           |
+            QS_RAWINPUT)
+QS_ALLEVENTS = (QS_INPUT         |
+                QS_POSTMESSAGE   |
+                QS_TIMER         |
+                QS_PAINT         |
+                QS_HOTKEY)
+QS_ALLINPUT = (QS_INPUT          |
+               QS_POSTMESSAGE    |
+               QS_TIMER          |
+               QS_PAINT          |
+               QS_HOTKEY         |
+               QS_SENDMESSAGE)
 
 
 IMN_CLOSESTATUSWINDOW = 1
@@ -4987,3 +5003,87 @@ USER_TIMER_MAXIMUM = 0x7fffffff
 
 # From WinBase.h
 INFINITE = 0xffffffff
+
+# From Winuser.h
+RIDEV_REMOVE = 0x00000001
+RIDEV_EXCLUDE = 0x00000010
+RIDEV_PAGEONLY = 0x00000020
+RIDEV_NOLEGACY = 0x00000030
+RIDEV_INPUTSINK = 0x00000100
+RIDEV_CAPTUREMOUSE = 0x00000200
+RIDEV_NOHOTKEYS = 0x00000200
+RIDEV_APPKEYS = 0x00000400
+RIDEV_EXMODEMASK = 0x000000F0
+RIDEV_EXINPUTSINK = 0x00001000 # Vista+
+RIDEV_DEVNOTIFY = 0x00002000 # Vista+
+
+RI_KEY_MAKE = 0
+RI_KEY_BREAK = 1
+RI_KEY_E0 = 2
+RI_KEY_E1 = 4
+RI_KEY_TERMSRV_SET_LED = 8
+RI_KEY_TERMSRV_SHADOW = 0x10
+
+RIM_TYPEMOUSE = 0
+RIM_TYPEKEYBOARD = 1
+RIM_TYPEHID = 2
+
+RID_INPUT = 0x10000003
+RID_HEADER = 0x10000005
+
+MOUSE_MOVE_RELATIVE = 0
+MOUSE_MOVE_ABSOLUTE = 1
+MOUSE_VIRTUAL_DESKTOP = 0x02
+MOUSE_ATTRIBUTES_CHANGED = 0x04
+
+RI_MOUSE_LEFT_BUTTON_DOWN = 0x0001
+RI_MOUSE_LEFT_BUTTON_UP = 0x0002
+RI_MOUSE_RIGHT_BUTTON_DOWN = 0x0004
+RI_MOUSE_RIGHT_BUTTON_UP = 0x0008
+RI_MOUSE_MIDDLE_BUTTON_DOWN = 0x0010
+RI_MOUSE_MIDDLE_BUTTON_UP = 0x0020
+
+RI_MOUSE_BUTTON_1_DOWN = RI_MOUSE_LEFT_BUTTON_DOWN
+RI_MOUSE_BUTTON_1_UP = RI_MOUSE_LEFT_BUTTON_UP
+RI_MOUSE_BUTTON_2_DOWN = RI_MOUSE_RIGHT_BUTTON_DOWN
+RI_MOUSE_BUTTON_2_UP = RI_MOUSE_RIGHT_BUTTON_UP
+RI_MOUSE_BUTTON_3_DOWN = RI_MOUSE_MIDDLE_BUTTON_DOWN
+RI_MOUSE_BUTTON_3_UP = RI_MOUSE_MIDDLE_BUTTON_UP
+
+RI_MOUSE_BUTTON_4_DOWN = 0x0040
+RI_MOUSE_BUTTON_4_UP = 0x0080
+RI_MOUSE_BUTTON_5_DOWN = 0x0100
+RI_MOUSE_BUTTON_5_UP = 0x0200
+
+RI_MOUSE_WHEEL = 0x0400
+
+WINDOWS_VISTA_OR_GREATER = sys.getwindowsversion() >= (6, 0)
+WINDOWS_7_OR_GREATER = sys.getwindowsversion() >= (6, 1)
+WINDOWS_8_OR_GREATER = sys.getwindowsversion() >= (6, 2)
+WINDOWS_8_1_OR_GREATER = sys.getwindowsversion() >= (6, 3)
+WINDOWS_10_ANNIVERSARY_UPDATE_OR_GREATER = sys.getwindowsversion() >= (10, 0, 14393)  # 1607
+WINDOWS_10_CREATORS_UPDATE_OR_GREATER = sys.getwindowsversion() >= (10, 0, 15063)  # 1703
+
+MSGFLT_ALLOW = 1
+MSGFLT_DISALLOW = 2
+MSGFLT_RESET = 0
+
+COINIT_APARTMENTTHREADED = 0x2
+COINIT_MULTITHREADED = 0x0
+COINIT_DISABLE_OLE1DDE = 0x4
+COINIT_SPEED_OVER_MEMORY = 0x8
+
+MF_ACCESSMODE_READ = 1
+MF_ACCESSMODE_WRITE = 2
+MF_ACCESSMODE_READWRITE = 3
+
+MF_OPENMODE_FAIL_IF_NOT_EXIST = 0
+MF_OPENMODE_FAIL_IF_EXIST = 1
+MF_OPENMODE_RESET_IF_EXIST = 2
+MF_OPENMODE_APPEND_IF_EXIST = 3
+MF_OPENMODE_DELETE_IF_EXIST = 4
+
+MF_FILEFLAGS_NONE = 0
+MF_FILEFLAGS_NOBUFFERING = 1
+
+CLSCTX_INPROC_SERVER = 0x1

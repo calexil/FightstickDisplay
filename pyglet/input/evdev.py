@@ -1,25 +1,51 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
+# pyglet
+# Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+#  * Neither the name of pyglet nor the names of its
+#    contributors may be used to endorse or promote products
+#    derived from this software without specific prior written
+#    permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# ----------------------------------------------------------------------------
 
-'''
-'''
-from __future__ import absolute_import
-from builtins import hex
-from builtins import range
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
-
-import ctypes
-import errno
 import os
+import errno
+import fcntl
+import struct
+import ctypes
 
 import pyglet
+
 from pyglet.app.xlib import XlibSelectDevice
-from .base import Device, Control, RelativeAxis, AbsoluteAxis, Button, Joystick, GameController
+from .base import Device, RelativeAxis, AbsoluteAxis, Button, Joystick, GameController
 from .base import DeviceOpenException
 from .evdev_constants import *
-from .gamecontroller import *
-
+from .gamecontroller import is_game_controller
 
 c = pyglet.lib.load_library('c')
 
@@ -28,19 +54,20 @@ _IOC_TYPEBITS = 8
 _IOC_SIZEBITS = 14
 _IOC_DIRBITS = 2
 
-_IOC_NRMASK = ((1 << _IOC_NRBITS)-1)
-_IOC_TYPEMASK = ((1 << _IOC_TYPEBITS)-1)
-_IOC_SIZEMASK = ((1 << _IOC_SIZEBITS)-1)
-_IOC_DIRMASK = ((1 << _IOC_DIRBITS)-1)
+_IOC_NRMASK = ((1 << _IOC_NRBITS) - 1)
+_IOC_TYPEMASK = ((1 << _IOC_TYPEBITS) - 1)
+_IOC_SIZEMASK = ((1 << _IOC_SIZEBITS) - 1)
+_IOC_DIRMASK = ((1 << _IOC_DIRBITS) - 1)
 
 _IOC_NRSHIFT = 0
-_IOC_TYPESHIFT = (_IOC_NRSHIFT+_IOC_NRBITS)
-_IOC_SIZESHIFT = (_IOC_TYPESHIFT+_IOC_TYPEBITS)
-_IOC_DIRSHIFT = (_IOC_SIZESHIFT+_IOC_SIZEBITS)
+_IOC_TYPESHIFT = (_IOC_NRSHIFT + _IOC_NRBITS)
+_IOC_SIZESHIFT = (_IOC_TYPESHIFT + _IOC_TYPEBITS)
+_IOC_DIRSHIFT = (_IOC_SIZESHIFT + _IOC_SIZEBITS)
 
 _IOC_NONE = 0
 _IOC_WRITE = 1
 _IOC_READ = 2
+
 
 def _IOC(dir, type, nr, size):
     return ((dir << _IOC_DIRSHIFT) |
@@ -48,15 +75,19 @@ def _IOC(dir, type, nr, size):
             (nr << _IOC_NRSHIFT) |
             (size << _IOC_SIZESHIFT))
 
+
 def _IOR(type, nr, struct):
     request = _IOC(_IOC_READ, ord(type), nr, ctypes.sizeof(struct))
+
     def f(fileno):
         buffer = struct()
         if c.ioctl(fileno, request, ctypes.byref(buffer)) < 0:
             err = ctypes.c_int.in_dll(c, 'errno').value
             raise OSError(err, errno.errorcode[err])
         return buffer
+
     return f
+
 
 def _IOR_len(type, nr):
     def f(fileno, buffer):
@@ -65,22 +96,29 @@ def _IOR_len(type, nr):
             err = ctypes.c_int.in_dll(c, 'errno').value
             raise OSError(err, errno.errorcode[err])
         return buffer
+
     return f
+
 
 def _IOR_str(type, nr):
     g = _IOR_len(type, nr)
+
     def f(fileno, len=256):
         return g(fileno, ctypes.create_string_buffer(len)).value
+
     return f
+
 
 time_t = ctypes.c_long
 suseconds_t = ctypes.c_long
+
 
 class timeval(ctypes.Structure):
     _fields_ = (
         ('tv_sec', time_t),
         ('tv_usec', suseconds_t)
     )
+
 
 class input_event(ctypes.Structure):
     _fields_ = (
@@ -90,6 +128,7 @@ class input_event(ctypes.Structure):
         ('value', ctypes.c_int32)
     )
 
+
 class input_id(ctypes.Structure):
     _fields_ = (
         ('bustype', ctypes.c_uint16),
@@ -97,6 +136,7 @@ class input_id(ctypes.Structure):
         ('product', ctypes.c_uint16),
         ('version', ctypes.c_uint16),
     )
+
 
 class input_absinfo(ctypes.Structure):
     _fields_ = (
@@ -107,16 +147,22 @@ class input_absinfo(ctypes.Structure):
         ('flat', ctypes.c_int32),
     )
 
+
 EVIOCGVERSION = _IOR('E', 0x01, ctypes.c_int)
 EVIOCGID = _IOR('E', 0x02, input_id)
 EVIOCGNAME = _IOR_str('E', 0x06)
 EVIOCGPHYS = _IOR_str('E', 0x07)
 EVIOCGUNIQ = _IOR_str('E', 0x08)
+
+
 def EVIOCGBIT(fileno, ev, buffer):
     return _IOR_len('E', 0x20 + ev)(fileno, buffer)
+
+
 def EVIOCGABS(fileno, abs):
     buffer = input_absinfo()
     return _IOR_len('E', 0x40 + abs)(fileno, buffer)
+
 
 def get_set_bits(bytes):
     bits = set()
@@ -128,6 +174,7 @@ def get_set_bits(bytes):
             byte >>= 1
         j += 8
     return bits
+
 
 _abs_names = {
     ABS_X: AbsoluteAxis.X,
@@ -157,9 +204,9 @@ def _create_control(fileno, event_type, event_code):
         name = _abs_names.get(event_code)
         absinfo = EVIOCGABS(fileno, event_code)
         value = absinfo.value
-        min = absinfo.minimum
-        max = absinfo.maximum
-        control = AbsoluteAxis(name, min, max, raw_name)
+        minimum = absinfo.minimum
+        maximum = absinfo.maximum
+        control = AbsoluteAxis(name, minimum, maximum, raw_name)
         control.value = value
 
         if name == 'hat_y':
@@ -174,52 +221,11 @@ def _create_control(fileno, event_type, event_code):
         name = None
         control = Button(name, raw_name)
     else:
-        value = min = max = 0 # TODO
+        value = minimum = maximum = 0  # TODO
         return None
     control._event_type = event_type
     control._event_code = event_code
     return control
-
-
-def _create_joystick(device):
-    # Look for something with an ABS X and ABS Y axis, and a joystick 0 button
-    have_x = False
-    have_y = False
-    have_button = False
-    for control in device.controls:
-        if control._event_type == EV_ABS and control._event_code == ABS_X:
-            have_x = True
-        elif control._event_type == EV_ABS and control._event_code == ABS_Y:
-            have_y = True
-        elif control._event_type == EV_KEY and \
-                        control._event_code in (BTN_JOYSTICK, BTN_GAMEPAD):
-            have_button = True
-    if not (have_x and have_y and have_button):
-        return
-
-    return Joystick(device)
-
-
-def _create_game_controller(device):
-    # Look for something with an ABS X and ABS Y axis, and a joystick 0 button
-    have_x = False
-    have_y = False
-    have_button = False
-    if not is_game_controller(device):
-        return
-    device.controls.sort(key=lambda ctrl: ctrl._event_code)
-    for control in device.controls:
-        if control._event_type == EV_ABS and control._event_code == ABS_X:
-            have_x = True
-        elif control._event_type == EV_ABS and control._event_code == ABS_Y:
-            have_y = True
-        elif control._event_type == EV_KEY and \
-                        control._event_code in (BTN_JOYSTICK, BTN_GAMEPAD):
-            have_button = True
-    if not (have_x and have_y and have_button):
-        return
-
-    return GameController(device)
 
 
 event_types = {
@@ -234,7 +240,7 @@ event_types = {
 
 class EvdevDevice(XlibSelectDevice, Device):
     _fileno = None
-        
+
     def __init__(self, display, filename):
         self._filename = filename
 
@@ -255,7 +261,7 @@ class EvdevDevice(XlibSelectDevice, Device):
                 name = name.decode('latin-1')
             except UnicodeDecodeError:
                 pass
-            
+
         try:
             self.phys = EVIOCGPHYS(fileno)
         except OSError:
@@ -280,12 +286,12 @@ class EvdevDevice(XlibSelectDevice, Device):
             for event_code in get_set_bits(event_codes_bits):
                 control = _create_control(fileno, event_type, event_code)
                 if control:
-                    self.control_map[(event_type, event_code)] = control 
+                    self.control_map[(event_type, event_code)] = control
                     self.controls.append(control)
 
         os.close(fileno)
 
-        super(EvdevDevice, self).__init__(display, name)
+        super().__init__(display, name)
 
     def get_guid(self):
         """Generate an SDL2 style GUID from the device ID"""
@@ -305,11 +311,11 @@ class EvdevDevice(XlibSelectDevice, Device):
         super(EvdevDevice, self).open(window, exclusive)
 
         try:
-            self._fileno = os.open(self._filename, os.O_RDONLY | os.O_NONBLOCK)
+            self._fileno = os.open(self._filename, os.O_RDWR | os.O_NONBLOCK)
         except OSError as e:
             raise DeviceOpenException(e)
 
-        pyglet.app.platform_event_loop._select_devices.add(self)
+        pyglet.app.platform_event_loop.select_devices.add(self)
 
     def close(self):
         super(EvdevDevice, self).close()
@@ -317,12 +323,42 @@ class EvdevDevice(XlibSelectDevice, Device):
         if not self._fileno:
             return
 
-        pyglet.app.platform_event_loop._select_devices.remove(self)
+        pyglet.app.platform_event_loop.select_devices.remove(self)
         os.close(self._fileno)
         self._fileno = None
 
     def get_controls(self):
         return self.controls
+
+    # Force Feedback methods
+
+    def supports_ff(self):
+        try:
+            self._fileno = os.open(self._filename, os.O_RDWR | os.O_NONBLOCK)
+            self.ff_create_effect(0, 0, 0)
+            os.close(self._fileno)
+            return True
+        except OSError:
+            os.close(self._fileno)
+            return False
+
+    def ff_create_effect(self, weak, strong, duration, effect=-1):
+        weak = int(max(min(1, weak), 0) * 0xFFFF)         # Clamp range from 0-1, convert to 16bit
+        strong = int(max(min(1, strong), 0) * 0xFFFF)     # Clamp range from 0-1, convert to 16bit
+        duration = int(duration * 1000)
+        effect = bytearray(struct.pack('HhHHHHHxHH', FF_RUMBLE, effect, 0, 0, 0, duration, 0, strong, weak))
+        view = memoryview(effect).cast('h')
+
+        fcntl.ioctl(self._fileno, 0x40304580, view, True)
+        return view[1]  # effect ID
+
+    def ff_play(self, effect):
+        ev_play = struct.pack('LLHHi', 0, 0, EV_FF, effect, 1)
+        os.write(self._fileno, ev_play)
+
+    def ff_stop(self, effect):
+        ev_stop = struct.pack('LLHHi', 0, 0, EV_FF, effect, 0)
+        os.write(self._fileno, ev_stop)
 
     # XlibSelectDevice interface
 
@@ -330,8 +366,7 @@ class EvdevDevice(XlibSelectDevice, Device):
         return self._fileno
 
     def poll(self):
-        # TODO
-        return False
+        return True
 
     def select(self):
         if not self._fileno:
@@ -351,6 +386,34 @@ class EvdevDevice(XlibSelectDevice, Device):
                 pass
 
 
+class EvdevGameController(GameController):
+
+    _rumble_weak = -1
+    _rumble_strong = -1
+
+    def open(self, window=None, exclusive=False):
+        super().open(window, exclusive)
+        # Create Force Feedback effects when the device is opened:
+        self._rumble_weak = self.device.ff_create_effect(0, 0, 0)
+        self._rumble_strong = self.device.ff_create_effect(0, 0, 0)
+
+    def rumble_play_weak(self, strength=1.0, duration=0.5):
+        effect = self.device.ff_create_effect(strength, 0, duration, self._rumble_weak)
+        self.device.ff_play(effect)
+
+    def rumble_play_strong(self, strength=1.0, duration=0.5):
+        effect = self.device.ff_create_effect(0, strength, duration, self._rumble_strong)
+        self.device.ff_play(effect)
+
+    def rumble_stop_weak(self):
+        """Stop playing rumble effects on the weak motor."""
+        self.device.ff_stop(self._rumble_weak)
+
+    def rumble_stop_strong(self):
+        """Stop playing rumble effects on the strong motor."""
+        self.device.ff_stop(self._rumble_strong)
+
+
 def get_devices(display=None):
     _devices = {}
     base = '/dev/input'
@@ -363,15 +426,57 @@ def get_devices(display=None):
             try:
                 _devices[path] = EvdevDevice(display, path)
             except OSError:
-                pass 
+                pass
 
     return list(_devices.values())
+
+
+def _create_joystick(device):
+    # Look for something with an ABS X and ABS Y axis, and a joystick 0 button
+    have_x = False
+    have_y = False
+    have_button = False
+    for control in device.controls:
+        if control._event_type == EV_ABS and control._event_code == ABS_X:
+            have_x = True
+        elif control._event_type == EV_ABS and control._event_code == ABS_Y:
+            have_y = True
+        elif control._event_type == EV_KEY and control._event_code in (BTN_JOYSTICK, BTN_GAMEPAD):
+            have_button = True
+    if not (have_x and have_y and have_button):
+        return
+
+    return Joystick(device)
 
 
 def get_joysticks(display=None):
     return [joystick for joystick in
             [_create_joystick(device) for device in get_devices(display)]
             if joystick is not None]
+
+
+def _create_game_controller(device):
+    # Look for something with an ABS X and ABS Y axis, and a joystick 0 button
+    have_x = False
+    have_y = False
+    have_button = False
+    if not is_game_controller(device):
+        return
+    device.controls.sort(key=lambda ctrl: ctrl._event_code)
+    for control in device.controls:
+        if control._event_type == EV_ABS and control._event_code == ABS_X:
+            have_x = True
+        elif control._event_type == EV_ABS and control._event_code == ABS_Y:
+            have_y = True
+        elif control._event_type == EV_KEY and control._event_code in (BTN_JOYSTICK, BTN_GAMEPAD):
+            have_button = True
+    if not (have_x and have_y and have_button):
+        return
+
+    if device.supports_ff():
+        return EvdevGameController(device)
+    else:
+        return GameController(device)
 
 
 def get_game_controllers(display=None):

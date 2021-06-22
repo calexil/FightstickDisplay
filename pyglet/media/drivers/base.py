@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -31,26 +32,52 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
+
+import math
+import weakref
 from abc import ABCMeta, abstractmethod
-from future.utils import with_metaclass
+
+from pyglet.util import with_metaclass
 
 
 class AbstractAudioPlayer(with_metaclass(ABCMeta, object)):
     """Base class for driver audio players.
     """
 
-    def __init__(self, source_group, player):
+    # Audio synchronization constants
+    AUDIO_DIFF_AVG_NB = 20
+    # no audio correction is done if too big error
+    AV_NOSYNC_THRESHOLD = 10.0
+
+    def __init__(self, source, player):
         """Create a new audio player.
 
         :Parameters:
-            `source_group` : `SourceGroup`
-                Source group to play from.
+            `source` : `Source`
+                Source to play from.
             `player` : `Player`
                 Player to receive EOS and video frame sync events.
 
         """
-        self.source_group = source_group
-        self.player = player
+        # We only keep weakref to the player and its source to avoid
+        # circular references. It's the player who owns the source and
+        # the audio_player
+        self.source = source
+        self.player = weakref.proxy(player)
+
+        # Audio synchronization
+        self.audio_diff_avg_count = 0
+        self.audio_diff_cum = 0.0
+        self.audio_diff_avg_coef = math.exp(math.log10(0.01) / self.AUDIO_DIFF_AVG_NB)
+        self.audio_diff_threshold = 0.1  # Experimental. ffplay computes it differently
+
+    def on_driver_destroy(self):
+        """Called before the audio driver is going to be destroyed (a planned destroy)."""
+        pass
+
+    def on_driver_reset(self):
+        """Called after the audio driver has been re-initialized."""
+        pass
 
     @abstractmethod
     def play(self):
@@ -82,6 +109,8 @@ class AbstractAudioPlayer(with_metaclass(ABCMeta, object)):
 
         The player should be stopped before calling this method.
         """
+        self.audio_diff_avg_count = 0
+        self.audio_diff_cum = 0.0
 
     @abstractmethod
     def get_time(self):
@@ -95,12 +124,48 @@ class AbstractAudioPlayer(with_metaclass(ABCMeta, object)):
         """
         # TODO determine which source within group
 
+    @abstractmethod
+    def prefill_audio(self):
+        """Prefill the audio buffer with audio data.
+
+        This method is called before the audio player starts in order to 
+        reduce the time it takes to fill the whole audio buffer.
+        """
+
+    def get_audio_time_diff(self):
+        """Queries the time difference between the audio time and the `Player`
+        master clock.
+
+        The time difference returned is calculated using a weighted average on
+        previous audio time differences. The algorithms will need at least 20
+        measurements before returning a weighted average.
+
+        :rtype: float
+        :return: weighted average difference between audio time and master
+            clock from `Player`
+        """
+        audio_time = self.get_time() or 0
+        p_time = self.player.time
+        diff = audio_time - p_time
+        if abs(diff) < self.AV_NOSYNC_THRESHOLD:
+            self.audio_diff_cum = diff + self.audio_diff_cum * self.audio_diff_avg_coef
+            if self.audio_diff_avg_count < self.AUDIO_DIFF_AVG_NB:
+                self.audio_diff_avg_count += 1
+            else:
+                avg_diff = self.audio_diff_cum * (1 - self.audio_diff_avg_coef)
+                if abs(avg_diff) > self.audio_diff_threshold:
+                    return avg_diff
+        else:
+            self.audio_diff_avg_count = 0
+            self.audio_diff_cum = 0.0
+        return 0.0
+
     def set_volume(self, volume):
         """See `Player.volume`."""
         pass
 
     def set_position(self, position):
-        """See `Player.position`."""
+        """See :py:attr:`~pyglet.media.Player.position`."""
         pass
 
     def set_min_distance(self, min_distance):
@@ -112,7 +177,7 @@ class AbstractAudioPlayer(with_metaclass(ABCMeta, object)):
         pass
 
     def set_pitch(self, pitch):
-        """See `Player.pitch`."""
+        """See :py:attr:`~pyglet.media.Player.pitch`."""
         pass
 
     def set_cone_orientation(self, cone_orientation):
@@ -131,10 +196,19 @@ class AbstractAudioPlayer(with_metaclass(ABCMeta, object)):
         """See `Player.cone_outer_gain`."""
         pass
 
+    @property
+    def source(self):
+        """Source to play from."""
+        return self._source
+
+    @source.setter
+    def source(self, value):
+        self._source = weakref.proxy(value)
+
 
 class AbstractAudioDriver(with_metaclass(ABCMeta, object)):
     @abstractmethod
-    def create_audio_player(self, source_group, player):
+    def create_audio_player(self, source, player):
         pass
 
     @abstractmethod

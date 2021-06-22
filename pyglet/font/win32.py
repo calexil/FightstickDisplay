@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,15 +33,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
+# TODO Windows Vista: need to call SetProcessDPIAware?  May affect GDI+ calls as well as font.
 
-# TODO Windows Vista: need to call SetProcessDPIAware?  May affect GDI+ calls
-# as well as font.
-
-from ctypes import *
-import ctypes
 import math
+import warnings
 
 from sys import byteorder
 import pyglet
@@ -51,7 +47,7 @@ from pyglet.libs.win32.constants import *
 from pyglet.libs.win32.types import *
 from pyglet.libs.win32 import _gdi32 as gdi32, _user32 as user32
 from pyglet.libs.win32 import _kernel32 as kernel32
-from pyglet.compat import asbytes
+from pyglet.util import asbytes
 
 _debug_font = pyglet.options['debug_font']
 
@@ -227,7 +223,7 @@ class GDIGlyphRenderer(Win32GlyphRenderer):
 class Win32Font(base.Font):
     glyph_renderer_class = GDIGlyphRenderer
 
-    def __init__(self, name, size, bold=False, italic=False, dpi=None):
+    def __init__(self, name, size, bold=False, italic=False, stretch=False, dpi=None):
         super(Win32Font, self).__init__()
 
         self.logfont = self.get_logfont(name, size, bold, italic, dpi)
@@ -391,6 +387,8 @@ class GDIPlusGlyphRenderer(Win32GlyphRenderer):
         # Then if it's a TrueType font, we use GetCharABCWidthsW to get the
         # correct LSB. If it's a negative LSB, we move the layoutRect `rect`
         # to the right so that the whole glyph is rendered on the surface.
+        # For positive LSB, we let the renderer render the correct white
+        # space and we don't pass the LSB info to the Glyph.set_bearings
 
         bbox = Rectf()
         flags = (StringFormatFlagsMeasureTrailingSpaces | 
@@ -422,6 +420,7 @@ class GDIPlusGlyphRenderer(Win32GlyphRenderer):
         # grapheme \r\n into \r
         if text == '\r\n':
             text = '\r'
+
         abc = ABC()
         # Check if ttf font.         
         if gdi32.GetCharABCWidthsW(self._dc, 
@@ -429,9 +428,10 @@ class GDIPlusGlyphRenderer(Win32GlyphRenderer):
             
             lsb = abc.abcA
             if lsb < 0:
+                # Negative LSB: we shift the layout rect to the right
+                # Otherwise we will cut the left part of the glyph
                 rect.x = -lsb
                 width -= lsb
-
         # XXX END HACK HACK HACK
 
         # Draw character to bitmap
@@ -464,6 +464,8 @@ class GDIPlusGlyphRenderer(Win32GlyphRenderer):
             'BGRA', buffer, -bitmap_data.Stride)
 
         glyph = self.font.create_glyph(image)
+        # Only pass negative LSB info
+        lsb = min(lsb, 0)
         glyph.set_bearings(-self.font.descent, lsb, advance)
 
         return glyph
@@ -480,10 +482,17 @@ class GDIPlusFont(Win32Font):
 
     _default_name = 'Arial'
 
-    def __init__(self, name, size, bold=False, italic=False, dpi=None):
+    def __init__(self, name, size, bold=False, italic=False, stretch=False, dpi=None):
         if not name:
             name = self._default_name
-        super(GDIPlusFont, self).__init__(name, size, bold, italic, dpi)
+
+        # assert type(bold) is bool, "Only a boolean value is supported for bold in the current font renderer."
+        # assert type(italic) is bool, "Only a boolean value is supported for bold in the current font renderer."
+
+        if stretch:
+            warnings.warn("The current font render does not support stretching.")
+
+        super(GDIPlusFont, self).__init__(name, size, bold, italic, stretch, dpi)
 
         family = ctypes.c_void_p()
         name = ctypes.c_wchar_p(name)
