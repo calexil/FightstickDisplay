@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -34,19 +35,15 @@
 
 """Interface classes for `pyglet.input`.
 
-:since: pyglet 1.2
+.. versionadded:: 1.2
 """
-from __future__ import division
-from builtins import object
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id: $'
 
 import sys
+
 from pyglet.event import EventDispatcher
 from .gamecontroller import get_mapping
 
-_is_epydoc = hasattr(sys, 'is_epydoc') and sys.is_epydoc
+_is_pyglet_doc_run = hasattr(sys, "is_pyglet_doc_run") and sys.is_pyglet_doc_run
 
 
 class DeviceException(Exception):
@@ -61,15 +58,15 @@ class DeviceExclusiveException(DeviceException):
     pass
 
 
-class Device(object):
+class Device:
     """Input device.
 
     :Ivariables:
-        `display` : `Display`
+        display : `pyglet.canvas.Display`
             Display this device is connected to.
-        `name` : str
+        name : str
             Name of the device, as described by the device firmware.
-        `manufacturer` : str
+        manufacturer : str
             Name of the device manufacturer, or ``None`` if the information is
             not available.
     """
@@ -78,9 +75,7 @@ class Device(object):
         self.display = display
         self.name = name
         self.manufacturer = None
-
-        # TODO: make private 
-        self.is_open = False
+        self._is_open = False
 
     def open(self, window=None, exclusive=False):
         """Open the device to begin receiving input from it.
@@ -98,14 +93,14 @@ class Device(object):
                 opened it).
         """
 
-        if self.is_open:
+        if self._is_open:
             raise DeviceOpenException('Device is already open.')
 
-        self.is_open = True
+        self._is_open = True
 
     def close(self):
         """Close the device. """
-        self.is_open = False
+        self._is_open = False
 
     def get_controls(self):
         """Get a list of controls provided by the device.
@@ -115,7 +110,13 @@ class Device(object):
         raise NotImplementedError('abstract')
 
     def get_guid(self):
-        """Get the devices GUID, in SDL2 format.
+        """Get the device GUID, in SDL2 format.
+
+        Return a string containing a unique device identification
+        string. This is generated from the various hardware IDs,
+        in the same format as is used by SDL2. This allows reusing
+        the Game Controller mapping strings that have become a
+        fairly standard.
 
         :rtype: The GUID, as a string
         """
@@ -146,10 +147,10 @@ class Control(EventDispatcher):
             operating systems.
     """
 
-    def __init__(self, name, raw_name=None):
+    def __init__(self, name, raw_name=None, inverted=False):
         self.name = name
         self.raw_name = raw_name
-        self.inverted = False
+        self.inverted = inverted
         self._value = None
 
     @property
@@ -178,7 +179,7 @@ class Control(EventDispatcher):
         else:
             return '%s(raw_name=%s)' % (self.__class__.__name__, self.raw_name)
 
-    if _is_epydoc:
+    if _is_pyglet_doc_run:
         def on_change(self, value):
             """The value changed.
 
@@ -188,6 +189,7 @@ class Control(EventDispatcher):
 
             :event:
             """
+
 
 Control.register_event_type('on_change')
 
@@ -217,9 +219,9 @@ class RelativeAxis(Control):
         return self._value
 
     @value.setter
-    def value(self, newvalue):
-        self._value = newvalue
-        self.dispatch_event('on_change', newvalue)
+    def value(self, value):
+        self._value = value
+        self.dispatch_event('on_change', value)
 
 
 class AbsoluteAxis(Control):
@@ -256,8 +258,8 @@ class AbsoluteAxis(Control):
     #: described by two orthogonal controls.
     HAT_Y = 'hat_y'
 
-    def __init__(self, name, min, max, raw_name=None):
-        super(AbsoluteAxis, self).__init__(name, raw_name)
+    def __init__(self, name, min, max, raw_name=None, inverted=False):
+        super(AbsoluteAxis, self).__init__(name, raw_name, inverted)
         
         self.min = min
         self.max = max
@@ -281,7 +283,7 @@ class Button(Control):
         else:
             self.dispatch_event('on_release')
 
-    if _is_epydoc:
+    if _is_pyglet_doc_run:
         def on_press(self):
             """The button was pressed.
 
@@ -293,6 +295,7 @@ class Button(Control):
 
             :event:
             """
+
 
 Button.register_event_type('on_press')
 Button.register_event_type('on_release')
@@ -309,11 +312,11 @@ class Joystick(EventDispatcher):
     range [-1.0, 1.0]. 
 
     To receive events when the value of an axis changes, attach an 
-    on_joyaxis_motion event handler to the joystick.  The `Joystick` instance,
+    on_joyaxis_motion event handler to the joystick.  The :py:class:`~pyglet.input.Joystick` instance,
     axis name, and current value are passed as parameters to this event.
 
     To handle button events, you should attach on_joybutton_press and 
-    on_joy_button_release event handlers to the joystick.  Both the `Joystick`
+    on_joy_button_release event handlers to the joystick.  Both the :py:class:`~pyglet.input.Joystick`
     instance and the index of the changed button are passed as parameters to 
     these events.
 
@@ -522,243 +525,21 @@ class Joystick(EventDispatcher):
                 (centered) or 1 (top).
         """
 
+
 Joystick.register_event_type('on_joyaxis_motion')
 Joystick.register_event_type('on_joybutton_press')
 Joystick.register_event_type('on_joybutton_release')
 Joystick.register_event_type('on_joyhat_motion')
 
 
-class AppleRemote(EventDispatcher):
-    """High-level interface for Apple remote control.
-
-    This interface provides access to the 6 button controls on the remote.
-    Pressing and holding certain buttons on the remote is interpreted as
-    a separate control.
-
-    :Ivariables:
-        `device` : `Device`
-            The underlying device used by this interface.
-        `left_control` : `Button`
-            Button control for the left (prev) button.
-        `left_hold_control` : `Button`
-            Button control for holding the left button (rewind).
-        `right_control` : `Button`
-            Button control for the right (next) button.
-        `right_hold_control` : `Button`
-            Button control for holding the right button (fast forward).
-        `up_control` : `Button`
-            Button control for the up (volume increase) button.
-        `down_control` : `Button`
-            Button control for the down (volume decrease) button.
-        `select_control` : `Button`
-            Button control for the select (play/pause) button.
-        `select_hold_control` : `Button`
-            Button control for holding the select button.
-        `menu_control` : `Button`
-            Button control for the menu button.
-        `menu_hold_control` : `Button`
-            Button control for holding the menu button.
-    """
-    
-    def __init__(self, device):
-        def add_button(control):
-            setattr(self, control.name + '_control', control)
-
-            @control.event
-            def on_press():
-                self.dispatch_event('on_button_press', control.name)
-
-            @control.event
-            def on_release():
-                self.dispatch_event('on_button_release', control.name)
-            
-        self.device = device
-        for control in device.get_controls():
-            if control.name in ('left', 'left_hold', 'right', 'right_hold', 'up', 'down', 
-                                'menu', 'select', 'menu_hold', 'select_hold'):
-                add_button(control)
-
-    def open(self, window=None, exclusive=False):
-        """Open the device.  See `Device.open`. """
-        self.device.open(window, exclusive)
-
-    def close(self):
-        """Close the device.  See `Device.close`. """
-        self.device.close()
-
-    def on_button_press(self, button):
-        """A button on the remote was pressed.
-
-        Only the 'up' and 'down' buttons will generate an event when the
-        button is first pressed.  All other buttons on the remote will wait
-        until the button is released and then send both the press and release
-        events at the same time.
-
-        :Parameters:
-            `button` : unicode
-                The name of the button that was pressed. The valid names are
-                'up', 'down', 'left', 'right', 'left_hold', 'right_hold',
-                'menu', 'menu_hold', 'select', and 'select_hold'
-                
-        :event:
-        """
-
-    def on_button_release(self, button):
-        """A button on the remote was released.
-
-        The 'select_hold' and 'menu_hold' button release events are sent
-        immediately after the corresponding press events regardless of
-        whether or not the user has released the button.
-
-        :Parameters:
-            `button` : unicode
-                The name of the button that was released. The valid names are
-                'up', 'down', 'left', 'right', 'left_hold', 'right_hold',
-                'menu', 'menu_hold', 'select', and 'select_hold'
-
-        :event:
-        """
-
-AppleRemote.register_event_type('on_button_press')
-AppleRemote.register_event_type('on_button_release')
-
-
-class Tablet(object):
-    """High-level interface to tablet devices.
-
-    Unlike other devices, tablets must be opened for a specific window,
-    and cannot be opened exclusively.  The `open` method returns a
-    `TabletCanvas` object, which supports the events provided by the tablet.
-
-    Currently only one tablet device can be used, though it can be opened on
-    multiple windows.  If more than one tablet is connected, the behaviour is
-    undefined.
-    """
-
-    def open(self, window):
-        """Open a tablet device for a window.
-
-        :Parameters:
-            `window` : `Window`
-                The window on which the tablet will be used.
-
-        :rtype: `TabletCanvas`
-        """
-        raise NotImplementedError('abstract')
-
-
-class TabletCanvas(EventDispatcher):
-    """Event dispatcher for tablets.
-
-    Use `Tablet.open` to obtain this object for a particular tablet device and
-    window.  Events may be generated even if the tablet stylus is outside of
-    the window; this is operating-system dependent.
-
-    The events each provide the `TabletCursor` that was used to generate the
-    event; for example, to distinguish between a stylus and an eraser.  Only
-    one cursor can be used at a time, otherwise the results are undefined.
-
-    :Ivariables:
-        `window` : Window
-            The window on which this tablet was opened.
-    """
-    # OS X: Active window receives tablet events only when cursor is in window
-    # Windows: Active window receives all tablet events
-    #
-    # Note that this means enter/leave pairs are not always consistent (normal
-    # usage).
-
-    def __init__(self, window):
-        self.window = window
-
-    def close(self):
-        """Close the tablet device for this window.
-        """
-        raise NotImplementedError('abstract')
-
-    if _is_epydoc:
-        def on_enter(self, cursor):
-            """A cursor entered the proximity of the window.  The cursor may
-            be hovering above the tablet surface, but outside of the window
-            bounds, or it may have entered the window bounds.
-
-            Note that you cannot rely on `on_enter` and `on_leave` events to
-            be generated in pairs; some events may be lost if the cursor was
-            out of the window bounds at the time.
-
-            :Parameters:
-                `cursor` : `TabletCursor`
-                    The cursor that entered proximity.
-
-            :event:
-            """
-
-        def on_leave(self, cursor):
-            """A cursor left the proximity of the window.  The cursor may have
-            moved too high above the tablet surface to be detected, or it may
-            have left the bounds of the window.
-
-            Note that you cannot rely on `on_enter` and `on_leave` events to
-            be generated in pairs; some events may be lost if the cursor was
-            out of the window bounds at the time.
-
-            :Parameters:
-                `cursor` : `TabletCursor`
-                    The cursor that left proximity.
-
-            :event:
-            """
-
-        def on_motion(self, cursor, x, y, pressure):
-            """The cursor moved on the tablet surface.
-
-            If `pressure` is 0, then the cursor is actually hovering above the
-            tablet surface, not in contact.
-
-            :Parameters:
-                `cursor` : `TabletCursor`
-                    The cursor that moved.
-                `x` : int
-                    The X position of the cursor, in window coordinates.
-                `y` : int
-                    The Y position of the cursor, in window coordinates.
-                `pressure` : float
-                    The pressure applied to the cursor, in range 0.0 (no
-                    pressure) to 1.0 (full pressure).
-                `tilt_x` : float
-                    Currently undefined.
-                `tilt_y` : float
-                    Currently undefined.
-
-            :event:
-            """
-
-TabletCanvas.register_event_type('on_enter')
-TabletCanvas.register_event_type('on_leave')
-TabletCanvas.register_event_type('on_motion')
-
-
-class TabletCursor(object):
-    """A distinct cursor used on a tablet.
-
-    Most tablets support at least a *stylus* and an *erasor* cursor; this
-    object is used to distinguish them when tablet events are generated.
-
-    :Ivariables:
-        `name` : str
-            Name of the cursor.
-    """
-
-    # TODO well-defined names for stylus and eraser.
-
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, self.name)
-
-
 class GameController(EventDispatcher):
+
+    __slots__ = ('device', 'guid', '_mapping', 'name', 'a', 'b', 'x', 'y',
+                 'back', 'start', 'guide', 'leftshoulder', 'rightshoulder',
+                 'leftstick', 'rightstick', 'lefttrigger', 'righttrigger',
+                 'leftx', 'lefty', 'rightx', 'righty', 'dpup', 'dpdown', 'dpleft',
+                 'dpright', '_button_controls', '_axis_controls', '_hat_control',
+                 'hat_x_control', '_hat_y_control')
 
     def __init__(self, device):
         self.device = device
@@ -868,7 +649,7 @@ class GameController(EventDispatcher):
                 def on_release():
                     self.dispatch_event('on_button_release', self, button_name)
 
-        # TODO: wire this up for Windows/Mac:
+        # TODO: Test this on Windows and Mac:
         def add_dedicated_hat(control):
             # 8-directional hat encoded as a single control (Windows/Mac)
             @control.event
@@ -895,7 +676,7 @@ class GameController(EventDispatcher):
                                     self.dpleft, self.dpright, self.dpup, self.dpdown)
 
         for control in device.get_controls():
-            """Asign the controls to their proper types"""
+            """Categorize the various control types"""
             if isinstance(control, Button):
                 self._button_controls.append(control)
             elif isinstance(control, AbsoluteAxis):
@@ -908,27 +689,34 @@ class GameController(EventDispatcher):
                 elif control.name == "hat":
                     self._hat_control = control
 
+        for name, relation in self._mapping.items():
 
-        for name, value in self._mapping.items():
-            if value is None:
+            if relation is None or type(relation) is str:
                 continue
-            elif value[0] == "button":
-                add_button(self._button_controls[value[1]], name)
-            elif value[0] == "axis":
-                add_axis(self._axis_controls[value[1]], name)
-            elif value[0] == "hat0":
+
+            if relation.control_type == "button":
+                try:
+                    add_button(self._button_controls[relation.index], name)
+                except IndexError:
+                    continue
+            elif relation.control_type == "axis":
+                try:
+                    add_axis(self._axis_controls[relation.index], name)
+                except IndexError:
+                    continue
+            elif relation.control_type == "hat0":
                 if self._hat_control:
                     # TODO: test this on Windows/Mac.
                     add_dedicated_hat(self._hat_control)
                 else:
-                    if value[1] == 1:       # 1 == UP
+                    if relation.index == 1:       # 1 == UP
                         add_axis(self._hat_y_control, "dpup")
-                    elif value[1] == 2:     # 2 == RIGHT
+                    elif relation.index == 2:     # 2 == RIGHT
                         add_axis(self._hat_x_control, "dpright")
                     # TODO: figure out a more elegent way to handle direction pairs
-                    # elif value[1] == 4:     # 4 == DOWN
+                    # elif relation.index == 4:     # 4 == DOWN
                     #     add_axis(self._hat_y_control, "dpdown")
-                    # elif value[1] == 8:     # 8 == LEFT
+                    # elif relation.index == 8:     # 8 == LEFT
                     #     add_axis(self._hat_x_control, "dpleft")
 
     def open(self, window=None, exclusive=False):
@@ -938,6 +726,36 @@ class GameController(EventDispatcher):
     def close(self):
         """Close the game controller.  See `Device.close`. """
         self.device.close()
+
+    # Rumble (force feedback) methods:
+
+    def rumble_play_weak(self, strength=1.0, duration=0.5):
+        """Play a rumble effect on the weak motor.
+
+        :Parameters:
+            `strength` : float
+                The strength of the effect, from 0 to 1.
+            `duration` : float
+                The duration of the effect in seconds.
+        """
+
+    def rumble_play_strong(self, strength=1.0, duration=0.5):
+        """Play a rumble effect on the strong motor.
+
+        :Parameters:
+            `strength` : float
+                The strength of the effect, from 0 to 1.
+            `duration` : float
+                The duration of the effect in seconds.
+        """
+
+    def rumble_stop_weak(self):
+        """Stop playing rumble effects on the weak motor."""
+
+    def rumble_stop_strong(self):
+        """Stop playing rumble effects on the strong motor."""
+
+    # Event types:
 
     def on_stick_motion(self, gamecontroller, axis, xvalue, yvalue):
         """The value of a game controller analogue stick changed.
@@ -1001,8 +819,241 @@ class GameController(EventDispatcher):
                 The name of the button that was released.
         """
 
+
 GameController.register_event_type('on_button_press')
 GameController.register_event_type('on_button_release')
 GameController.register_event_type('on_stick_motion')
 GameController.register_event_type('on_dpad_motion')
 GameController.register_event_type('on_trigger_motion')
+
+
+class AppleRemote(EventDispatcher):
+    """High-level interface for Apple remote control.
+
+    This interface provides access to the 6 button controls on the remote.
+    Pressing and holding certain buttons on the remote is interpreted as
+    a separate control.
+
+    :Ivariables:
+        `device` : `Device`
+            The underlying device used by this interface.
+        `left_control` : `Button`
+            Button control for the left (prev) button.
+        `left_hold_control` : `Button`
+            Button control for holding the left button (rewind).
+        `right_control` : `Button`
+            Button control for the right (next) button.
+        `right_hold_control` : `Button`
+            Button control for holding the right button (fast forward).
+        `up_control` : `Button`
+            Button control for the up (volume increase) button.
+        `down_control` : `Button`
+            Button control for the down (volume decrease) button.
+        `select_control` : `Button`
+            Button control for the select (play/pause) button.
+        `select_hold_control` : `Button`
+            Button control for holding the select button.
+        `menu_control` : `Button`
+            Button control for the menu button.
+        `menu_hold_control` : `Button`
+            Button control for holding the menu button.
+    """
+    
+    def __init__(self, device):
+        def add_button(control):
+            setattr(self, control.name + '_control', control)
+
+            @control.event
+            def on_press():
+                self.dispatch_event('on_button_press', control.name)
+
+            @control.event
+            def on_release():
+                self.dispatch_event('on_button_release', control.name)
+            
+        self.device = device
+        for control in device.get_controls():
+            if control.name in ('left', 'left_hold', 'right', 'right_hold', 'up', 'down', 
+                                'menu', 'select', 'menu_hold', 'select_hold'):
+                add_button(control)
+
+    def open(self, window=None, exclusive=False):
+        """Open the device.  See `Device.open`. """
+        self.device.open(window, exclusive)
+
+    def close(self):
+        """Close the device.  See `Device.close`. """
+        self.device.close()
+
+    def on_button_press(self, button):
+        """A button on the remote was pressed.
+
+        Only the 'up' and 'down' buttons will generate an event when the
+        button is first pressed.  All other buttons on the remote will wait
+        until the button is released and then send both the press and release
+        events at the same time.
+
+        :Parameters:
+            `button` : unicode
+                The name of the button that was pressed. The valid names are
+                'up', 'down', 'left', 'right', 'left_hold', 'right_hold',
+                'menu', 'menu_hold', 'select', and 'select_hold'
+                
+        :event:
+        """
+
+    def on_button_release(self, button):
+        """A button on the remote was released.
+
+        The 'select_hold' and 'menu_hold' button release events are sent
+        immediately after the corresponding press events regardless of
+        whether or not the user has released the button.
+
+        :Parameters:
+            `button` : unicode
+                The name of the button that was released. The valid names are
+                'up', 'down', 'left', 'right', 'left_hold', 'right_hold',
+                'menu', 'menu_hold', 'select', and 'select_hold'
+
+        :event:
+        """
+
+
+AppleRemote.register_event_type('on_button_press')
+AppleRemote.register_event_type('on_button_release')
+
+
+class Tablet:
+    """High-level interface to tablet devices.
+
+    Unlike other devices, tablets must be opened for a specific window,
+    and cannot be opened exclusively.  The `open` method returns a
+    `TabletCanvas` object, which supports the events provided by the tablet.
+
+    Currently only one tablet device can be used, though it can be opened on
+    multiple windows.  If more than one tablet is connected, the behaviour is
+    undefined.
+    """
+
+    def open(self, window):
+        """Open a tablet device for a window.
+
+        :Parameters:
+            `window` : `Window`
+                The window on which the tablet will be used.
+
+        :rtype: `TabletCanvas`
+        """
+        raise NotImplementedError('abstract')
+
+
+class TabletCanvas(EventDispatcher):
+    """Event dispatcher for tablets.
+
+    Use `Tablet.open` to obtain this object for a particular tablet device and
+    window.  Events may be generated even if the tablet stylus is outside of
+    the window; this is operating-system dependent.
+
+    The events each provide the `TabletCursor` that was used to generate the
+    event; for example, to distinguish between a stylus and an eraser.  Only
+    one cursor can be used at a time, otherwise the results are undefined.
+
+    :Ivariables:
+        `window` : Window
+            The window on which this tablet was opened.
+    """
+    # OS X: Active window receives tablet events only when cursor is in window
+    # Windows: Active window receives all tablet events
+    #
+    # Note that this means enter/leave pairs are not always consistent (normal
+    # usage).
+
+    def __init__(self, window):
+        self.window = window
+
+    def close(self):
+        """Close the tablet device for this window.
+        """
+        raise NotImplementedError('abstract')
+
+    if _is_pyglet_doc_run:
+        def on_enter(self, cursor):
+            """A cursor entered the proximity of the window.  The cursor may
+            be hovering above the tablet surface, but outside of the window
+            bounds, or it may have entered the window bounds.
+
+            Note that you cannot rely on `on_enter` and `on_leave` events to
+            be generated in pairs; some events may be lost if the cursor was
+            out of the window bounds at the time.
+
+            :Parameters:
+                `cursor` : `TabletCursor`
+                    The cursor that entered proximity.
+
+            :event:
+            """
+
+        def on_leave(self, cursor):
+            """A cursor left the proximity of the window.  The cursor may have
+            moved too high above the tablet surface to be detected, or it may
+            have left the bounds of the window.
+
+            Note that you cannot rely on `on_enter` and `on_leave` events to
+            be generated in pairs; some events may be lost if the cursor was
+            out of the window bounds at the time.
+
+            :Parameters:
+                `cursor` : `TabletCursor`
+                    The cursor that left proximity.
+
+            :event:
+            """
+
+        def on_motion(self, cursor, x, y, pressure):
+            """The cursor moved on the tablet surface.
+
+            If `pressure` is 0, then the cursor is actually hovering above the
+            tablet surface, not in contact.
+
+            :Parameters:
+                `cursor` : `TabletCursor`
+                    The cursor that moved.
+                `x` : int
+                    The X position of the cursor, in window coordinates.
+                `y` : int
+                    The Y position of the cursor, in window coordinates.
+                `pressure` : float
+                    The pressure applied to the cursor, in range 0.0 (no
+                    pressure) to 1.0 (full pressure).
+                `tilt_x` : float
+                    Currently undefined.
+                `tilt_y` : float
+                    Currently undefined.
+
+            :event:
+            """
+
+
+TabletCanvas.register_event_type('on_enter')
+TabletCanvas.register_event_type('on_leave')
+TabletCanvas.register_event_type('on_motion')
+
+
+class TabletCursor:
+    """A distinct cursor used on a tablet.
+
+    Most tablets support at least a *stylus* and an *erasor* cursor; this
+    object is used to distinguish them when tablet events are generated.
+
+    :Ivariables:
+        `name` : str
+            Name of the cursor.
+    """
+
+    # TODO well-defined names for stylus and eraser.
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__.__name__, self.name)

@@ -1,15 +1,44 @@
-#!/usr/bin/python
-# $Id: $
+# ----------------------------------------------------------------------------
+# pyglet
+# Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+#  * Neither the name of pyglet nor the names of its
+#    contributors may be used to endorse or promote products
+#    derived from this software without specific prior written
+#    permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# ----------------------------------------------------------------------------
 
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import object
 import struct
-from ctypes import *
 
 import pyglet
 from . import constants
 from .types import *
+from pyglet import com
 
 IS64 = struct.calcsize("P") == 8
 
@@ -26,20 +55,21 @@ if _debug_win32:
     def format_error(err):
         msg = create_string_buffer(256)
         _FormatMessageA(constants.FORMAT_MESSAGE_FROM_SYSTEM,
-                          c_void_p(),
-                          err,
-                          0,
-                          msg,
-                          len(msg),
-                          c_void_p())
+                        c_void_p(),
+                        err,
+                        0,
+                        msg,
+                        len(msg),
+                        c_void_p())
         return msg.value
     
-    class DebugLibrary(object):
+    class DebugLibrary:
         def __init__(self, lib):
             self.lib = lib
 
         def __getattr__(self, name):
             fn = getattr(self.lib, name)
+
             def f(*args):
                 _SetLastError(0)
                 result = fn(*args)
@@ -49,6 +79,7 @@ if _debug_win32:
                         _log_win32.write(entry)
                     print(format_error(err), file=_log_win32)
                 return result
+
             return f
 else:
     DebugLibrary = lambda lib: lib
@@ -57,6 +88,9 @@ else:
 _gdi32 = DebugLibrary(windll.gdi32)
 _kernel32 = DebugLibrary(windll.kernel32)
 _user32 = DebugLibrary(windll.user32)
+_dwmapi = DebugLibrary(windll.dwmapi)
+_shell32 = DebugLibrary(windll.shell32)
+_ole32 = DebugLibrary(windll.ole32)
 
 # _gdi32
 _gdi32.AddFontMemResourceEx.restype = HANDLE
@@ -101,6 +135,8 @@ _gdi32.SetPixelFormat.restype = BOOL
 _gdi32.SetPixelFormat.argtypes = [HDC, c_int, POINTER(PIXELFORMATDESCRIPTOR)]
 _gdi32.SetTextColor.restype = COLORREF
 _gdi32.SetTextColor.argtypes = [HDC, COLORREF]
+_gdi32.SwapBuffers.restype = BOOL
+_gdi32.SwapBuffers.argtypes = [HDC]
 
 _kernel32.CloseHandle.restype = BOOL
 _kernel32.CloseHandle.argtypes = [HANDLE]
@@ -230,3 +266,37 @@ _user32.UnregisterClassW.restype = BOOL
 _user32.UnregisterClassW.argtypes = [c_wchar_p, HINSTANCE]
 _user32.UnregisterHotKey.restype = BOOL
 _user32.UnregisterHotKey.argtypes = [HWND, c_int]
+# Raw inputs
+_user32.RegisterRawInputDevices.restype = BOOL
+_user32.RegisterRawInputDevices.argtypes = [PCRAWINPUTDEVICE, UINT, UINT]
+_user32.GetRawInputData.restype = UINT
+_user32.GetRawInputData.argtypes = [HRAWINPUT, UINT, LPVOID, PUINT, UINT]
+_user32.ChangeWindowMessageFilterEx.restype = BOOL
+_user32.ChangeWindowMessageFilterEx.argtypes = [HWND, UINT, DWORD, c_void_p]
+
+#dwmapi
+_dwmapi.DwmIsCompositionEnabled.restype = c_int
+_dwmapi.DwmIsCompositionEnabled.argtypes = [POINTER(INT)]
+_dwmapi.DwmFlush.restype = c_int
+_dwmapi.DwmFlush.argtypes = []
+
+#_shell32
+_shell32.DragAcceptFiles.restype = c_void
+_shell32.DragAcceptFiles.argtypes = [HWND, BOOL]
+_shell32.DragFinish.restype = c_void
+_shell32.DragFinish.argtypes = [HDROP]
+_shell32.DragQueryFileW.restype = UINT
+_shell32.DragQueryFileW.argtypes = [HDROP, UINT, LPWSTR, UINT]
+_shell32.DragQueryPoint.restype = BOOL
+_shell32.DragQueryPoint.argtypes = [HDROP, LPPOINT]
+
+# ole32
+_ole32.CreateStreamOnHGlobal.argtypes = [HGLOBAL, BOOL, LPSTREAM]
+_ole32.CoInitializeEx.restype = HRESULT
+_ole32.CoInitializeEx.argtypes = [LPVOID, DWORD]
+_ole32.CoUninitialize.restype = HRESULT
+_ole32.CoUninitialize.argtypes = []
+_ole32.PropVariantClear.restype = HRESULT
+_ole32.PropVariantClear.argtypes = [c_void_p]
+_ole32.CoCreateInstance.restype = HRESULT
+_ole32.CoCreateInstance.argtypes = [com.REFIID, c_void_p, DWORD, com.REFIID, c_void_p]

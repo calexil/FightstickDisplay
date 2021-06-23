@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,7 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''Information about version and extensions of current GLX implementation.
+"""Information about version and extensions of current GLX implementation.
 
 Usage::
 
@@ -49,21 +50,19 @@ Or, if using more than one display::
     if info.get_server_vendor() == 'ATI':
         # ...
 
-'''
-from builtins import object
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
+"""
 
 from ctypes import *
 
 from pyglet.gl.glx import *
-from pyglet.compat import asstr
+from pyglet.util import asstr
+
 
 class GLXInfoException(Exception):
     pass
 
-class GLXInfo(object):
+
+class GLXInfo:
     def __init__(self, display=None):
         # Set default display if not set
         if display and not _glx_info.display:
@@ -88,13 +87,13 @@ class GLXInfo(object):
 
         server = [int(i) for i in server_version.split('.')]
         client = [int(i) for i in client_version.split('.')]
-        return (tuple(server) >= (major, minor) and 
+        return (tuple(server) >= (major, minor) and
                 tuple(client) >= (major, minor))
 
     def get_server_vendor(self):
         self.check_display()
         return asstr(glXQueryServerString(self.display, 0, GLX_VENDOR))
-    
+
     def get_server_version(self):
         # glXQueryServerString was introduced in GLX 1.1, so we need to use the
         # 1.0 function here which queries the server implementation for its
@@ -104,7 +103,7 @@ class GLXInfo(object):
         minor = c_int()
         if not glXQueryVersion(self.display, byref(major), byref(minor)):
             raise GLXInfoException('Could not determine GLX server version')
-        return '%s.%s'%(major.value, minor.value)
+        return '%s.%s' % (major.value, minor.value)
 
     def get_server_extensions(self):
         self.check_display()
@@ -131,6 +130,7 @@ class GLXInfo(object):
         if not self.have_version(1, 1):
             return False
         return extension in self.get_extensions()
+
 
 # Single instance suitable for apps that use only a single display.
 _glx_info = GLXInfo()

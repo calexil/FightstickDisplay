@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,22 +33,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
-from __future__ import print_function
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
-
 import ctypes
 
 import pyglet
 
-__all__ = ['link_GL', 'link_GLU', 'link_AGL', 'link_GLX', 'link_WGL']
+__all__ = ['link_GL', 'link_AGL', 'link_GLX', 'link_WGL',
+           'GLException', 'missing_function', 'decorate_function']
 
 _debug_gl = pyglet.options['debug_gl']
 _debug_gl_trace = pyglet.options['debug_gl_trace']
 _debug_gl_trace_args = pyglet.options['debug_gl_trace_args']
+
 
 class MissingFunctionException(Exception):
     def __init__(self, name, requires=None, suggestions=None):
@@ -58,10 +54,13 @@ class MissingFunctionException(Exception):
             msg += '  Consider alternative(s) %s.' % ', '.join(suggestions)
         Exception.__init__(self, msg)
 
+
 def missing_function(name, requires=None, suggestions=None):
     def MissingFunction(*args, **kwargs):
         raise MissingFunctionException(name, requires, suggestions)
+
     return MissingFunction
+
 
 _int_types = (ctypes.c_int16, ctypes.c_int32)
 if hasattr(ctypes, 'c_int64'):
@@ -73,14 +72,17 @@ for t in _int_types:
     if ctypes.sizeof(t) == ctypes.sizeof(ctypes.c_size_t):
         c_ptrdiff_t = t
 
+
 class c_void(ctypes.Structure):
     # c_void_p is a buggy return type, converting to int, so
     # POINTER(None) == c_void_p is actually written as
     # POINTER(c_void), so it can be treated as a real pointer.
     _fields_ = [('dummy', ctypes.c_int)]
 
+
 class GLException(Exception):
     pass
+
 
 def errcheck(result, func, arguments):
     if _debug_gl_trace:
@@ -98,47 +100,34 @@ def errcheck(result, func, arguments):
     context = gl.current_context
     if not context:
         raise GLException('No GL context; create a Window first')
-    if not context._gl_begin:
-        error = gl.glGetError()
-        if error:
-            msg = ctypes.cast(gl.gluErrorString(error), ctypes.c_char_p).value
-            raise GLException(msg)
-        return result
-
-def errcheck_glbegin(result, func, arguments):
-    from pyglet import gl
-    context = gl.current_context
-    if not context:
-        raise GLException('No GL context; create a Window first')
-    context._gl_begin = True
+    error = gl.glGetError()
+    if error:
+        # These are the 6 possible error codes we can get in opengl core 3.3+
+        error_types = {
+            gl.GL_INVALID_ENUM: "Invalid enum. An unacceptable value is specified for an enumerated argument.",
+            gl.GL_INVALID_VALUE: "Invalid value. A numeric argument is out of range.",
+            gl.GL_INVALID_OPERATION: "Invalid operation. The specified operation is not allowed in the current state.",
+            gl.GL_INVALID_FRAMEBUFFER_OPERATION: "Invalid framebuffer operation. The framebuffer object is not complete.",
+            gl.GL_OUT_OF_MEMORY: "Out of memory. There is not enough memory left to execute the command.",
+        }
+        msg = error_types.get(error, "Unknown error")
+        raise GLException('(0x%x): %s' % (error, msg))
     return result
 
-def errcheck_glend(result, func, arguments):
-    from pyglet import gl
-    context = gl.current_context
-    if not context:
-        raise GLException('No GL context; create a Window first')
-    context._gl_begin = False
-    return errcheck(result, func, arguments)
 
 def decorate_function(func, name):
     if _debug_gl:
-        if name == 'glBegin':
-            func.errcheck = errcheck_glbegin
-        elif name == 'glEnd':
-            func.errcheck = errcheck_glend
-        elif name not in ('glGetError', 'gluErrorString') and \
-             name[:3] not in ('glX', 'agl', 'wgl'):
+        if name not in ('glGetError',) and name[:3] not in ('glX', 'agl', 'wgl'):
             func.errcheck = errcheck
+
 
 link_AGL = None
 link_GLX = None
 link_WGL = None
 
 if pyglet.compat_platform in ('win32', 'cygwin'):
-    from pyglet.gl.lib_wgl import link_GL, link_GLU, link_WGL
+    from pyglet.gl.lib_wgl import link_GL, link_WGL
 elif pyglet.compat_platform == 'darwin':
-    from pyglet.gl.lib_agl import link_GL, link_GLU, link_AGL
+    from pyglet.gl.lib_agl import link_GL, link_AGL
 else:
-    from pyglet.gl.lib_glx import link_GL, link_GLU, link_GLX
-
+    from pyglet.gl.lib_glx import link_GL, link_GLX

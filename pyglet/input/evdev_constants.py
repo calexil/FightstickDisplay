@@ -1,10 +1,39 @@
-#!/usr/bin/env python
+# ----------------------------------------------------------------------------
+# pyglet
+# Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+#  * Neither the name of pyglet nor the names of its
+#    contributors may be used to endorse or promote products
+#    derived from this software without specific prior written
+#    permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# ----------------------------------------------------------------------------
 
 """Event constants from /usr/include/linux/input.h """
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id$'
-
 
 EV_SYN = 0x00
 EV_KEY = 0x01
@@ -289,10 +318,14 @@ BTN_BASE6 = 0x12b
 BTN_DEAD = 0x12f
 
 BTN_GAMEPAD = 0x130
+BTN_SOUTH = 0x130
 BTN_A = 0x130
+BTN_EAST = 0x131
 BTN_B = 0x131
 BTN_C = 0x132
+BTN_NORTH = 0x133
 BTN_X = 0x133
+BTN_WEST = 0x134
 BTN_Y = 0x134
 BTN_Z = 0x135
 BTN_TL = 0x136
@@ -416,9 +449,14 @@ KEY_FN_F = 0x1e2
 KEY_FN_S = 0x1e3
 KEY_FN_B = 0x1e4
 
-BTN_TRIGGER_HAPPY = 0x2c0           # These HAPPY constants are used
-BTN_TRIGGER_HAPPY1 = 0x2c0          # by some recent joysticks for
-BTN_TRIGGER_HAPPY2 = 0x2c1          # directional pads or buttons.
+BTN_DPAD_UP = 0x220
+BTN_DPAD_DOWN = 0x221
+BTN_DPAD_LEFT = 0x222
+BTN_DPAD_RIGHT = 0x223
+
+BTN_TRIGGER_HAPPY = 0x2c0
+BTN_TRIGGER_HAPPY1 = 0x2c0
+BTN_TRIGGER_HAPPY2 = 0x2c1
 BTN_TRIGGER_HAPPY3 = 0x2c2
 BTN_TRIGGER_HAPPY4 = 0x2c3
 BTN_TRIGGER_HAPPY5 = 0x2c4
@@ -569,6 +607,9 @@ BUS_HOST = 0x19
 FF_STATUS_STOPPED = 0x00
 FF_STATUS_PLAYING = 0x01
 FF_STATUS_MAX = 0x01
+FF_RUMBLE = 0x50
+FF_MAX = 0x7f
+FF_CNT = FF_MAX + 1
 
 rel_raw_names = {}
 abs_raw_names = {}

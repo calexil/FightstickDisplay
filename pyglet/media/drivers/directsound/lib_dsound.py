@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -158,7 +159,7 @@ class DS3DLISTENER(ctypes.Structure):
     ]
 LPDS3DLISTENER = ctypes.POINTER(DS3DLISTENER)
 
-class IDirectSoundBuffer(com.IUnknown):
+class IDirectSoundBuffer(com.pIUnknown):
     _methods_ = [
         ('GetCaps',
          com.STDMETHOD(LPDSBCAPS)),
@@ -204,7 +205,7 @@ class IDirectSoundBuffer(com.IUnknown):
 IID_IDirectSound3DListener = com.GUID(
     0x279AFA84, 0x4981, 0x11CE, 0xA5, 0x21, 0x00, 0x20, 0xAF, 0x0B, 0xE5, 0x60)
 
-class IDirectSound3DListener(com.IUnknown):
+class IDirectSound3DListener(com.pIUnknown):
     _methods_ = [
         ('GetAllParameters',
          com.STDMETHOD(LPDS3DLISTENER)),
@@ -242,7 +243,7 @@ class IDirectSound3DListener(com.IUnknown):
 IID_IDirectSound3DBuffer = com.GUID(
     0x279AFA86, 0x4981, 0x11CE, 0xA5, 0x21, 0x00, 0x20, 0xAF, 0x0B, 0xE5, 0x60)
 
-class IDirectSound3DBuffer(com.IUnknown):
+class IDirectSound3DBuffer(com.pIUnknown):
     _methods_ = [
         ('GetAllParameters',
          com.STDMETHOD(LPDS3DBUFFER)),
@@ -282,7 +283,7 @@ class IDirectSound3DBuffer(com.IUnknown):
          com.STDMETHOD(D3DVALUE, D3DVALUE, D3DVALUE, DWORD)),
     ]
 
-class IDirectSound(com.IUnknown):
+class IDirectSound(com.pIUnknown):
     _methods_ = [
         ('CreateSoundBuffer', 
          com.STDMETHOD(LPDSBUFFERDESC, 

@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,7 +33,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-from builtins import object
 from ctypes import *
 
 from pyglet.gl import *
@@ -88,7 +88,7 @@ def _gerror_to_string(error):
                                                               error.contents.message)
 
 
-class GdkPixBufLoader(object):
+class GdkPixBufLoader:
     """
     Wrapper around GdkPixBufLoader object.
     """
@@ -156,7 +156,7 @@ class GdkPixBufLoader(object):
         return [image.delay for image in gif_stream.images]
 
 
-class GdkPixBuf(object):
+class GdkPixBuf:
     """
     Wrapper around GdkPixBuf object.
     """
@@ -220,7 +220,7 @@ class GdkPixBuf(object):
         return ImageData(self.width, self.height, format, pixels, -self.rowstride)
 
 
-class GdkPixBufAnimation(object):
+class GdkPixBufAnimation:
     """
     Wrapper for a GdkPixBufIter for an animation.
     """
@@ -243,7 +243,7 @@ class GdkPixBufAnimation(object):
         return Animation(list(self))
 
 
-class GdkPixBufAnimationIterator(object):
+class GdkPixBufAnimationIterator:
     def __init__(self, loader, anim_iter, start_time, gif_delays):
         self._iter = anim_iter
         self._first = True

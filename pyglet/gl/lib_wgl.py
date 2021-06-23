@@ -1,15 +1,16 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -32,32 +33,24 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-'''
-'''
-from builtins import object
-
-__docformat__ = 'restructuredtext'
-__version__ = '$Id: lib_glx.py 597 2007-02-03 16:13:07Z Alex.Holkner $'
-
 import ctypes
 from ctypes import *
 
 import pyglet
 from pyglet.gl.lib import missing_function, decorate_function
-from pyglet.compat import asbytes
+from pyglet.util import asbytes
 
-__all__ = ['link_GL', 'link_GLU', 'link_WGL']
+__all__ = ['link_GL', 'link_WGL']
 
 _debug_trace = pyglet.options['debug_trace']
 
 gl_lib = ctypes.windll.opengl32
-glu_lib = ctypes.windll.glu32
 wgl_lib = gl_lib
 
 if _debug_trace:
     from pyglet.lib import _TraceLibrary
+
     gl_lib = _TraceLibrary(gl_lib)
-    glu_lib = _TraceLibrary(glu_lib)
     wgl_lib = _TraceLibrary(wgl_lib)
 
 try:
@@ -68,8 +61,20 @@ try:
 except AttributeError:
     _have_get_proc_address = False
 
-class WGLFunctionProxy(object):
-    __slots__ = ['name', 'requires', 'suggestions', 'ftype', 'func']
+class_slots = ['name', 'requires', 'suggestions', 'ftype', 'func']
+
+
+def makeWGLFunction(func):
+    class WGLFunction:
+        __slots__ = class_slots
+        __call__ = func
+
+    return WGLFunction
+
+
+class WGLFunctionProxy:
+    __slots__ = class_slots
+
     def __init__(self, name, ftype, requires, suggestions):
         assert _have_get_proc_address
         self.name = name
@@ -79,9 +84,6 @@ class WGLFunctionProxy(object):
         self.func = None
 
     def __call__(self, *args, **kwargs):
-        if self.func:
-            return self.func(*args, **kwargs)
-
         from pyglet.gl import current_context
         if not current_context:
             raise Exception(
@@ -93,8 +95,11 @@ class WGLFunctionProxy(object):
         else:
             self.func = missing_function(
                 self.name, self.requires, self.suggestions)
-        result = self.func(*args, **kwargs) 
-        return result
+
+        self.__class__ = makeWGLFunction(self.func)
+
+        return self.func(*args, **kwargs)
+
 
 def link_GL(name, restype, argtypes, requires=None, suggestions=None):
     try:
@@ -124,32 +129,5 @@ def link_GL(name, restype, argtypes, requires=None, suggestions=None):
 
         return missing_function(name, requires, suggestions)
 
-def link_GLU(name, restype, argtypes, requires=None, suggestions=None):
-    try:
-        func = getattr(glu_lib, name)
-        func.restype = restype
-        func.argtypes = argtypes
-        decorate_function(func, name)
-        return func
-    except AttributeError:
-        # Not in glu32.dll. Try and get a pointer from WGL.
-        try:
-            fargs = (restype,) + tuple(argtypes)
-            ftype = ctypes.WINFUNCTYPE(*fargs)
-            if _have_get_proc_address:
-                from pyglet.gl import gl_info
-                if gl_info.have_context():
-                    address = wglGetProcAddress(name)
-                    if address:
-                        func = cast(address, ftype)
-                        decorate_function(func, name)
-                        return func
-                else:
-                    # Insert proxy until we have a context
-                    return WGLFunctionProxy(name, ftype, requires, suggestions)
-        except:
-            pass
-
-        return missing_function(name, requires, suggestions)
 
 link_WGL = link_GL

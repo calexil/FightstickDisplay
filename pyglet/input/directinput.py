@@ -1,6 +1,37 @@
-from builtins import zip
-#!/usr/bin/python
-# $Id:$
+# ----------------------------------------------------------------------------
+# pyglet
+# Copyright (c) 2006-2008 Alex Holkner
+# Copyright (c) 2008-2021 pyglet contributors
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+#  * Neither the name of pyglet nor the names of its
+#    contributors may be used to endorse or promote products
+#    derived from this software without specific prior written
+#    permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# ----------------------------------------------------------------------------
 
 import ctypes
 
@@ -35,21 +66,20 @@ _btn_instance_names = {}
 
 def _create_control(object_instance):
     raw_name = object_instance.tszName
-    type = object_instance.dwType
-    instance = dinput.DIDFT_GETINSTANCE(type)
+    ctrl_type = object_instance.dwType
+    instance = dinput.DIDFT_GETINSTANCE(ctrl_type)
 
-    if type & dinput.DIDFT_ABSAXIS:
+    if ctrl_type & dinput.DIDFT_ABSAXIS:
         name = _abs_instance_names.get(instance)
         control = base.AbsoluteAxis(name, 0, 0xffff, raw_name)
-    elif type & dinput.DIDFT_RELAXIS:
+    elif ctrl_type & dinput.DIDFT_RELAXIS:
         name = _rel_instance_names.get(instance)
         control = base.RelativeAxis(name, raw_name)
-    elif type & dinput.DIDFT_BUTTON:
+    elif ctrl_type & dinput.DIDFT_BUTTON:
         name = _btn_instance_names.get(instance)
         control = base.Button(name, raw_name)
-    elif type & dinput.DIDFT_POV:
-        control = base.AbsoluteAxis(base.AbsoluteAxis.HAT, 
-                                    0, 0xffffffff, raw_name)
+    elif ctrl_type & dinput.DIDFT_POV:
+        control = base.AbsoluteAxis(base.AbsoluteAxis.HAT, 0, 0xffffffff, raw_name)
     else:
         return
 
@@ -73,18 +103,13 @@ class DirectInputDevice(base.Device):
 
     def get_guid(self):
         """Generate an SDL2 style GUID from the product guid."""
-        # byte swap the product guid:
-        swapped_guid = (self.id_product_guid[6:8] + self.id_product_guid[4:6] +
-                        self.id_product_guid[2:4] + self.id_product_guid[0:2])
-        # A string to be formatted into the final guid:
-        slug = "{0}000000000000504944564944"
-        return slug.format(swapped_guid)
+        first = self.id_product_guid[6:8] + self.id_product_guid[4:6]
+        second = self.id_product_guid[2:4] + self.id_product_guid[0:2]
+        return f"03000000{first}0000{second}000000000000"
 
     def _init_controls(self):
         self.controls = []
-        self._device.EnumObjects(
-            dinput.LPDIENUMDEVICEOBJECTSCALLBACK(self._object_enum), 
-            None, dinput.DIDFT_ALL)
+        self._device.EnumObjects(dinput.LPDIENUMDEVICEOBJECTSCALLBACK(self._object_enum), None, dinput.DIDFT_ALL)
 
     def _object_enum(self, object_instance, arg):
         control = _create_control(object_instance.contents)
@@ -102,16 +127,15 @@ class DirectInputDevice(base.Device):
             object_format.dwOfs = offset
             object_format.dwType = control._type
             offset += 4
-             
-        format = dinput.DIDATAFORMAT()
-        format.dwSize = ctypes.sizeof(format)
-        format.dwObjSize = ctypes.sizeof(dinput.DIOBJECTDATAFORMAT)
-        format.dwFlags = 0
-        format.dwDataSize = offset
-        format.dwNumObjs = len(object_formats)
-        format.rgodf = ctypes.cast(ctypes.pointer(object_formats),
-                                   dinput.LPDIOBJECTDATAFORMAT)
-        self._device.SetDataFormat(format)
+
+        fmt = dinput.DIDATAFORMAT()
+        fmt.dwSize = ctypes.sizeof(fmt)
+        fmt.dwObjSize = ctypes.sizeof(dinput.DIOBJECTDATAFORMAT)
+        fmt.dwFlags = 0
+        fmt.dwDataSize = offset
+        fmt.dwNumObjs = len(object_formats)
+        fmt.rgodf = ctypes.cast(ctypes.pointer(object_formats), dinput.LPDIOBJECTDATAFORMAT)
+        self._device.SetDataFormat(fmt)
 
         prop = dinput.DIPROPDWORD()
         prop.diph.dwSize = ctypes.sizeof(prop)
@@ -119,8 +143,7 @@ class DirectInputDevice(base.Device):
         prop.diph.dwObj = 0
         prop.diph.dwHow = dinput.DIPH_DEVICE
         prop.dwData = 64 * ctypes.sizeof(dinput.DIDATAFORMAT)
-        self._device.SetProperty(dinput.DIPROP_BUFFERSIZE, 
-                                 ctypes.byref(prop.diph))
+        self._device.SetProperty(dinput.DIPROP_BUFFERSIZE, ctypes.byref(prop.diph))
 
     def open(self, window=None, exclusive=False):
         if not self.controls:
@@ -138,11 +161,10 @@ class DirectInputDevice(base.Device):
             flags |= dinput.DISCL_EXCLUSIVE
         else:
             flags |= dinput.DISCL_NONEXCLUSIVE
-        
+
         self._wait_object = _kernel32.CreateEventW(None, False, False, None)
         self._device.SetEventNotification(self._wait_object)
-        pyglet.app.platform_event_loop.add_wait_object(self._wait_object, 
-                                                       self._dispatch_events)
+        pyglet.app.platform_event_loop.add_wait_object(self._wait_object, self._dispatch_events)
 
         self._device.SetCooperativeLevel(window._hwnd, flags)
         self._device.Acquire()
@@ -167,11 +189,15 @@ class DirectInputDevice(base.Device):
         
         events = (dinput.DIDEVICEOBJECTDATA * 64)()
         n_events = win32.DWORD(len(events))
-        self._device.GetDeviceData(ctypes.sizeof(dinput.DIDEVICEOBJECTDATA),
-                                   ctypes.cast(ctypes.pointer(events), 
-                                               dinput.LPDIDEVICEOBJECTDATA),
-                                   ctypes.byref(n_events),
-                                   0)
+        try:
+            self._device.GetDeviceData(ctypes.sizeof(dinput.DIDEVICEOBJECTDATA),
+                                       ctypes.cast(ctypes.pointer(events),
+                                                   dinput.LPDIDEVICEOBJECTDATA),
+                                       ctypes.byref(n_events),
+                                       0)
+        except OSError:
+            return
+
         for event in events[:n_events.value]:
             index = event.dwOfs // 4
             self.controls[index].value = event.dwData
@@ -186,10 +212,12 @@ def _init_directinput():
         return
     
     _i_dinput = dinput.IDirectInput8()
-    module = _kernel32.GetModuleHandleW(None)
-    dinput.DirectInput8Create(module, dinput.DIRECTINPUT_VERSION,
+    module_handle = _kernel32.GetModuleHandleW(None)
+    dinput.DirectInput8Create(module_handle,
+                              dinput.DIRECTINPUT_VERSION,
                               dinput.IID_IDirectInput8W, 
-                              ctypes.byref(_i_dinput), None)
+                              ctypes.byref(_i_dinput),
+                              None)
 
 
 def get_devices(display=None):
@@ -198,16 +226,14 @@ def get_devices(display=None):
 
     def _device_enum(device_instance, arg):
         device = dinput.IDirectInputDevice8()
-        _i_dinput.CreateDevice(device_instance.contents.guidInstance,
-                               ctypes.byref(device),
-                               None)
-        _devices.append(DirectInputDevice(display, 
-                                          device, device_instance.contents))
+        _i_dinput.CreateDevice(device_instance.contents.guidInstance, ctypes.byref(device), None)
+        _devices.append(DirectInputDevice(display, device, device_instance.contents))
         return dinput.DIENUM_CONTINUE
 
     _i_dinput.EnumDevices(dinput.DI8DEVCLASS_ALL, 
                           dinput.LPDIENUMDEVICESCALLBACK(_device_enum), 
-                          None, dinput.DIEDFL_ATTACHEDONLY)
+                          None,
+                          dinput.DIEDFL_ATTACHEDONLY)
     return _devices
 
 
@@ -218,6 +244,12 @@ def _create_joystick(device):
         return base.Joystick(device)
 
 
+def get_joysticks(display=None):
+    return [joystick for joystick in
+            [_create_joystick(device) for device in get_devices(display)]
+            if joystick is not None]
+
+
 def _create_game_controller(device):
     if not is_game_controller(device):
         return
@@ -225,12 +257,6 @@ def _create_game_controller(device):
                         dinput.DI8DEVTYPE_1STPERSON,
                         dinput.DI8DEVTYPE_GAMEPAD):
         return base.GameController(device)
-
-
-def get_joysticks(display=None):
-    return [joystick for joystick in
-            [_create_joystick(device) for device in get_devices(display)]
-            if joystick is not None]
 
 
 def get_game_controllers(display=None):
