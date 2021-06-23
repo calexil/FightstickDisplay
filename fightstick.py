@@ -49,14 +49,14 @@ _layout = {
     "stick": (119, 154),
     "select": (50, 318),
     "start": (50, 318),
-    "x": (256, 83),
-    "y": (336, 113),
-    "lt": (421, 112),
-    "rt": (507, 109),
-    "a": (275, 173),
-    "b": (354, 203),
-    "lb": (440, 202),
-    "rb": (527, 199),
+    "a": (256, 83),
+    "b": (336, 113),
+    "rt": (421, 112),
+    "lt": (507, 109),
+    "x": (275, 173),
+    "y": (354, 203),
+    "rb": (440, 202),
+    "lb": (527, 199),
 }
 
 _images = {
@@ -144,8 +144,8 @@ class MainScene:
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below
-        button_mapping = {"a": self.x_spr, "b": self.y_spr, "x": self.rb_spr, "y": self.lb_spr,
-                          "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
+        button_mapping = {"x": self.x_spr, "y": self.y_spr, "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
+                          "a": self.a_spr, "b": self.b_spr,
                           "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                           "back": self.select_spr, "start": self.start_spr}
 
