@@ -40,7 +40,7 @@ def on_resize(width, height):
     scale_x = width / 640.0
     scale_y = height / 390.0
     window.projection = projection_matrix.scale(scale_x, scale_y, 1)
-    pyglet.gl.glViewport(0, 0, *window.get_framebuffer_size())
+    window.viewport = 0, 0, width, height
     return pyglet.event.EVENT_HANDLED
 
 
