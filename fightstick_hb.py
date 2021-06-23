@@ -4,9 +4,7 @@ import urllib.request
 from configparser import ConfigParser
 
 import pyglet
-from pyglet.gl import glViewport, glMatrixMode, glOrtho, glLoadIdentity, glScalef
-from pyglet.gl import GL_PROJECTION, GL_MODELVIEW
-from pyglet.debug import debug_print
+from pyglet.util import debug_print
 
 
 _debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '--debug')
@@ -35,18 +33,15 @@ except Exception:
         except Exception:
             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
 
-# Draw the main display window and set layout and image vars
+
 @window.event
 def on_resize(width, height):
-    glViewport(0, 0, width, height)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    glOrtho(0, width, 0, height, -1, 1)
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
+    projection_matrix = pyglet.math.Mat4.orthogonal_projection(0, width, 0, height, 0, 1)
     scale_x = width / 640.0
     scale_y = height / 390.0
-    glScalef(scale_x, scale_y, 1.0)
+    window.projection = projection_matrix.scale(scale_x, scale_y, 1)
+    window.viewport = 0, 0, width, height
+    return pyglet.event.EVENT_HANDLED
 
 
 _layout = {
@@ -136,30 +131,26 @@ class MainScene:
         self.fightstick = fightstick
         self.fightstick.open()
         # Ordered groups to handle draw order of the sprites
-        self.bg = pyglet.graphics.OrderedGroup(0)
-        self.fg = pyglet.graphics.OrderedGroup(1)
+        self.bg = pyglet.graphics.Group(0)
+        self.fg = pyglet.graphics.Group(1)
         # Create all sprites using helper function (name, batch, group, visible)
         self.background = _make_sprite('background', self.batch, self.bg)
         self.select_spr = _make_sprite('select', self.batch, self.fg, False)
         self.start_spr = _make_sprite('start', self.batch, self.fg, False)
-        self.up_spr = _make_sprite('up', self.batch, self.fg, False)
-        self.down_spr = _make_sprite('down', self.batch, self.fg, False)
-        self.left_spr = _make_sprite('left', self.batch, self.fg, False)
-        self.right_spr = _make_sprite('right', self.batch, self.fg, False)
         self.x_spr = _make_sprite('x', self.batch, self.fg, False)
         self.y_spr = _make_sprite('y', self.batch, self.fg, False)
         self.a_spr = _make_sprite('a', self.batch, self.fg, False)
         self.b_spr = _make_sprite('b', self.batch, self.fg, False)
-        self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
-        self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
         self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
         self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
+        self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
+        self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below
-        button_mapping = {"x": self.rb_spr, "y": self.lb_spr, "a": self.x_spr, "b": self.y_spr,
-                          "leftshoulder": self.a_spr, "rightshoulder": self.b_spr,
+        button_mapping = {"x": self.x_spr, "y": self.y_spr, "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
+                          "a": self.a_spr, "b": self.b_spr,
                           "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                           "back": self.select_spr, "start": self.start_spr}
 
@@ -188,19 +179,18 @@ class MainScene:
                     assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
                 self.stick_spr.position = center_x, center_y
 
-        #Dpad
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
             assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
             center_x, center_y = _layout["stick"]
             if dpup:
-                center_y += 356, 58
+                center_y += 50
             elif dpdown:
-                center_y -= 472, 254
+                center_y -= 50
             if dpleft:
-                center_x -= 556, 254
+                center_x -= 50
             elif dpright:
-                center_x += 394, 214
+                center_x += 50
             self.stick_spr.position = center_x, center_y
 
         @fightstick.event
@@ -234,7 +224,7 @@ def enforce_aspect_ratio(dt):
         window.set_size(window.width, target_height)
 
 
-def set_scene(dt):
+def set_scene(dt=0):
     # Load up either the full scene, or just the "try again" scene
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
@@ -249,9 +239,8 @@ def set_scene(dt):
 
 if __name__ == "__main__":
     load_configuration()
-    set_scene(0)
+    set_scene()
     # Schedulers for scene change, aspect enforce, and main display cycles(fps)
     pyglet.clock.schedule_interval(set_scene, 2.0)
     pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
-    pyglet.clock.schedule_interval(lambda dt: None, 1 / 60.0)
     pyglet.app.run()
