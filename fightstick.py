@@ -36,8 +36,11 @@ except Exception:
 
 @window.event
 def on_resize(width, height):
-    # TODO: scale projection
-    window.projection = pyglet.math.Mat4.orthogonal_projection(0, width, 0, height, 0, 1)
+    projection_matrix = pyglet.math.Mat4.orthogonal_projection(0, width, 0, height, 0, 1)
+    scale_x = width / 640.0
+    scale_y = height / 390.0
+    window.projection = projection_matrix.scale(scale_x, scale_y, 1)
+    pyglet.gl.glViewport(0, 0, *window.get_framebuffer_size())
     return pyglet.event.EVENT_HANDLED
 
 
