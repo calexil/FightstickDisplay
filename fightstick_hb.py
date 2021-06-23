@@ -67,9 +67,9 @@ _images = {
     'select': 'select.png',
     'start': 'start.png',
     'up' : 'buttonhblg.png',
-    'down' : 'buttonhblg.png',
-    'left' : 'buttonhblg.png',
-    'right' : 'buttonhblg.png',
+    'down' : 'buttonhb.png',
+    'left' : 'buttonhb.png',
+    'right' : 'buttonhb.png',
     'x': 'buttonhb.png',
     'y': 'buttonhb.png',
     'a': 'buttonhb.png',
@@ -137,6 +137,10 @@ class MainScene:
         self.background = _make_sprite('background', self.batch, self.bg)
         self.select_spr = _make_sprite('select', self.batch, self.fg, False)
         self.start_spr = _make_sprite('start', self.batch, self.fg, False)
+        self.up_spr = _make_sprite('up', self.batch, self.fg, False)
+        self.down_spr = _make_sprite('down', self.batch, self.fg, False)
+        self.left_spr = _make_sprite('left', self.batch, self.fg, False)
+        self.right_spr = _make_sprite('right', self.batch, self.fg, False)
         self.x_spr = _make_sprite('x', self.batch, self.fg, False)
         self.y_spr = _make_sprite('y', self.batch, self.fg, False)
         self.a_spr = _make_sprite('a', self.batch, self.fg, False)
@@ -148,7 +152,7 @@ class MainScene:
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
-        # Mapping and press/axis/abs event section below
+        # Mapping and press/axis/abs event section below TODO:udlr
         button_mapping = {"x": self.x_spr, "y": self.y_spr, "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
                           "a": self.a_spr, "b": self.b_spr,
                           "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
@@ -179,6 +183,7 @@ class MainScene:
                     assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
                 self.stick_spr.position = center_x, center_y
 
+        #TODO udlr
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
             assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
