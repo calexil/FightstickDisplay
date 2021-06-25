@@ -1,4 +1,5 @@
 import os
+from pyglet.graphics import draw
 import sys
 import urllib.request
 from configparser import ConfigParser
@@ -48,18 +49,18 @@ _layout = {
     "background" : (0, 0),
     "select" : (50, 318),
     "start" : (50, 318),
-    "up" : (284, 332),
-    "down" : (168, 136),
-    "left" : (84, 136),
-    "right" : (246, 176),
-    "x" : (328, 142),
-    "y" : (404, 107),
-    "a" : (285, 126),
-    "b" : (400, 197),
-    "rb" : (577, 207),
-    "lb" : (493, 193),
-    "rt" : (580, 117),
-    "t" : (493, 107),
+    "up" : (237, 10),
+    "down" : (133, 217),
+    "left" : (47, 172),
+    "right" : (209, 176),
+    "a" : (284, 124),
+    "b" : (364, 158),
+    "x" : (290, 214),
+    "y" : (369, 247),
+    "rb" : (456, 246),
+    "lb" : (543, 234),
+    "rt" : (456, 159),
+    "lt" : (540, 146),
 }
 
 _images = {
@@ -70,10 +71,10 @@ _images = {
     'down' : 'buttonhb.png',
     'left' : 'buttonhb.png',
     'right' : 'buttonhb.png',
+    'a': 'buttonhb.png',
+    'b': 'buttonhb.png',    
     'x': 'buttonhb.png',
     'y': 'buttonhb.png',
-    'a': 'buttonhb.png',
-    'b': 'buttonhb.png',
     'lt': 'buttonhb.png',
     'rt': 'buttonhb.png',
     'lb': 'buttonhb.png',
@@ -141,22 +142,23 @@ class MainScene:
         self.down_spr = _make_sprite('down', self.batch, self.fg, False)
         self.left_spr = _make_sprite('left', self.batch, self.fg, False)
         self.right_spr = _make_sprite('right', self.batch, self.fg, False)
+        self.a_spr = _make_sprite('a', self.batch, self.fg, False)
+        self.b_spr = _make_sprite('b', self.batch, self.fg, False)        
         self.x_spr = _make_sprite('x', self.batch, self.fg, False)
         self.y_spr = _make_sprite('y', self.batch, self.fg, False)
-        self.a_spr = _make_sprite('a', self.batch, self.fg, False)
-        self.b_spr = _make_sprite('b', self.batch, self.fg, False)
+        self.rt_spr = _make_sprite('rt', self.batch, self.fg, False)
+        self.lt_spr = _make_sprite('lt', self.batch, self.fg, False)
+        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)        
         self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
-        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
-        self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
-        self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below TODO:udlr
-        button_mapping = {"x": self.x_spr, "y": self.y_spr, "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
-                          "a": self.a_spr, "b": self.b_spr,
-                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
-                          "back": self.select_spr, "start": self.start_spr}
+        button_mapping = {"back": self.select_spr, "start": self.start_spr, 
+                          "up": self.up_spr, "down": self.down_spr, "left": self.left_spr, "right": self.right_spr, 
+                          "a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr, 
+                          "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,                  
+                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,}
 
         @fightstick.event
         def on_button_press(controller, button):
@@ -171,46 +173,32 @@ class MainScene:
             if pressed_button:
                 pressed_button.visible = False
 
-        @fightstick.event
-        def on_stick_motion(controller, stick, xvalue, yvalue):
-            if stick == "leftstick":
-                center_x, center_y = _layout['stick']
-                if abs(xvalue) > self.deadzone:
-                    center_x += (xvalue * 50)
-                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
-                if abs(yvalue) > self.deadzone:
-                    center_y += (yvalue * 50)
-                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
-                self.stick_spr.position = center_x, center_y
-
-        #TODO udlr
+        #TODO UDLR, the dpad hats need to alert the main window to draw the sprites
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
             assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
-            center_x, center_y = _layout["stick"]
             if dpup:
-                center_y += 50
+                self.up_spr(visible=True) #something like this?
             elif dpdown:
-                center_y -= 50
+                self.down_spr(visible=True)
             if dpleft:
-                center_x -= 50
+                self.left_spr(visible=True)
             elif dpright:
-                center_x += 50
-            self.stick_spr.position = center_x, center_y
+                self.right_spr(visible=True)
 
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
             assert _debug_print(f"Pulled Trigger: {trigger}")
             if trigger == "lefttrigger":
                 if value > self.triggerpoint:
-                    self.rt_spr.visible = True
-                elif value < -self.triggerpoint:
-                    self.rt_spr.visible = False
-            if trigger == "righttrigger":
-                if value > self.triggerpoint:
                     self.lt_spr.visible = True
                 elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
+            if trigger == "righttrigger":
+                if value > self.triggerpoint:
+                    self.rt_spr.visible = True
+                elif value < -self.triggerpoint:
+                    self.rt_spr.visible = False
 
         # Window event to draw everything when necessary
         @self.window.event
