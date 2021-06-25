@@ -1,5 +1,4 @@
 import os
-from pyglet.graphics import draw
 import sys
 import urllib.request
 from configparser import ConfigParser
