@@ -136,10 +136,10 @@ class MainScene:
         self.y_spr = _make_sprite('y', self.batch, self.fg, False)
         self.a_spr = _make_sprite('a', self.batch, self.fg, False)
         self.b_spr = _make_sprite('b', self.batch, self.fg, False)
-        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
         self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
-        self.rt_spr = _make_sprite('lt', self.batch, self.fg, False)
-        self.lt_spr = _make_sprite('rt', self.batch, self.fg, False)
+        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
+        self.rt_spr = _make_sprite('rt', self.batch, self.fg, False)
+        self.lt_spr = _make_sprite('lt', self.batch, self.fg, False)
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
@@ -193,14 +193,14 @@ class MainScene:
             assert _debug_print(f"Pulled Trigger: {trigger}")
             if trigger == "lefttrigger":
                 if value > self.triggerpoint:
-                    self.rt_spr.visible = True
-                elif value < -self.triggerpoint:
-                    self.rt_spr.visible = False
-            if trigger == "righttrigger":
-                if value > self.triggerpoint:
                     self.lt_spr.visible = True
                 elif value < -self.triggerpoint:
                     self.lt_spr.visible = False
+            if trigger == "righttrigger":
+                if value > self.triggerpoint:
+                    self.rt_spr.visible = True
+                elif value < -self.triggerpoint:
+                    self.rt_spr.visible = False
 
         # Window event to draw everything when necessary
         @self.window.event
