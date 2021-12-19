@@ -20,7 +20,7 @@ window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
-# Parse and add additional SDL style controller mappings.
+# Parse and add additional SDL controller mappings.
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 try:
     with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
@@ -50,7 +50,7 @@ _layout = {
     "start" : (50, 318),
     "up" : (237, 10),
     "down" : (133, 217),
-    "left" : (47, 172),
+    "left" : (47, 217),
     "right" : (209, 176),
     "a" : (284, 124),
     "b" : (364, 158),
@@ -103,7 +103,7 @@ def load_configuration():
 
 
 def _make_sprite(name, batch, group, visible=True):
-    # Helper function to make a Sprite
+    # Helper function to make the batch sprite
     image = pyglet.resource.image(_images[name])
     position = _layout[name]
     sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
@@ -112,7 +112,7 @@ def _make_sprite(name, batch, group, visible=True):
 
 
 class TryAgainScene:
-    # A scene that tells you to try again if no stick is detected
+    # A scene that tells you to try plugging a controller in again if no stick is detected
     def __init__(self, window_instance):
         self.window = window_instance
         self.missing_img = pyglet.resource.image("missing.png")
@@ -124,7 +124,7 @@ class TryAgainScene:
 
 
 class MainScene:
-    # The main scene, with all fightstick events wired up.
+    # The Main Scene, with all fightstick events rigged.
     def __init__(self, window_instance, fightstick):
         self.window = window_instance
         self.batch = pyglet.graphics.Batch()
@@ -152,7 +152,7 @@ class MainScene:
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
-        # Mapping and press/axis/abs event section below TODO:udlr
+        # Mapping and press/axis/abs event section below
         button_mapping = {"back": self.select_spr, "start": self.start_spr, 
                           "up": self.up_spr, "down": self.down_spr, "left": self.left_spr, "right": self.right_spr, 
                           "a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr, 
@@ -175,15 +175,23 @@ class MainScene:
         #TODO UDLR, the dpad hats need to alert the main window to draw the sprites
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
-            assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
-            if dpup:
-                self.up_spr(visible=True) #something like this?
-            elif dpdown:
-                self.down_spr(visible=True)
-            if dpleft:
-                self.left_spr(visible=True)
-            elif dpright:
-                self.right_spr(visible=True)
+            assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")         
+            if dpup == True:
+                self.up_spr.visible = True
+            elif dpup == False:
+                self.up_spr.visible = False
+            if dpdown == True:
+                self.down_spr.visible = True
+            elif dpdown == False:
+                self.down_spr.visible = False
+            if dpleft == True:
+                self.left_spr.visible = True
+            elif dpleft == False:
+                self.left_spr.visible = False
+            if dpright == True:
+                self.right_spr.visible = True
+            elif dpright == False:
+                self.right_spr.visible = False
 
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
