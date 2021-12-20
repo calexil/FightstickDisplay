@@ -103,7 +103,7 @@ def load_configuration():
 
 
 def _make_sprite(name, batch, group, visible=True):
-    # Helper function to make the batch sprite
+    # Helper function to make the batch sprite.
     image = pyglet.resource.image(_images[name])
     position = _layout[name]
     sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
@@ -112,7 +112,7 @@ def _make_sprite(name, batch, group, visible=True):
 
 
 class TryAgainScene:
-    # A scene that tells you to try plugging a controller in again if no stick is detected
+    # A scene that tells you to try plugging a controller in again if no stick is detected.
     def __init__(self, window_instance):
         self.window = window_instance
         self.missing_img = pyglet.resource.image("missing.png")
@@ -130,10 +130,10 @@ class MainScene:
         self.batch = pyglet.graphics.Batch()
         self.fightstick = fightstick
         self.fightstick.open()
-        # Ordered groups to handle draw order of the sprites
+        # Ordered groups to handle draw order of the sprites.
         self.bg = pyglet.graphics.Group(0)
         self.fg = pyglet.graphics.Group(1)
-        # Create all sprites using helper function (name, batch, group, visible)
+        # Create all sprites using helper function (name, batch, group, visible).
         self.background = _make_sprite('background', self.batch, self.bg)
         self.select_spr = _make_sprite('select', self.batch, self.fg, False)
         self.start_spr = _make_sprite('start', self.batch, self.fg, False)
@@ -152,7 +152,7 @@ class MainScene:
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
-        # Mapping and press/axis/abs event section below
+        # Mapping and press/axis/abs event section below.
         button_mapping = {"back": self.select_spr, "start": self.start_spr, 
                           "up": self.up_spr, "down": self.down_spr, "left": self.left_spr, "right": self.right_spr, 
                           "a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr, 
@@ -172,7 +172,7 @@ class MainScene:
             if pressed_button:
                 pressed_button.visible = False
 
-        #TODO UDLR, the dpad hats need to alert the main window to draw the sprites
+        # Have the dpad hats alert the main window to draw the sprites.
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
             assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")         
@@ -207,7 +207,7 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.rt_spr.visible = False
 
-        # Window event to draw everything when necessary
+        # Window event to draw everything when necessary.
         @self.window.event
         def on_draw():
             self.window.clear()
@@ -215,7 +215,7 @@ class MainScene:
 
 
 def enforce_aspect_ratio(dt):
-    # Enforce aspect ratio by readjusting the window height
+    # Enforce aspect ratio by readjusting the window height.
     aspect_ratio = 1.641025641
     target_width = int(window.height * aspect_ratio)
     target_height = int(window.width / aspect_ratio)
@@ -225,7 +225,7 @@ def enforce_aspect_ratio(dt):
 
 
 def set_scene(dt=0):
-    # Load up either the full scene, or just the "try again" scene
+    # Load up either the full scene, or just the "try again" scene.
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
     if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
@@ -240,7 +240,7 @@ def set_scene(dt=0):
 if __name__ == "__main__":
     load_configuration()
     set_scene()
-    # Schedulers for scene change, aspect enforce, and main display cycles(fps)
+    # Schedulers for scene change, aspect enforce, and main display cycles(fps).
     pyglet.clock.schedule_interval(set_scene, 2.0)
     pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
     pyglet.app.run()
