@@ -11,7 +11,7 @@
 # Installation & Usage
 * Clone the git  
 `git clone https://github.com/calexil/FightstickDisplay.git`
-* If you desire, make a launcher with fightstick.sh or fightstick_hb.sh as the start script.
+* If you desire, make a launcher with fightstick.sh or fightstick_hb.sh as the startup script.
 * Most fightsticks will be mapped correctly by default, but if yours is not
 simply open the **theme/layout.ini** or **theme/layouthb.ini** file and tinker with it until its mapped correctly.
 Usually only the rt/lt/rb/lb buttons get mixed up a little. If your fightstick is not detected
