@@ -18,4 +18,4 @@ install:
   - py -m pip install tox pyglet configparser
 
 test_script:
-  - py -m fightstick.py &disown
+  - py -m fightstick.py
