@@ -14,8 +14,8 @@ build: false
 
 install:
   # - py --list
-  # - py -m pip install --upgrade pip
+  - py -m pip install --upgrade pip
   - py -m pip install tox pyglet configparser
 
 test_script:
-  - py -m python3 fightstick.py &disown
+  - py -m fightstick.py &disown
