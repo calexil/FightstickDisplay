@@ -34,6 +34,9 @@ jobs:
     - name: Make the dummy joystick
       run: |
         sudo touch /dev/input/js0
+    - name: Start xvfb
+      run: |
+        Xvfb :99 -screen 0 1920x1080
     - name: Test the gui
       run: |
         python3 fightstick.py &disown
