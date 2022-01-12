@@ -30,7 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyglet configparser
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        install xvfb
+        apt install xvfb
     - name: Make the dummy joystick
       run: |
         touch /dev/input/js0
