@@ -13,7 +13,7 @@ jobs:
   build:
 
     env:
-        DISPLAY=:99.0
+        DISPLAY: ":99.0"
     runs-on: ubuntu-latest
     strategy:
       matrix:
