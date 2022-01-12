@@ -36,7 +36,7 @@ jobs:
         sudo touch /dev/input/js0
     - name: Start xvfb
       run: |
-        Xvfb :99 -screen 0 1920x1080x24
+        Xvfb :99 -screen 0 1920x1080x24 &disown
     - name: Test the gui
       run: |
         python3 fightstick.py &disown
