@@ -32,8 +32,8 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         install xvfb
     - name: Make the dummy joystick
-        run: |
-          touch /dev/input/js0
+      run: |
+        touch /dev/input/js0
     - name: Test the gui
       run: |
         python3 fightstick.py &disown
