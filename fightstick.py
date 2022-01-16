@@ -7,7 +7,7 @@ import pyglet
 from pyglet.util import debug_print
 
 
-_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '--debug')
+_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '-d', '--debug')
 _debug_print = debug_print(_debug_flag)
 
 
