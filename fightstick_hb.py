@@ -157,7 +157,7 @@ class MainScene:
                           "up": self.up_spr, "down": self.down_spr, "left": self.left_spr, "right": self.right_spr,
                           "a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr,
                           "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
-                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,}
+                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr}
 
         @fightstick.event
         def on_button_press(controller, button):
