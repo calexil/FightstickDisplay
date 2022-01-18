@@ -71,7 +71,7 @@ _images = {
     'left' : 'buttonhb.png',
     'right' : 'buttonhb.png',
     'a': 'buttonhb.png',
-    'b': 'buttonhb.png',    
+    'b': 'buttonhb.png',
     'x': 'buttonhb.png',
     'y': 'buttonhb.png',
     'lt': 'buttonhb.png',
@@ -142,21 +142,21 @@ class MainScene:
         self.left_spr = _make_sprite('left', self.batch, self.fg, False)
         self.right_spr = _make_sprite('right', self.batch, self.fg, False)
         self.a_spr = _make_sprite('a', self.batch, self.fg, False)
-        self.b_spr = _make_sprite('b', self.batch, self.fg, False)        
+        self.b_spr = _make_sprite('b', self.batch, self.fg, False)
         self.x_spr = _make_sprite('x', self.batch, self.fg, False)
         self.y_spr = _make_sprite('y', self.batch, self.fg, False)
         self.rt_spr = _make_sprite('rt', self.batch, self.fg, False)
         self.lt_spr = _make_sprite('lt', self.batch, self.fg, False)
-        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)        
+        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
         self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below.
-        button_mapping = {"back": self.select_spr, "start": self.start_spr, 
-                          "up": self.up_spr, "down": self.down_spr, "left": self.left_spr, "right": self.right_spr, 
-                          "a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr, 
-                          "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,                  
+        button_mapping = {"back": self.select_spr, "start": self.start_spr,
+                          "up": self.up_spr, "down": self.down_spr, "left": self.left_spr, "right": self.right_spr,
+                          "a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr,
+                          "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
                           "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,}
 
         @fightstick.event
@@ -175,7 +175,7 @@ class MainScene:
         # Have the dpad hats alert the main window to draw the sprites.
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
-            assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")         
+            assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
             if dpup == True:
                 self.up_spr.visible = True
             elif dpup == False:
