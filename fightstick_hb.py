@@ -176,21 +176,21 @@ class MainScene:
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
             assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
-            if dpup == True:
+            if dpup is True:
                 self.up_spr.visible = True
-            elif dpup == False:
+            elif dpup is False:
                 self.up_spr.visible = False
-            if dpdown == True:
+            if dpdown is True:
                 self.down_spr.visible = True
-            elif dpdown == False:
+            elif dpdown is False:
                 self.down_spr.visible = False
-            if dpleft == True:
+            if dpleft is True:
                 self.left_spr.visible = True
-            elif dpleft == False:
+            elif dpleft is False:
                 self.left_spr.visible = False
-            if dpright == True:
+            if dpright is True:
                 self.right_spr.visible = True
-            elif dpright == False:
+            elif dpright is False:
                 self.right_spr.visible = False
 
         @fightstick.event
