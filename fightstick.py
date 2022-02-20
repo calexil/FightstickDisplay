@@ -202,11 +202,31 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.rt_spr.visible = False
 
+        # #Deadzone Interface, ?maybe TODO
+        # @self.window.event
+        # # self.window.push_handlers(self.frame)
+        # def on_button_press(controller, button):
+        #     assert _debug_print(f"Pressed Button: {button}")
+        #     config_window = self.window("Deadzone Configuration", name="config_window", x=400, y=360, content=config_layout)
+        #     pressed_button = button_mapping.get(button, None)
+        #     if pressed_button == 'guide':
+        #         if config_window.parent is not None:
+        #             self.frame.remove(config_window)
+        #         else:
+        #             self.frame.add(config_window)
+
+        #     def update_trigger_point(slider):
+        #         self.triggerpoint = slider.value
+        #         deadzone_label = self.frame.get_element_by_name("triggerpoint")
+        #         deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
+
+
         # Window event to draw everything when necessary.
         @self.window.event
         def on_draw():
             self.window.clear()
             self.batch.draw()
+
 
 
 def enforce_aspect_ratio(dt):
