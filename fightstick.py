@@ -202,7 +202,7 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.rt_spr.visible = False
 
-        # #Deadzone Interface, ?maybe TODO
+        # #Deadzone Interface, ?maybe TODO This doesn't work you numbskull..
         # @self.window.event
         # # self.window.push_handlers(self.frame)
         # def on_button_press(controller, button):
