@@ -1071,8 +1071,6 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
                 New height of the window, in pixels.
 
         """
-        print(width, height)
-
         if self._fullscreen:
             raise WindowException('Cannot set size of fullscreen window.')
         if width < 1 or height < 1:
