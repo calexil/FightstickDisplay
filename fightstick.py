@@ -86,6 +86,11 @@ def load_configuration():
         print("No theme/layout.ini file found. Falling back to default.")
 
 
+def save_configuration():
+    with open('theme/layout.ini', 'w') as file:
+        config.write(file)
+
+
 def _make_sprite(name, batch, group, visible=True):
     # Helper function to make a Sprite.
     image = pyglet.resource.image(_images[name])
@@ -109,7 +114,7 @@ class _BaseScene:
         pass
 
 
-class TryAgainScene(_BaseScene):
+class RetryScene(_BaseScene):
     """A scene that tells you to try again if no stick is detected."""
     def __init__(self):
         self.batch = pyglet.graphics.Batch()
@@ -121,19 +126,21 @@ class TryAgainScene(_BaseScene):
         self.manager.set_scene('main')
 
 
-class ConfigurationScene(_BaseScene):
+class ConfigScene(_BaseScene):
     """A scene to allow deadzone configuration."""
     def __init__(self):
         self.batch = pyglet.graphics.Batch()
         bar = pyglet.resource.image("bar.png")
         knob = pyglet.resource.image("knob.png")
+        bg_img = pyglet.resource.image('deadzone.png')
+        self.bg = pyglet.sprite.Sprite(bg_img, batch=self.batch, group=pyglet.graphics.Group(-1))
 
-        self.stick_slider = pyglet.gui.Slider(100, 300, bar, knob, edge=0, batch=self.batch)
-        self.stick_slider.set_handler('on_change', self.update_stick_deadzone)
+        self.stick_slider = pyglet.gui.Slider(100, 150, bar, knob, edge=0, batch=self.batch)
+        self.stick_slider.set_handler('on_change', self._stick_slider_handler)
         self.stick_label = pyglet.text.Label("Stick Deadzone: 0.0", x=300, y=300, batch=self.batch)
 
-        self.trigger_slider = pyglet.gui.Slider(100, 200, bar, knob, edge=0, batch=self.batch)
-        self.trigger_slider.set_handler('on_change', self.update_trigger_deadzone)
+        self.trigger_slider = pyglet.gui.Slider(100, 100, bar, knob, edge=0, batch=self.batch)
+        self.trigger_slider.set_handler('on_change', self._trigger_slider_handler)
         self.trigger_label = pyglet.text.Label("Trigger Deadzone: 0.0", x=300, y=200, batch=self.batch)
 
     def activate(self):
@@ -146,18 +153,21 @@ class ConfigurationScene(_BaseScene):
         self.manager.window.remove_handlers(self.stick_slider)
         self.manager.window.remove_handlers(self.trigger_slider)
 
-    def update_stick_deadzone(self, value):
+    def _stick_slider_handler(self, value):
         self.stick_label.text = f"Stick Deadzone: {value}"
-        self.manager.stick_deadzone = value / 100
-        print("Stick:", value)
+        scaled_value = round(value / 100, 2)
+        self.manager.stick_deadzone = scaled_value
+        config.set('deadzones', 'stick', str(scaled_value))
 
-    def update_trigger_deadzone(self, value):
+    def _trigger_slider_handler(self, value):
         self.trigger_label.text = f"Trigger Deadzone: {value}"
-        self.manager.trigger_deadzone = value / 100
-        print("Trigger:", value)
+        scaled_value = round(value / 100, 2)
+        self.manager.trigger_deadzone = scaled_value
+        config.set('deadzones', 'trigger', str(scaled_value))
 
     def on_button_press(self, controller, button):
         if button == "guide":
+            save_configuration()
             self.manager.set_scene('main')
 
 
@@ -191,7 +201,7 @@ class MainScene(_BaseScene):
     def on_button_press(self, controller, button):
         assert _debug_print(f"Pressed Button: {button}")
         if button == "guide":
-            self.manager.set_scene('configuration')
+            self.manager.set_scene('config')
         pressed_button = self.button_mapping.get(button, None)
         if pressed_button:
             pressed_button.visible = True
@@ -268,8 +278,8 @@ class SceneManager:
         self._current_scene = None
 
         # Global state for all Scenes:
-        self.stick_deadzone = 0.2
-        self.trigger_deadzone = 0.8
+        self.stick_deadzone = float(config.get('deadzones', 'stick', fallback='0.2'))
+        self.trigger_deadzone = float(config.get('deadzones', 'trigger', fallback='0.8'))
 
     def add_scene(self, name, instance):
         instance.manager = self
@@ -317,8 +327,8 @@ if __name__ == "__main__":
 
     scene_manager = SceneManager(window_instance=window)
     scene_manager.add_scene('main', MainScene())
-    scene_manager.add_scene('tryagain', TryAgainScene())
-    scene_manager.add_scene('configuration', ConfigurationScene())
+    scene_manager.add_scene('retry', RetryScene())
+    scene_manager.add_scene('config', ConfigScene())
 
     scene_manager.set_scene('main')
 
