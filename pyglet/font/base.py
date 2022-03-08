@@ -167,9 +167,9 @@ class Glyph(image.TextureRegion):
             `advance` : int
                 Distance to move the horizontal advance to the next glyph.
             `offset_x` : int
-                Distance to move the glyph horizontally from it's default position.
+                Distance to move the glyph horizontally from its default position.
             `offset_y` : int
-                Distance to move the glyph vertically from it's default position.
+                Distance to move the glyph vertically from its default position.
         """
         self.baseline = baseline
         self.lsb = left_side_bearing
@@ -218,12 +218,6 @@ class GlyphTextureAtlas(image.Texture):
     x = 0
     y = 0
     line_height = 0
-
-    def apply_blend_state(self):
-        """Set the OpenGL blend state for the glyphs in this texture.
-        """
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_BLEND)
 
     def fit(self, image):
         """Place `image` within this texture.
@@ -303,6 +297,11 @@ class Font:
     def __init__(self):
         self.textures = []
         self.glyphs = {}
+
+    @property
+    def name(self):
+        """Return the Family Name of the font as a string."""
+        raise NotImplementedError
 
     @classmethod
     def add_font_data(cls, data):

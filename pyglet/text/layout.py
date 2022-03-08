@@ -324,11 +324,13 @@ class _GlyphBox(_AbstractBox):
 
     def place(self, layout, i, x, y, context):
         assert self.glyphs
+        program = get_default_layout_shader()
+
         try:
-            group = layout.groups[self.owner]
+            group = layout.group_cache[self.owner]
         except KeyError:
-            group = layout.default_group_class(texture=self.owner, order=1, program=get_default_layout_shader())
-            layout.groups[self.owner] = group
+            group = layout.group_class(self.owner, program, order=1, parent=layout.group)
+            layout.group_cache[self.owner] = group
 
         n_glyphs = self.length
         vertices = []
@@ -362,12 +364,10 @@ class _GlyphBox(_AbstractBox):
         for i in range(n_glyphs):
             indices.extend([element + (i * 4) for element in [0, 1, 2, 0, 2, 3]])
 
-        vertex_list = layout.batch.add_indexed(n_glyphs * 4, GL_TRIANGLES, group,
-                                               indices,
-                                               ('vertices2f/dynamic', vertices),
-                                               ('colors4Bn/dynamic', colors),
-                                               ('tex_coords3f/dynamic', tex_coords),
-                                               'translation2f/dynamic')
+        vertex_list = program.vertex_list_indexed(n_glyphs * 4, GL_TRIANGLES, indices, layout.batch, group,
+                                                  position=('f', vertices),
+                                                  colors=('Bn', colors),
+                                                  tex_coords=('f', tex_coords))
 
         context.add_list(vertex_list)
 
@@ -401,20 +401,18 @@ class _GlyphBox(_AbstractBox):
             x1 = x2
 
         if background_vertices:
-            background_list = layout.batch.add_indexed(len(background_vertices) // 2,
-                                                       GL_TRIANGLES, layout.background_decoration_group,
-                                                       [0, 1, 2, 0, 2, 3],
-                                                       ('vertices2f/dynamic', background_vertices),
-                                                       ('colors4Bn/dynamic', background_colors),
-                                                       'translation2f/dynamic')
+            background_list = program.vertex_list_indexed(len(background_vertices) // 2,
+                                                          GL_TRIANGLES, [0, 1, 2, 0, 2, 3],
+                                                          layout.batch, layout.background_decoration_group,
+                                                          position=('f', background_vertices),
+                                                          colors=('Bn', background_colors))
             context.add_list(background_list)
 
         if underline_vertices:
-            underline_list = layout.batch.add(len(underline_vertices) // 2,
-                                              GL_LINES, layout.foreground_decoration_group,
-                                              ('vertices2f/dynamic', underline_vertices),
-                                              ('colors4Bn/dynamic', underline_colors),
-                                              'translation2f/dynamic')
+            underline_list = program.vertex_list(len(underline_vertices) // 2, GL_LINES,
+                                                 layout.batch, layout.foreground_decoration_group,
+                                                 position=('f',underline_vertices),
+                                                 colors=('Bn', underline_colors))
             context.add_list(underline_list)
 
     def delete(self, layout):
@@ -520,13 +518,14 @@ class _InvalidRange:
 
 
 layout_vertex_source = """#version 330 core
-    in vec2 vertices;
+    in vec2 position;
     in vec4 colors;
     in vec3 tex_coords;
     in vec2 translation;
 
     out vec4 text_colors;
-    out vec2 texture_coords; 
+    out vec2 texture_coords;
+    out vec4 vert_position;
 
     uniform WindowBlock
     {
@@ -539,8 +538,9 @@ layout_vertex_source = """#version 330 core
         mat4 translate_mat = mat4(1.0);
         translate_mat[3] = vec4(translation, 1.0, 1.0);
 
-        gl_Position = window.projection * window.view * translate_mat * vec4(vertices, 0, 1);
+        gl_Position = window.projection * window.view * translate_mat * vec4(position, 0, 1);
 
+        vert_position = vec4(position + translation, 0, 1);
         text_colors = colors;
         texture_coords = tex_coords.xy;
     }
@@ -549,23 +549,34 @@ layout_vertex_source = """#version 330 core
 layout_fragment_source = """#version 330 core
     in vec4 text_colors;
     in vec2 texture_coords;
+    in vec4 vert_position;
 
     out vec4 final_colors;
 
     uniform sampler2D text;
+    uniform bool scissor = false;
+    uniform vec4 scissor_area;
 
     void main()
     {   
-        final_colors = vec4(text_colors.rgb, texture(text, texture_coords).a) * text_colors;
+        final_colors = vec4(text_colors.rgb, texture(text, texture_coords).a * text_colors.a);
+        if (scissor == true) {
+            if (vert_position.x < scissor_area[0]) discard;                     // left
+            if (vert_position.y < scissor_area[1]) discard;                     // bottom
+            if (vert_position.x > scissor_area[0] + scissor_area[2]) discard;   // right
+            if (vert_position.y > scissor_area[1] + scissor_area[3]) discard;   // top
+        }
     }
 """
 
 decoration_vertex_source = """#version 330 core
-    in vec2 vertices;
+    in vec2 position;
     in vec4 colors;
     in vec2 translation;
 
     out vec4 vert_colors;
+    out vec4 vert_position;
+
 
     uniform WindowBlock
     {
@@ -578,20 +589,31 @@ decoration_vertex_source = """#version 330 core
         mat4 translate_mat = mat4(1.0);
         translate_mat[3] = vec4(translation, 1.0, 1.0);
 
-        gl_Position = window.projection * window.view * translate_mat * vec4(vertices, 0, 0);
+        gl_Position = window.projection * window.view * translate_mat * vec4(position, 0, 1);
 
+        vert_position = vec4(position + translation, 0, 1);
         vert_colors = colors;
     }
 """
 
 decoration_fragment_source = """#version 330 core
     in vec4 vert_colors;
+    in vec4 vert_position;
 
     out vec4 final_colors;
+
+    uniform bool scissor = false;
+    uniform vec4 scissor_area;
 
     void main()
     {   
         final_colors = vert_colors;
+        if (scissor == true) {
+            if (vert_position.x < scissor_area[0]) discard;                     // left
+            if (vert_position.y < scissor_area[1]) discard;                     // bottom
+            if (vert_position.x > scissor_area[0] + scissor_area[2]) discard;   // right
+            if (vert_position.y > scissor_area[1] + scissor_area[3]) discard;   // top
+        }
     }
 """
 
@@ -619,18 +641,19 @@ def get_default_decoration_shader():
 
 
 class TextLayoutGroup(graphics.Group):
-    def __init__(self, texture, order=1, program=None):
+    def __init__(self, texture, program, order=1, parent=None):
         """Create a text layout rendering group.
 
         The group is created internally when a :py:class:`~pyglet.text.Label`
         is created; applications usually do not need to explicitly create it.
         """
-        super().__init__(order=order)
+        super().__init__(order=order, parent=parent)
         self.texture = texture
-        self.program = program or get_default_layout_shader()
+        self.program = program
 
     def set_state(self):
         self.program.use()
+        self.program['scissor'] = False
 
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(self.texture.target, self.texture.id)
@@ -648,52 +671,34 @@ class TextLayoutGroup(graphics.Group):
 
     def __eq__(self, other):
         return (other.__class__ is self.__class__ and
+                self.parent is other.parent and
                 self.program.id is other.program.id and
                 self.order == other.order and
                 self.texture.target == other.texture.target and
                 self.texture.id == other.texture.id)
 
     def __hash__(self):
-        return hash((self.program.id, self.order, self.texture.target, self.texture.id))
-
-
-class TextDecorationGroup(graphics.Group):
-    def __init__(self, order=0, program=None):
-        """Create a text decoration rendering group.
-
-        The group is created internally when a :py:class:`~pyglet.text.Label`
-        is created; applications usually do not need to explicitly create it.
-        """
-        super().__init__(order=order)
-        self.program = program or get_default_decoration_shader()
-
-    def set_state(self):
-        self.program.use()
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-    def unset_state(self):
-        glDisable(GL_BLEND)
-        self.program.stop()
+        return hash((id(self.parent), self.program.id, self.order, self.texture.target, self.texture.id))
 
 
 class ScrollableTextLayoutGroup(graphics.Group):
-
     scissor_area = 0, 0, 0, 0
 
-    def __init__(self, texture, order=1, program=None):
+    def __init__(self, texture, program, order=1, parent=None):
         """Default rendering group for :py:class:`~pyglet.text.layout.ScrollableTextLayout`.
 
         The group maintains internal state for specifying the viewable
         area, and for scrolling. Because the group has internal state
         specific to the text layout, the group is never shared.
         """
-        super().__init__(order=order)
+        super().__init__(order=order, parent=parent)
         self.texture = texture
-        self.program = program or get_default_layout_shader()
+        self.program = program
 
     def set_state(self):
         self.program.use()
+        self.program['scissor'] = True
+        self.program['scissor_area'] = self.scissor_area
 
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(self.texture.target, self.texture.id)
@@ -701,12 +706,8 @@ class ScrollableTextLayoutGroup(graphics.Group):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        glEnable(GL_SCISSOR_TEST)
-        # glScissor(*self.scissor_area)
-
     def unset_state(self):
         glDisable(GL_BLEND)
-        glDisable(GL_SCISSOR_TEST)
         glBindTexture(self.texture.target, 0)
         self.program.stop()
 
@@ -722,10 +723,64 @@ class ScrollableTextLayoutGroup(graphics.Group):
 
 class IncrementalTextLayoutGroup(ScrollableTextLayoutGroup):
     # Subclass so that the scissor_area isn't shared with the
-    # ScrollableTextLayout. We use a class variable here, and
-    # so that it can be set before the document glyphs are
-    # created.
+    # ScrollableTextLayout. We use a class variable here so
+    # that it can be set before the document glyphs are created.
     scissor_area = 0, 0, 0, 0
+
+
+class TextDecorationGroup(graphics.Group):
+    def __init__(self, program, order=0, parent=None):
+        """Create a text decoration rendering group.
+
+        The group is created internally when a :py:class:`~pyglet.text.Label`
+        is created; applications usually do not need to explicitly create it.
+        """
+        super().__init__(order=order, parent=parent)
+        self.program = program
+
+    def set_state(self):
+        self.program.use()
+        self.program['scissor'] = False
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    def unset_state(self):
+        glDisable(GL_BLEND)
+        self.program.stop()
+
+
+class ScrollableTextDecorationGroup(graphics.Group):
+    scissor_area = 0, 0, 0, 0
+
+    def __init__(self, program, order=0, parent=None):
+        """Create a text decoration rendering group.
+
+        The group is created internally when a :py:class:`~pyglet.text.Label`
+        is created; applications usually do not need to explicitly create it.
+        """
+        super().__init__(order=order, parent=parent)
+        self.program = program
+
+    def set_state(self):
+        self.program.use()
+        self.program['scissor'] = True
+        self.program['scissor_area'] = self.scissor_area
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    def unset_state(self):
+        glDisable(GL_BLEND)
+        self.program.stop()
+
+
+class IncrementalTextDecorationGroup(ScrollableTextDecorationGroup):
+    # Subclass so that the scissor_area isn't shared with the
+    # ScrollableTextDecorationGroup. We use a class variable here so
+    # that it can be set before the document glyphs are created.
+    scissor_area = 0, 0, 0, 0
+
 
 # ####################
 
@@ -751,7 +806,7 @@ class TextLayout:
             the desired width if word-wrapping failed.
         `content_height` : int
             Calculated height of the text in the layout.
-        `default_group_class` : `~pyglet.graphics.Group`
+        `group_class` : `~pyglet.graphics.Group`
             Top-level rendering group.
         `background_decoration_group` : `~pyglet.graphics.Group`
             Rendering group for background color.
@@ -765,7 +820,8 @@ class TextLayout:
 
     _update_enabled = True
     _own_batch = False
-    default_group_class = TextLayoutGroup
+    group_class = TextLayoutGroup
+    decoration_class = TextDecorationGroup
 
     _x = 0
     _y = 0
@@ -775,6 +831,7 @@ class TextLayout:
     _anchor_y = 'bottom'
     _content_valign = 'top'
     _multiline = False
+    _visible = True
 
     def __init__(self, document, width=None, height=None,
                  multiline=False, dpi=None, batch=None, group=None,
@@ -808,12 +865,9 @@ class TextLayout:
         self.content_width = 0
         self.content_height = 0
 
-        self._group = group
-
-        self.background_decoration_group = TextDecorationGroup(order=0)
-        self.foreground_decoration_group = TextDecorationGroup(order=2)
-
-        self.groups = {}
+        self._user_group = group
+        self.group_cache = {}
+        self._initialize_groups()
 
         if batch is None:
             batch = graphics.Batch()
@@ -832,6 +886,21 @@ class TextLayout:
 
         self._dpi = dpi or 96
         self.document = document
+
+    def _initialize_groups(self):
+        decoration_shader = get_default_decoration_shader()
+        self.background_decoration_group = self.decoration_class(decoration_shader, order=0, parent=self._user_group)
+        self.foreground_decoration_group = self.decoration_class(decoration_shader, order=2, parent=self._user_group)
+
+    @property
+    def group(self):
+        return self._user_group
+
+    @group.setter
+    def group(self, group):
+        self._user_group = group
+        self._initialize_groups()
+        self._update()
 
     @property
     def dpi(self):
@@ -909,9 +978,9 @@ class TextLayout:
         else:
             dx = x - self._x
             for vertex_list in self._vertex_lists:
-                vertices = vertex_list.vertices[:]
+                vertices = vertex_list.position[:]
                 vertices[::2] = [x + dx for x in vertices[::2]]
-                vertex_list.vertices[:] = vertices
+                vertex_list.position[:] = vertices
             self._x = x
 
     @property
@@ -935,9 +1004,9 @@ class TextLayout:
         else:
             dy = y - self._y
             for vertex_list in self._vertex_lists:
-                vertices = vertex_list.vertices[:]
+                vertices = vertex_list.position[:]
                 vertices[1::2] = [y + dy for y in vertices[1::2]]
-                vertex_list.vertices[:] = vertices
+                vertex_list.position[:] = vertices
             self._y = y
 
     @property
@@ -952,10 +1021,40 @@ class TextLayout:
         return self._x, self._y
 
     @position.setter
-    def position(self, position):
-        x, y = position
-        self._set_x(x)
-        self._set_y(y)
+    def position(self, values):
+        x, y = values
+        if self._boxes:
+            self._x = x
+            self._y = y
+            self._update()
+        else:
+            dx = x - self._x
+            dy = y - self._y
+            for vertex_list in self._vertex_lists:
+                vertices = vertex_list.position[:]
+                vertices[::2] = [x + dx for x in vertices[::2]]
+                vertices[1::2] = [y + dy for y in vertices[1::2]]
+                vertex_list.position[:] = vertices
+            self._x = x
+            self._y = y
+
+    @property
+    def visible(self):
+        """True if the layout will be drawn.
+
+        :type: bool
+        """
+        return self._visible
+
+    @visible.setter
+    def visible(self, value):
+        if value != self._visible:
+            self._visible = value
+
+            if value:
+                self._update()
+            else:
+                self.delete()
 
     @property
     def width(self):
@@ -1094,7 +1193,7 @@ class TextLayout:
 
     def _wrap_lines_invariant(self):
         self._wrap_lines = self._multiline and self._wrap_lines_flag
-        assert not self._wrap_lines or self._width,\
+        assert not self._wrap_lines or self._width, \
             "When the parameters 'multiline' and 'wrap_lines' are True, the parameter 'width' must be a number."
 
     def parse_distance(self, distance):
@@ -1167,7 +1266,7 @@ class TextLayout:
             box.delete(self)
         self._vertex_lists = []
         self._boxes = []
-        self.groups.clear()
+        self.group_cache.clear()
 
         if not self._document or not self._document.text:
             return
@@ -1194,7 +1293,7 @@ class TextLayout:
 
         start = 0
         for _vertex_list in self._vertex_lists:
-            _vertex_list.colors = colors[start:start+len(_vertex_list.colors)]
+            _vertex_list.colors = colors[start:start + len(_vertex_list.colors)]
             start += len(_vertex_list.colors)
 
     def _get_left(self):
@@ -1269,7 +1368,12 @@ class TextLayout:
         The event handler is bound by the text layout; there is no need for
         applications to interact with this method.
         """
-        self._init_document()
+        if self._visible:
+            self._init_document()
+        else:
+            if self.document.text:
+                # Update content width and height, since text may change while hidden.
+                self._get_lines()
 
     def on_delete_text(self, start, end):
         """Event handler for `AbstractDocument.on_delete_text`.
@@ -1277,7 +1381,8 @@ class TextLayout:
         The event handler is bound by the text layout; there is no need for
         applications to interact with this method.
         """
-        self._init_document()
+        if self._visible:
+            self._init_document()
 
     def on_style_text(self, start, end, attributes):
         """Event handler for `AbstractDocument.on_style_text`.
@@ -1560,6 +1665,13 @@ class TextLayout:
         line = _Line(start)
         font = font_iterator[0]
 
+        if self._width:
+            align_iterator = runlist.FilteredRunIterator(
+                self._document.get_style_runs('align'),
+                lambda value: value in ('left', 'right', 'center'),
+                'left')
+            line.align = align_iterator[start]
+
         for start, end, owner in owner_iterator:
             font = font_iterator[start]
             width = 0
@@ -1664,7 +1776,8 @@ class ScrollableTextLayout(TextLayout):
     Use `view_x` and `view_y` to scroll the text within the viewport.
     """
 
-    default_group_class = ScrollableTextLayoutGroup
+    group_class = ScrollableTextLayoutGroup
+    decoration_class = ScrollableTextDecorationGroup
 
     _translate_x = 0
     _translate_y = 0
@@ -1674,8 +1787,15 @@ class ScrollableTextLayout(TextLayout):
         self._update_scissor_area()
 
     def _update_scissor_area(self):
+        if not self.document.text:
+            return
         area = self._get_left(), self._get_bottom(self._get_lines()), self._width, self._height
-        self.default_group_class.scissor_area = area
+        for group in self.group_cache.values():
+            group.scissor_area = area
+
+    def _update(self):
+        super()._update()
+        self._update_scissor_area()
 
     # Properties
 
@@ -1797,7 +1917,8 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
     _selection_color = [255, 255, 255, 255]
     _selection_background_color = [46, 106, 197, 255]
 
-    default_group_class = IncrementalTextLayoutGroup
+    group_class = IncrementalTextLayoutGroup
+    decoration_class = IncrementalTextDecorationGroup
 
     _translate_x = 0
     _translate_y = 0
@@ -1817,14 +1938,15 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
         self.owner_runs = runlist.RunList(0, None)
 
         super().__init__(document, width, height, multiline, dpi, batch, group, wrap_lines)
-
-        self._update_scissor_area()
         self._update_translation()
-        self._update()
+        self._update_scissor_area()
 
     def _update_scissor_area(self):
+        if not self.document.text:
+            return
         area = self._get_left(), self._get_bottom(self._get_lines()), self._width, self._height
-        self.default_group_class.scissor_area = area
+        for group in self.group_cache.values():
+            group.scissor_area = area
 
     def _init_document(self):
         assert self._document, 'Cannot remove document from IncrementalTextLayout'
@@ -2060,8 +2182,6 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
             if line.y + line.ascent > self._translate_y - self.height:
                 end = max(end, i) + 1
 
-        # print("Visible line start/end:", self.visible_lines.start, self.visible_lines.end)
-
         # Delete newly invisible lines
         for i in range(self.visible_lines.start, min(start, len(self.lines))):
             self.lines[i].delete(self)
@@ -2084,7 +2204,6 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
         invalid_start, invalid_end = self.invalid_vertex_lines.validate()
         if invalid_end - invalid_start <= 0:
-            print("return")
             return
 
         colors_iter = self.document.get_style_runs('color')
@@ -2126,8 +2245,9 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
     @x.setter
     def x(self, x):
         self._x = x
-        self.on_insert_text(0, self._document.text)
-        self._update()
+        self._uninit_document()
+        self._init_document()
+        self._update_scissor_area()
 
     @property
     def y(self):
@@ -2136,8 +2256,9 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
     @y.setter
     def y(self, y):
         self._y = y
-        self.on_insert_text(0, self._document.text)
-        self._update()
+        self._uninit_document()
+        self._init_document()
+        self._update_scissor_area()
 
     @property
     def position(self):
@@ -2145,7 +2266,10 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
 
     @position.setter
     def position(self, position):
-        self.x, self.y = position
+        self._x, self._y = position
+        self._uninit_document()
+        self._init_document()
+        self._update_scissor_area()
 
     @property
     def anchor_x(self):
@@ -2155,7 +2279,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
     def anchor_x(self, anchor_x):
         self._anchor_x = anchor_x
         self._update_scissor_area()
-        self._update()
+        self._init_document()
 
     @property
     def anchor_y(self):
@@ -2165,7 +2289,7 @@ class IncrementalTextLayout(TextLayout, EventDispatcher):
     def anchor_y(self, anchor_y):
         self._anchor_y = anchor_y
         self._update_scissor_area()
-        self._update()
+        self._init_document()
 
     @property
     def width(self):

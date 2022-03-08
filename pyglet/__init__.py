@@ -44,7 +44,7 @@ import sys
 from typing import TYPE_CHECKING
 
 #: The release version
-version = '2.0.dev5'
+version = '2.0.dev13'
 __version__ = version
 
 if sys.version_info < (3, 6):
@@ -55,7 +55,7 @@ if 'sphinx' in sys.modules:
 _is_pyglet_doc_run = hasattr(sys, "is_pyglet_doc_run") and sys.is_pyglet_doc_run
 
 
-# Pyglet platform treats *BSD systems as Linux
+# pyglet platform treats *BSD systems as Linux
 compat_platform = sys.platform
 if "bsd" in compat_platform:
     compat_platform = "linux-compat"
@@ -156,7 +156,7 @@ options = {
     'xsync': True,
     'xlib_fullscreen_override_redirect': False,
     'search_local_libs': True,
-    'advanced_font_features': False,
+    'win32_gdi_font': False,
     'headless': False,
     'headless_device': 0,
 }
@@ -183,7 +183,7 @@ _option_types = {
     'xsync': bool,
     'xlib_fullscreen_override_redirect': bool,
     'search_local_libs': bool,
-    'advanced_font_features': bool,
+    'win32_gdi_font': bool,
     'headless': bool,
     'headless_device': int
 }

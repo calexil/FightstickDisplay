@@ -93,11 +93,13 @@ class PlatformEventLoop:
         """
         while True:
             try:
-                dispatcher, event, args = self._event_queue.get(False)
+                dispatcher, evnt, args = self._event_queue.get(False)
+                dispatcher.dispatch_event(evnt, *args)
             except queue.Empty:
                 break
-
-            dispatcher.dispatch_event(event, *args)
+            except ReferenceError:
+                # weakly-referenced object no longer exists
+                pass
 
     def notify(self):
         """Notify the event loop that something needs processing.
@@ -150,6 +152,7 @@ class EventLoop(event.EventDispatcher):
         for window in app.windows:
             window.switch_to()
             window.dispatch_event('on_draw')
+            window.dispatch_event('on_refresh', dt)
             window.flip()
 
     def run(self, interval=1/60):
@@ -160,7 +163,7 @@ class EventLoop(event.EventDispatcher):
         Developers are discouraged from overriding this method, as the
         implementation is platform-specific.
         """
-        self.clock.schedule_interval_soft(self._redraw_windows, interval)
+        self.clock.schedule_interval(self._redraw_windows, interval)
 
         self.has_exit = False
 
