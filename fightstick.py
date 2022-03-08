@@ -1,5 +1,6 @@
 import os
 import sys
+import urllib.error
 import urllib.request
 from configparser import ConfigParser
 
@@ -20,18 +21,21 @@ window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 
 
-# Parse and add additional SDL style controller mappings.
+# Download the latest Controller mapping database:
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 try:
-    with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+    with urllib.request.urlopen(url) as response, open("gamecontrollerdb.txt", 'wb') as f:
         f.write(response.read())
-except Exception:
-    if os.path.exists("gamecontrollerdb.txt"):
-        try:
-            pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
-            print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-        except Exception:
-            print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
+except urllib.error.URLError:
+    pass
+
+# Add the additional mappings to pyglet:
+if os.path.exists("gamecontrollerdb.txt"):
+    try:
+        pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
+        print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+    except AssertionError:
+        print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
 
 
 _layout = {
@@ -89,15 +93,6 @@ def load_configuration():
 def save_configuration():
     with open('theme/layout.ini', 'w') as file:
         config.write(file)
-
-
-def _make_sprite(name, batch, group, visible=True):
-    # Helper function to make a Sprite.
-    image = pyglet.resource.image(_images[name])
-    position = _layout[name]
-    sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
-    sprite.visible = visible
-    return sprite
 
 
 #########################
@@ -179,24 +174,32 @@ class MainScene(_BaseScene):
         self.bg = pyglet.graphics.Group(0)
         self.fg = pyglet.graphics.Group(1)
         # Create all sprites using helper function (name, batch, group, visible).
-        self.background = _make_sprite('background', self.batch, self.bg)
-        self.stick_spr = _make_sprite('stick', self.batch, self.fg)
-        self.select_spr = _make_sprite('select', self.batch, self.fg, False)
-        self.start_spr = _make_sprite('start', self.batch, self.fg, False)
-        self.x_spr = _make_sprite('x', self.batch, self.fg, False)
-        self.y_spr = _make_sprite('y', self.batch, self.fg, False)
-        self.a_spr = _make_sprite('a', self.batch, self.fg, False)
-        self.b_spr = _make_sprite('b', self.batch, self.fg, False)
-        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
-        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
-        self.rt_spr = _make_sprite('rt', self.batch, self.fg, False)
-        self.lt_spr = _make_sprite('lt', self.batch, self.fg, False)
+        self.background = self._make_sprite('background', self.bg)
+        self.stick_spr = self._make_sprite('stick', self.fg)
+        self.select_spr = self._make_sprite('select', self.fg, False)
+        self.start_spr = self._make_sprite('start', self.fg, False)
+        self.x_spr = self._make_sprite('x', self.fg, False)
+        self.y_spr = self._make_sprite('y', self.fg, False)
+        self.a_spr = self._make_sprite('a', self.fg, False)
+        self.b_spr = self._make_sprite('b', self.fg, False)
+        self.rb_spr = self._make_sprite('rb', self.fg, False)
+        self.lb_spr = self._make_sprite('lb', self.fg, False)
+        self.rt_spr = self._make_sprite('rt', self.fg, False)
+        self.lt_spr = self._make_sprite('lt', self.fg, False)
 
         # Mapping of (Input names : Sprite names).
         self.button_mapping = {"a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr,
                                "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
                                "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                                "back": self.select_spr, "start": self.start_spr}
+
+    def _make_sprite(self, name, group, visible=True):
+        # Helper function to make a Sprite.
+        image = pyglet.resource.image(_images[name])
+        position = _layout[name]
+        sprite = pyglet.sprite.Sprite(image, *position, batch=self.batch, group=group)
+        sprite.visible = visible
+        return sprite
 
     def on_button_press(self, controller, button):
         assert _debug_print(f"Pressed Button: {button}")
