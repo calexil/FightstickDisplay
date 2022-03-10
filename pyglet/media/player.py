@@ -38,7 +38,7 @@ import time
 from collections import deque
 
 import pyglet
-from pyglet.gl import GL_TEXTURE_RECTANGLE
+from pyglet.gl import GL_TEXTURE_2D
 from pyglet.media import buffered_logger as bl
 from pyglet.media.drivers import get_audio_driver
 from pyglet.media.codecs.base import Source, SourceGroup
@@ -261,6 +261,8 @@ class Player(pyglet.event.EventDispatcher):
 
         The internal audio player and the texture will be deleted.
         """
+        if self._source:
+            self.source.is_player_source = False
         if self._audio_player:
             self._audio_player.delete()
             self._audio_player = None
@@ -391,7 +393,7 @@ class Player(pyglet.event.EventDispatcher):
 
     def _create_texture(self):
         video_format = self.source.video_format
-        self._texture = pyglet.image.Texture.create(video_format.width, video_format.height, GL_TEXTURE_RECTANGLE)
+        self._texture = pyglet.image.Texture.create(video_format.width, video_format.height, GL_TEXTURE_2D)
         self._texture = self._texture.get_transform(flip_y=True)
         # After flipping the texture along the y axis, the anchor_y is set
         # to the top of the image. We want to keep it at the bottom.
@@ -476,6 +478,11 @@ class Player(pyglet.event.EventDispatcher):
 
             pyglet.clock.schedule_once(self._video_finished, 0)
             return
+        elif ts > time:
+            # update_texture called too early (probably manually!)
+            pyglet.clock.schedule_once(self.update_texture, ts - time)
+            return
+
 
         image = source.get_next_video_frame()
         if image is not None:

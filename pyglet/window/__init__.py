@@ -127,10 +127,11 @@ import sys
 from typing import Tuple
 
 import pyglet
+
 from pyglet import gl
 from pyglet.math import Mat4
 from pyglet.event import EventDispatcher
-from pyglet.window import key
+from pyglet.window import key, event
 from pyglet.util import with_metaclass
 from pyglet.graphics import shader
 
@@ -235,7 +236,10 @@ class ImageMouseCursor(MouseCursor):
         self.hw_drawable = acceleration
 
     def draw(self, x, y):
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         self.texture.blit(x - self.hot_x, y - self.hot_y, 0)
+        gl.glDisable(gl.GL_BLEND)
 
 
 def _PlatformEventHandler(data):
@@ -320,6 +324,10 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
     WINDOW_STYLE_TOOL = 'tool'
     #: A window style without any decoration.
     WINDOW_STYLE_BORDERLESS = 'borderless'
+    #: A window style for transparent, interactable windows
+    WINDOW_STYLE_TRANSPARENT = 'transparent'
+    #: A window style for transparent, topmost, click-through-able overlays
+    WINDOW_STYLE_OVERLAY = 'overlay'
 
     #: The default mouse cursor.
     CURSOR_DEFAULT = None
@@ -404,6 +412,7 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
     _context = None
     _projection_matrix = pyglet.math.Mat4()
     _view_matrix = pyglet.math.Mat4()
+    _viewport = 0, 0, 0, 0
 
     # Used to restore window size and position after fullscreen
     _windowed_size = None
@@ -543,6 +552,10 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
             if not config:
                 raise NoSuchConfigException('No standard config is available.')
 
+        # Necessary on Windows. More investigation needed:
+        if style in ('transparent', 'overlay'):
+            config.alpha = 8
+
         if not config.is_complete():
             config = screen.get_best_config(config)
 
@@ -552,6 +565,7 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
         # Set these in reverse order to above, to ensure we get user preference
         self._context = context
         self._config = self._context.config
+
         # XXX deprecate config's being screen-specific
         if hasattr(self._config, 'screen'):
             self._screen = self._config.screen
@@ -590,16 +604,20 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
 
         self.switch_to()
 
+        self._create_projection()
+
         if visible:
             self.set_visible(True)
             self.activate()
 
+    def _create_projection(self):
         self._default_program = shader.ShaderProgram(shader.Shader(self._default_vertex_source, 'vertex'))
         self.ubo = self._default_program.uniform_blocks['WindowBlock'].create_ubo()
 
-        self.view = pyglet.math.Mat4()
-
         self._viewport = 0, 0, *self.get_framebuffer_size()
+
+        self.view = Mat4()
+        self.projection = Mat4.orthogonal_projection(0, self._width, 0, self._height, -255, 255)
 
     def __del__(self):
         # Always try to clean up the window when it is dereferenced.
@@ -754,7 +772,7 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
         projection based on the same dimensions.
         """
         gl.glViewport(0, 0, *self.get_framebuffer_size())
-        self.projection = pyglet.window.Mat4.orthogonal_projection(0, width, 0, height, -255, 255)
+        self.projection = Mat4.orthogonal_projection(0, width, 0, height, -255, 255)
 
     def on_close(self):
         """Default on_close handler."""
@@ -1653,7 +1671,7 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
             """The window was shown.
 
             This event is triggered when a window is restored after being
-            minimised, or after being displayed for the first time.
+            minimised, hidden, or after being displayed for the first time.
 
             :event:
             """
@@ -1661,8 +1679,8 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
         def on_hide(self):
             """The window was hidden.
 
-            This event is triggered when a window is minimised or (on Mac OS X)
-            hidden by the user.
+            This event is triggered when a window is minimised
+            or hidden by the user.
 
             :event:
             """
@@ -1701,7 +1719,7 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
             :event:
             """
 
-        def on_draw(self):
+        def on_draw(self, dt):
             """The window contents must be redrawn.
 
             The `EventLoop` will dispatch this event when the window
@@ -1717,6 +1735,25 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
             invalidated the framebuffer since the last time it was drawn.
 
             .. versionadded:: 1.1
+
+            :event:
+            """
+
+        def on_refresh(self, dt):
+            """The window contents must be redrawn.
+
+            The `EventLoop` will dispatch this event when the window
+            should be redrawn.
+
+            The window will already have the GL context, so there is no
+            need to call `switch_to`.  The window's `flip` method will
+            be called after this event, so your event handler should not.
+
+            You should make no assumptions about the window contents when
+            this event is triggered; a resize or expose event may have
+            invalidated the framebuffer since the last time it was drawn.
+
+            .. versionadded:: 2.0
 
             :event:
             """
@@ -1746,6 +1783,7 @@ BaseWindow.register_event_type('on_context_lost')
 BaseWindow.register_event_type('on_context_state_lost')
 BaseWindow.register_event_type('on_file_drop')
 BaseWindow.register_event_type('on_draw')
+BaseWindow.register_event_type('on_refresh')
 
 
 class FPSDisplay:

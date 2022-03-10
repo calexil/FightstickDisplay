@@ -1,29 +1,39 @@
-import ctypes
-from weakref import proxy
 from ctypes import *
+from weakref import proxy
 
-from pyglet.graphics.vertexbuffer import create_buffer
-from pyglet import options
+import pyglet
+
+from pyglet.graphics.vertexbuffer import BufferObject
 from pyglet.gl import *
 
 
-_debug_gl_shaders = options['debug_gl_shaders']
+_debug_gl_shaders = pyglet.options['debug_gl_shaders']
+
+
+class ShaderException(BaseException):
+    pass
 
 
 # TODO: test other shader types, and update if necessary.
-shader_types = {
+_shader_types = {
     'vertex': GL_VERTEX_SHADER,
     'geometry': GL_GEOMETRY_SHADER,
     'fragment': GL_FRAGMENT_SHADER,
 }
 
 _uniform_getters = {
-    GLint:   glGetUniformiv,
-    GLfloat: glGetUniformfv,
+    GLint:     glGetUniformiv,
+    GLfloat:   glGetUniformfv,
+    GLboolean: glGetUniformiv,
 }
 
 _uniform_setters = {
     # uniform type: (gl_type, setter, length, count)
+    GL_BOOL:      (GLint, glUniform1iv, 1, 1),
+    GL_BOOL_VEC2: (GLint, glUniform1iv, 2, 1),
+    GL_BOOL_VEC3: (GLint, glUniform1iv, 3, 1),
+    GL_BOOL_VEC4: (GLint, glUniform1iv, 4, 1),
+
     GL_INT:      (GLint, glUniform1iv, 1, 1),
     GL_INT_VEC2: (GLint, glUniform2iv, 2, 1),
     GL_INT_VEC3: (GLint, glUniform3iv, 3, 1),
@@ -34,9 +44,8 @@ _uniform_setters = {
     GL_FLOAT_VEC3: (GLfloat, glUniform3fv, 3, 1),
     GL_FLOAT_VEC4: (GLfloat, glUniform4fv, 4, 1),
 
-    GL_SAMPLER_1D: (GLint, glUniform1iv, 1, 1),
-    
-    GL_SAMPLER_2D: (GLint, glUniform1iv, 1, 1),
+    GL_SAMPLER_1D:       (GLint, glUniform1iv, 1, 1),
+    GL_SAMPLER_2D:       (GLint, glUniform1iv, 1, 1),
     GL_SAMPLER_2D_ARRAY: (GLint, glUniform1iv, 1, 1),
         
     GL_SAMPLER_3D: (GLint, glUniform1iv, 1, 1),
@@ -84,22 +93,6 @@ _attribute_types = {
 }
 
 
-class _Attribute:
-    __slots__ = 'program', 'name', 'type', 'size', 'location', 'count', 'format'
-
-    def __init__(self, program, name, attr_type, size, location):
-        self.program = program
-        self.name = name
-        self.type = attr_type
-        self.size = size
-        self.location = location
-        self.count, self.format = _attribute_types[attr_type]
-
-    def __repr__(self):
-        return f"Attribute('{self.name}', program={self.program}, " \
-               f"location={self.location}, count={self.count}, format={self.format})"
-
-
 class _Uniform:
     __slots__ = 'program', 'name', 'type', 'location', 'length', 'count', 'get', 'set'
 
@@ -118,49 +111,49 @@ class _Uniform:
         c_array = (gl_type * length)()
         ptr = cast(c_array, POINTER(gl_type))
 
-        self.get = _create_getter_func(program, location, gl_getter, c_array, length)
-        self.set = _create_setter_func(location, gl_setter, c_array, length, count, ptr, is_matrix)
+        self.get = self._create_getter_func(program, location, gl_getter, c_array, length)
+        self.set = self._create_setter_func(location, gl_setter, c_array, length, count, ptr, is_matrix)
+
+    @staticmethod
+    def _create_getter_func(program_id, location, gl_getter, c_array, length):
+        """Factory function for creating simplified Uniform getters"""
+
+        if length == 1:
+            def getter_func():
+                gl_getter(program_id, location, c_array)
+                return c_array[0]
+        else:
+            def getter_func():
+                gl_getter(program_id, location, c_array)
+                return c_array[:]
+
+        return getter_func
+
+    @staticmethod
+    def _create_setter_func(location, gl_setter, c_array, length, count, ptr, is_matrix):
+        """Factory function for creating simplified Uniform setters"""
+
+        if is_matrix:
+            def setter_func(value):
+                c_array[:] = value
+                gl_setter(location, count, GL_FALSE, ptr)
+
+        elif length == 1 and count == 1:
+            def setter_func(value):
+                c_array[0] = value
+                gl_setter(location, count, ptr)
+        elif length > 1 and count == 1:
+            def setter_func(values):
+                c_array[:] = values
+                gl_setter(location, count, ptr)
+
+        else:
+            raise NotImplementedError("Uniform type not yet supported.")
+
+        return setter_func
 
     def __repr__(self):
         return f"Uniform('{self.name}', location={self.location}, length={self.length}, count={self.count})"
-
-
-def _create_getter_func(program_id, location, gl_getter, c_array, length):
-    """Factory function for creating simplified Uniform getters"""
-
-    if length == 1:
-        def getter_func():
-            gl_getter(program_id, location, c_array)
-            return c_array[0]
-    else:
-        def getter_func():
-            gl_getter(program_id, location, c_array)
-            return c_array[:]
-
-    return getter_func
-
-
-def _create_setter_func(location, gl_setter, c_array, length, count, ptr, is_matrix):
-    """Factory function for creating simplified Uniform setters"""
-
-    if is_matrix:
-        def setter_func(value):
-            c_array[:] = value
-            gl_setter(location, count, GL_FALSE, ptr)
-
-    elif length == 1 and count == 1:
-        def setter_func(value):
-            c_array[0] = value
-            gl_setter(location, count, ptr)
-    elif length > 1 and count == 1:
-        def setter_func(values):
-            c_array[:] = values
-            gl_setter(location, count, ptr)
-
-    else:
-        raise NotImplementedError("Uniform type not yet supported.")
-
-    return setter_func
 
 
 class Shader:
@@ -180,7 +173,7 @@ class Shader:
         """
         self._id = None
 
-        if shader_type not in shader_types:
+        if shader_type not in _shader_types:
             raise TypeError("The `shader_type` '{}' is not yet supported".format(shader_type))
         self.type = shader_type
 
@@ -188,7 +181,7 @@ class Shader:
         source_buffer_pointer = cast(c_char_p(shader_source_utf8), POINTER(c_char))
         source_length = c_int(len(shader_source_utf8))
 
-        shader_id = glCreateShader(shader_types[shader_type])
+        shader_id = glCreateShader(_shader_types[shader_type])
         glShaderSource(shader_id, 1, byref(source_buffer_pointer), source_length)
         glCompileShader(shader_id)
 
@@ -223,7 +216,7 @@ class Shader:
             glDeleteShader(self._id)
             if _debug_gl_shaders:
                 print(f"Destroyed {self.type} Shader '{self._id}'")
-        except (ImportError, AttributeError, ArgumentError):
+        except Exception:
             # Interpreter is shutting down,
             # or Shader failed to compile.
             pass
@@ -235,7 +228,7 @@ class Shader:
 class ShaderProgram:
     """OpenGL Shader Program"""
 
-    __slots__ = '_id', '_active', '_attributes', '_uniforms', '_uniform_blocks', '__weakref__'
+    __slots__ = '_id', '_context', '_active', '_attributes', '_uniforms', '_uniform_blocks', '__weakref__'
 
     def __init__(self, *shaders):
         """Create an OpenGL ShaderProgram, from multiple Shaders.
@@ -248,6 +241,7 @@ class ShaderProgram:
         """
         assert shaders, "At least one Shader object is required."
         self._id = self._link_program(shaders)
+        self._context = pyglet.gl.current_context
         self._active = False
 
         self._attributes = {}
@@ -275,11 +269,15 @@ class ShaderProgram:
 
     @property
     def uniforms(self):
-        return self._uniforms.keys()
+        return self._uniforms
 
     @property
     def uniform_blocks(self):
         return self._uniform_blocks
+
+    @property
+    def formats(self):
+        return tuple(f"{atr.name}{atr.count}{atr.format}" for atr in self._attributes.values())
 
     def _get_program_log(self):
         result = c_int(0)
@@ -320,8 +318,8 @@ class ShaderProgram:
 
     def __del__(self):
         try:
-            glDeleteProgram(self._id)
-        except (ImportError, AttributeError, GLException):
+            self._context.delete_shader_program(self.id)
+        except Exception:
             # Interpreter is shutting down,
             # or ShaderProgram failed to link.
             pass
@@ -333,7 +331,9 @@ class ShaderProgram:
         try:
             uniform = self._uniforms[key]
         except KeyError:
-            raise Exception("Uniform with the name `{0}` was not found.".format(key))
+            raise Exception(f"A Uniform with the name `{key}` was not found.\n"
+                            f"The spelling may be incorrect, or if not in use it "
+                            f"may have been optimized out by the OpenGL driver.")
 
         try:
             uniform.set(value)
@@ -363,7 +363,8 @@ class ShaderProgram:
         for index in range(self._get_number(GL_ACTIVE_ATTRIBUTES)):
             a_name, a_type, a_size = self._query_attribute(index)
             loc = glGetAttribLocation(program, create_string_buffer(a_name.encode('utf-8')))
-            attributes[a_name] = _Attribute(program, a_name, a_type, a_size, loc)
+            count, fmt = _attribute_types[a_type]
+            attributes[a_name] = dict(type=a_type, size=a_size, location=loc, count=count, format=fmt)
         self._attributes = attributes
 
         if _debug_gl_shaders:
@@ -376,7 +377,7 @@ class ShaderProgram:
             u_name, u_type, u_size = self._query_uniform(index)
             loc = glGetUniformLocation(prg_id, create_string_buffer(u_name.encode('utf-8')))
 
-            if loc == -1:      # Skip uniforms that may be inside of a Uniform Block
+            if loc == -1:      # Skip uniforms that may be inside a Uniform Block
                 continue
 
             try:
@@ -459,6 +460,94 @@ class ShaderProgram:
         except GLException:
             raise
 
+    def vertex_list(self, count, mode, batch=None, group=None, **data):
+        """Create a VertexList.
+
+        :Parameters:
+            `count` : int
+                The number of vertices in the list.
+            `mode` : int
+                OpenGL drawing mode enumeration; for example, one of
+                ``GL_POINTS``, ``GL_LINES``, ``GL_TRIANGLES``, etc.
+            `batch` : `~pyglet.graphics.Batch`
+                Batch to add the VertexList to, or ``None`` if a Batch will not be used.
+                Using a Batch is strongly recommended.
+            `group` : `~pyglet.graphics.Group`
+                Group to add the VertexList to, or ``None`` if no group is required.
+            `**data` : str or tuple
+                Attribute formats and initial data for the vertex list.
+
+        :rtype: :py:class:`~pyglet.graphics.vertexdomain.VertexList`
+        """
+        attributes = self._attributes.copy()
+        initial_arrays = []
+
+        for name, fmt in data.items():
+            try:
+                if isinstance(fmt, tuple):
+                    fmt, array = fmt
+                    initial_arrays.append((name, array))
+                attributes[name] = {**attributes[name], **{'format': fmt}}
+            except KeyError:
+                raise ShaderException(f"\nThe attribute `{name}` doesn't exist. Valid names: \n{list(attributes)}")
+
+        batch = batch or pyglet.graphics.get_default_batch()
+        domain = batch.get_domain(False, mode, group, self._id, attributes)
+
+        # Create vertex list and initialize
+        vlist = domain.create(count)
+
+        for name, array in initial_arrays:
+            vlist.set_attribute_data(name, array)
+
+        return vlist
+
+    def vertex_list_indexed(self, count, mode, indices, batch=None, group=None, **data):
+        """Create a IndexedVertexList.
+
+        :Parameters:
+            `count` : int
+                The number of vertices in the list.
+            `mode` : int
+                OpenGL drawing mode enumeration; for example, one of
+                ``GL_POINTS``, ``GL_LINES``, ``GL_TRIANGLES``, etc.
+            `indices` : sequence of int
+                Sequence of integers giving indices into the vertex list.
+            `batch` : `~pyglet.graphics.Batch`
+                Batch to add the VertexList to, or ``None`` if a Batch will not be used.
+                Using a Batch is strongly recommended.
+            `group` : `~pyglet.graphics.Group`
+                Group to add the VertexList to, or ``None`` if no group is required.
+            `**data` : str or tuple
+                Attribute formats and initial data for the vertex list.
+
+        :rtype: :py:class:`~pyglet.graphics.vertexdomain.IndexedVertexList`
+        """
+        attributes = self._attributes.copy()
+        initial_arrays = []
+
+        for name, fmt in data.items():
+            try:
+                if isinstance(fmt, tuple):
+                    fmt, array = fmt
+                    initial_arrays.append((name, array))
+                attributes[name] = {**attributes[name], **{'format': fmt}}
+            except KeyError:
+                raise ShaderException(f"\nThe attribute `{name}` doesn't exist. Valid names: \n{list(attributes)}")
+
+        batch = batch or pyglet.graphics.get_default_batch()
+        domain = batch.get_domain(True, mode, group, self._id, attributes)
+
+        # Create vertex list and initialize
+        vlist = domain.create(count, len(indices))
+        start = vlist.start
+        vlist.indices = [i + start for i in indices]
+
+        for name, array in initial_arrays:
+            vlist.set_attribute_data(name, array)
+
+        return vlist
+
     def __repr__(self):
         return "{0}(id={1})".format(self.__class__.__name__, self.id)
 
@@ -486,7 +575,7 @@ class UniformBufferObject:
     def __init__(self, block, index):
         assert type(block) == UniformBlock, "Must be a UniformBlock instance"
         self.block = block
-        self.buffer = create_buffer(self.block.size, target=GL_UNIFORM_BUFFER, mappable=False)
+        self.buffer = BufferObject(self.block.size, GL_UNIFORM_BUFFER)
         self.buffer.bind()
         self.view = self._introspect_uniforms()
         self._view_ptr = pointer(self.view)
@@ -503,31 +592,34 @@ class UniformBufferObject:
 
         # Query the number of active Uniforms:
         num_active = GLint()
-        indices = (GLuint * num_active.value)()
-        indices_ptr = cast(addressof(indices), POINTER(GLint))
         glGetActiveUniformBlockiv(p_id, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, num_active)
-        glGetActiveUniformBlockiv(p_id, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, indices_ptr)
 
-        # Create objects and pointers for query values, to be used in the next step:
+        # Query the uniform index order and each uniform's offset:
+        indices = (GLuint * num_active.value)()
         offsets = (GLint * num_active.value)()
-        gl_types = (GLuint * num_active.value)()
-        mat_stride = (GLuint * num_active.value)()
+        indices_ptr = cast(addressof(indices), POINTER(GLint))
         offsets_ptr = cast(addressof(offsets), POINTER(GLint))
+        glGetActiveUniformBlockiv(p_id, index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, indices_ptr)
+        glGetActiveUniformsiv(p_id, num_active.value, indices, GL_UNIFORM_OFFSET, offsets_ptr)
+
+        # Offsets may be returned in non-ascending order, sort them with the corresponding index:
+        _oi = sorted(zip(offsets, indices), key=lambda x: x[0])
+        offsets = [x[0] for x in _oi] + [self.block.size]
+        indices = (GLuint * num_active.value)(*(x[1] for x in _oi))
+
+        # Query other uniform information:
+        gl_types = (GLint * num_active.value)()
+        mat_stride = (GLint * num_active.value)()
         gl_types_ptr = cast(addressof(gl_types), POINTER(GLint))
         stride_ptr = cast(addressof(mat_stride), POINTER(GLint))
-
-        # Query the indices, offsets, and types uniforms:
-        glGetActiveUniformsiv(p_id, num_active.value, indices, GL_UNIFORM_OFFSET, offsets_ptr)
         glGetActiveUniformsiv(p_id, num_active.value, indices, GL_UNIFORM_TYPE, gl_types_ptr)
         glGetActiveUniformsiv(p_id, num_active.value, indices, GL_UNIFORM_MATRIX_STRIDE, stride_ptr)
 
-        offsets = offsets[:] + [self.block.size]
         args = []
 
         for i in range(num_active.value):
-            u_name, gl_type, length = self.block.uniforms[i]
-            start = offsets[i]
-            size = offsets[i+1] - start
+            u_name, gl_type, length = self.block.uniforms[indices[i]]
+            size = offsets[i+1] - offsets[i]
             c_type_size = sizeof(gl_type)
             actual_size = c_type_size * length
             padding = size - actual_size
@@ -543,7 +635,7 @@ class UniformBufferObject:
                 args.append((f'_padding{i}', gl_type * padding_bytes))
 
         # Custom ctypes Structure for Uniform access:
-        class View(ctypes.Structure):
+        class View(Structure):
             _fields_ = args
             __repr__ = lambda self: str(dict(self._fields_))
 

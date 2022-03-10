@@ -89,7 +89,7 @@ import pyglet
 from pyglet import gl
 from pyglet import graphics
 from pyglet.gl import current_context
-from pyglet.math import Mat4
+from pyglet.math import Mat4, Vec3
 from pyglet.graphics import shader
 
 from .codecs import ModelDecodeException
@@ -185,13 +185,13 @@ class Model:
                  a vertex list in `vertex_lists` of the same index.
             `batch` : `~pyglet.graphics.Batch`
                 Optional batch to add the model to. If no batch is provided,
-                the model will maintain it's own internal batch.
+                the model will maintain its own internal batch.
         """
         self.vertex_lists = vertex_lists
         self.groups = groups
         self._batch = batch
-        self._rotation = 0, 0, 0
-        self._translation = 0, 0, 0
+        self._rotation = Vec3()
+        self._translation = Vec3()
 
     @property
     def batch(self):
@@ -199,7 +199,7 @@ class Model:
 
         The Model can be migrated from one batch to another, or removed from
         a batch (for individual drawing). If not part of any batch, the Model
-        will keep it's own internal batch. Note that batch migration can be
+        will keep its own internal batch. Note that batch migration can be
         an expensive operation.
 
         :type: :py:class:`pyglet.graphics.Batch`
@@ -279,23 +279,18 @@ class BaseMaterialGroup(graphics.ShaderGroup):
         super().__init__(program, order, parent)
 
         self.material = material
-        self.rotation = 0, 0, 0
-        self.translation = 0, 0, 0
+        self.rotation = Vec3()
+        self.translation = Vec3()
 
     def set_modelview_matrix(self):
         # NOTE: Matrix operations can be optimized later with transform feedback
         view = Mat4()
-        view = view.rotate(radians(self.rotation[2]), z=1)
-        view = view.rotate(radians(self.rotation[1]), y=1)
-        view = view.rotate(radians(self.rotation[0]), x=1)
-        view = view.translate(*self.translation)
+        view = view.rotate(radians(self.rotation[2]), Vec3(0, 0, 1))
+        view = view.rotate(radians(self.rotation[1]), Vec3(0, 1, 0))
+        view = view.rotate(radians(self.rotation[0]), Vec3(1, 0, 0))
+        view = view.translate(self.translation)
 
-        # TODO: separate the projection block, and remove this hack
-        block = self.program.uniform_blocks['WindowBlock']
-        ubo = block.create_ubo(0)
-        with ubo as window_block:
-            window_block.projection[:] = pyglet.math.Mat4.perspective_projection(0, 720, 0, 480, z_near=0.1, z_far=255)
-            window_block.view[:] = view
+        self.program['mview'] = view
 
 
 class TexturedMaterialGroup(BaseMaterialGroup):
@@ -316,12 +311,13 @@ class TexturedMaterialGroup(BaseMaterialGroup):
         mat4 view;
     } window;
 
+    uniform mat4 mview;
 
     void main()
     {
-        vec4 pos = window.view * vec4(vertices, 1.0);
+        vec4 pos = mview * vec4(vertices, 1.0);
         gl_Position = window.projection * pos;
-        mat3 normal_matrix = transpose(inverse(mat3(window.view)));
+        mat3 normal_matrix = transpose(inverse(mat3(mview)));
 
         vertex_position = pos.xyz;
         vertex_colors = colors;
@@ -387,11 +383,13 @@ class MaterialGroup(BaseMaterialGroup):
         mat4 view;
     } window;
 
+    uniform mat4 mview;
+
     void main()
     {
-        vec4 pos = window.view * vec4(vertices, 1.0);
+        vec4 pos = mview * vec4(vertices, 1.0);
         gl_Position = window.projection * pos;
-        mat3 normal_matrix = transpose(inverse(mat3(window.view)));
+        mat3 normal_matrix = transpose(inverse(mat3(mview)));
 
         vertex_position = pos.xyz;
         vertex_colors = colors;

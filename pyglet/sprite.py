@@ -118,7 +118,7 @@ vertex_source = """#version 150 core
     in vec4 colors;
     in vec3 tex_coords;
     in vec2 scale;
-    in vec4 position;
+    in vec2 position;
     in float rotation;
 
     out vec4 vertex_colors;
@@ -130,21 +130,22 @@ vertex_source = """#version 150 core
         mat4 view;
     } window;
 
-    mat4 m_trans_scale = mat4(1.0);
+    mat4 m_scale = mat4(1.0);
     mat4 m_rotation = mat4(1.0);
+    mat4 m_translate = mat4(1.0);
 
     void main()
     {
-        m_trans_scale[3][0] = translate.x;
-        m_trans_scale[3][1] = translate.y;
-        m_trans_scale[0][0] = scale.x;
-        m_trans_scale[1][1] = scale.y;
+        m_scale[0][0] = scale.x;
+        m_scale[1][1] = scale.y;
+        m_translate[3][0] = translate.x;
+        m_translate[3][1] = translate.y;
         m_rotation[0][0] =  cos(-radians(rotation)); 
         m_rotation[0][1] =  sin(-radians(rotation));
         m_rotation[1][0] = -sin(-radians(rotation));
         m_rotation[1][1] =  cos(-radians(rotation));
 
-        gl_Position = window.projection * window.view * m_trans_scale * m_rotation * position;
+        gl_Position = window.projection * window.view * m_translate * m_rotation * m_scale * vec4(position, 0, 1);
 
         vertex_colors = colors;
         texture_coords = tex_coords;
@@ -176,14 +177,6 @@ fragment_array_source = """#version 150 core
         final_colors = texture(sprite_texture, texture_coords) * vertex_colors;
     }
 """
-
-
-# _default_vert_shader = graphics.shader.Shader(vertex_source, 'vertex')
-# _default_frag_shader = graphics.shader.Shader(fragment_source, 'fragment')
-# _default_program = graphics.shader.ShaderProgram(_default_vert_shader, _default_frag_shader)
-
-# _default_array_frag_shader = graphics.shader.Shader(fragment_array_source, 'fragment')
-# _default_array_program = graphics.shader.ShaderProgram(_default_vert_shader, _default_array_frag_shader)
 
 
 def get_default_shader():
@@ -300,9 +293,7 @@ class Sprite(event.EventDispatcher):
                  blend_dest=GL_ONE_MINUS_SRC_ALPHA,
                  batch=None,
                  group=None,
-                 usage='dynamic',
-                 subpixel=False,
-                 program=None):
+                 subpixel=False):
         """Create a sprite.
 
         :Parameters:
@@ -322,15 +313,9 @@ class Sprite(event.EventDispatcher):
                 Optional batch to add the sprite to.
             `group` : `~pyglet.graphics.Group`
                 Optional parent group of the sprite.
-            `usage` : str
-                Vertex buffer object usage hint, one of ``"none"``,
-                ``"stream"``, ``"dynamic"`` (default) or ``"static"``.  Applies
-                only to vertex data.
             `subpixel` : bool
                 Allow floating-point coordinates for the sprite. By default,
                 coordinates are restricted to integer values.
-            `program` : `~pyglet.graphics.shader.ShaderProgram`
-                A custom ShaderProgram.
         """
         self._x = x
         self._y = y
@@ -345,13 +330,12 @@ class Sprite(event.EventDispatcher):
             self._texture = img.get_texture()
 
         if isinstance(img, image.TextureArrayRegion):
-            program = get_default_array_shader()
+            self.program = get_default_array_shader()
         else:
-            program = get_default_shader()
+            self.program = get_default_shader()
 
         self._batch = batch or graphics.get_default_batch()
-        self._group = SpriteGroup(self._texture, blend_src, blend_dest, program, 0, group)
-        self._usage = usage
+        self._group = SpriteGroup(self._texture, blend_src, blend_dest, self.program, 0, group)
         self._subpixel = subpixel
         self._create_vertex_list()
 
@@ -489,15 +473,13 @@ class Sprite(event.EventDispatcher):
         self._texture = texture
 
     def _create_vertex_list(self):
-        usage = self._usage
-        self._vertex_list = self._batch.add_indexed(
-            4, GL_TRIANGLES, self._group, [0, 1, 2, 0, 2, 3],
-            'position2f/%s' % usage,
-            ('colors4Bn/%s' % usage, (*self._rgb, int(self._opacity)) * 4),
-            ('translate2f/%s' % usage, (self._x, self._y) * 4),
-            ('scale2f/%s' % usage, (self._scale*self._scale_x, self._scale*self._scale_y) * 4),
-            ('rotation1f/%s' % usage, (self._rotation,) * 4),
-            ('tex_coords3f/%s' % usage, self._texture.tex_coords))
+        self._vertex_list = self.program.vertex_list_indexed(
+            4, GL_TRIANGLES, [0, 1, 2, 0, 2, 3], self._batch, self._group,
+            colors=('Bn', (*self._rgb, int(self._opacity)) * 4),
+            translate=('f', (self._x, self._y) * 4),
+            scale=('f', (self._scale*self._scale_x, self._scale*self._scale_y) * 4),
+            rotation=('f', (self._rotation,) * 4),
+            tex_coords=('f', self._texture.tex_coords))
         self._update_position()
 
     def _update_position(self):
