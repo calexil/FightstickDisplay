@@ -24,7 +24,7 @@ config = ConfigParser()
 # Download the latest Controller mapping database:
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 try:
-    with urllib.request.urlopen(url) as response, open("gamecontrollerdb.txt", 'wb') as f:
+    with urllib.request.urlopen(url) as response, pyglet.resource.file("gamecontrollerdb.txt", 'wb') as f:
         f.write(response.read())
 except urllib.error.URLError:
     pass
@@ -91,7 +91,7 @@ def load_configuration():
 
 
 def save_configuration():
-    with open('theme/layout.ini', 'w') as file:
+    with pyglet.resource.file('theme/layout.ini', 'w') as file:
         config.write(file)
 
 
