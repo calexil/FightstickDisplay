@@ -2,7 +2,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
-from configparser import ConfigParser
+from configparser import ConfigParser, ParsingError, NoSectionError
 
 import pyglet
 from pyglet.util import debug_print
@@ -19,6 +19,9 @@ pyglet.resource.reindex()
 window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=False)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
+config.add_section('layout')
+config.add_section('images')
+config.add_section('deadzones')
 
 
 # Download the latest Controller mapping database:
@@ -74,24 +77,31 @@ def load_configuration():
     global _layout, _images
     layout = _layout.copy()
     images = _images.copy()
-    loaded_configs = config.read('theme/layout.ini')
-    if len(loaded_configs) > 0:
-        try:
-            for key, value in config.items('layout'):
-                x, y = value.split(', ')
-                layout[key] = int(x), int(y)
-            for key, value in config.items('images'):
-                images[key] = value
-            _layout = layout.copy()
-            _images = images.copy()
-        except KeyError:
-            print("Invalid theme/layout.ini file. Falling back to default.")
-    else:
-        print("No theme/layout.ini file found. Falling back to default.")
+
+    with pyglet.resource.file('layout.ini', 'r') as file:
+        loaded_configs = config.read(file.name)
+
+    if not loaded_configs:
+        print("No valid layout.ini found. Falling back to default.")
+        return
+
+    try:
+        for key, value in config.items('layout'):
+            x, y = value.split(', ')
+            layout[key] = int(x), int(y)
+
+        for key, value in config.items('images'):
+            images[key] = value
+
+        _layout = layout.copy()
+        _images = images.copy()
+
+    except (KeyError, ParsingError, NoSectionError):
+        print("Invalid theme/layout.ini. Falling back to default.")
 
 
 def save_configuration():
-    with pyglet.resource.file('theme/layout.ini', 'w') as file:
+    with pyglet.resource.file('layout.ini', 'w') as file:
         config.write(file)
 
 
