@@ -159,13 +159,13 @@ class ConfigScene(_BaseScene):
         self.manager.window.remove_handlers(self.trigger_slider)
 
     def _stick_slider_handler(self, value):
-        self.stick_label.text = f"Stick Deadzone: {value}"
+        self.stick_label.text = f"Stick Deadzone: {round(value, 2)}"
         scaled_value = round(value / 100, 2)
         self.manager.stick_deadzone = scaled_value
         config.set('deadzones', 'stick', str(scaled_value))
 
     def _trigger_slider_handler(self, value):
-        self.trigger_label.text = f"Trigger Deadzone: {value}"
+        self.trigger_label.text = f"Trigger Deadzone: {round(value, 2)}"
         scaled_value = round(value / 100, 2)
         self.manager.trigger_deadzone = scaled_value
         config.set('deadzones', 'trigger', str(scaled_value))
@@ -233,7 +233,7 @@ class MainScene(_BaseScene):
             if abs(yvalue) > self.manager.stick_deadzone:
                 center_y += (yvalue * 50)
                 assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
-            self.stick_spr.position = center_x, center_y
+            self.stick_spr.position = center_x, center_y, 0
 
     def on_dpad_motion(self, controller, dpleft, dpright, dpup, dpdown):
         assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
@@ -246,7 +246,7 @@ class MainScene(_BaseScene):
             center_x -= 50
         elif dpright:
             center_x += 50
-        self.stick_spr.position = center_x, center_y
+        self.stick_spr.position = center_x, center_y, 0
 
     def on_trigger_motion(self, controller, trigger, value):
         assert _debug_print(f"Pulled Trigger: {trigger}")
@@ -279,20 +279,46 @@ class SceneManager:
         self.window = window_instance
         self.window.push_handlers(self)
 
-        controllers = pyglet.input.get_controllers()
-        if not controllers:
-            print("No controllers found")
-            exit()
+        self.fightstick = None
 
-        self.fightstick = controllers[0]
-        self.fightstick.open()
-
+        # Set up Scene instances:
         self._scenes = {}
         self._current_scene = None
+        self.add_scene('main', MainScene())
+        self.add_scene('retry', RetryScene())
+        self.add_scene('config', ConfigScene())
+
+        # Instantiation a ControllerManager to handle hot-plugging:
+        self.controller_manager = pyglet.input.ControllerManager()
+        self.controller_manager.on_connect = self.on_controller_connect
+        self.controller_manager.on_disconnect = self.on_controller_disconnect
+
+        # Set Scene depending on if there is a Controller:
+        controllers = self.controller_manager.get_controllers()
+        if controllers:
+            self.on_controller_connect(controllers[0])
+            self.set_scene('main')
+        else:
+            self.set_scene('retry')
 
         # Global state for all Scenes:
         self.stick_deadzone = float(config.get('deadzones', 'stick', fallback='0.2'))
         self.trigger_deadzone = float(config.get('deadzones', 'trigger', fallback='0.8'))
+
+    def on_controller_connect(self, controller):
+        if not self.fightstick:
+            controller.open()
+            self.fightstick = controller
+            self.fightstick.push_handlers(self._current_scene)
+            self.set_scene('main')
+        else:
+            print(f"A Controller is already connected: {self.fightstick}")
+
+    def on_controller_disconnect(self, controller):
+        if self.fightstick == controller:
+            self.fightstick.remove_handlers(self._current_scene)
+            self.fightstick = None
+            self.set_scene('retry')
 
     def add_scene(self, name, instance):
         instance.manager = self
@@ -301,12 +327,14 @@ class SceneManager:
     def set_scene(self, name):
         if self._current_scene:
             self.window.remove_handlers(self._current_scene)
-            self.fightstick.remove_handlers(self._current_scene)
             self._current_scene.deactivate()
+            if self.fightstick:
+                self.fightstick.remove_handlers(self._current_scene)
 
         new_scene = self._scenes[name]
         self.window.push_handlers(new_scene)
-        self.fightstick.push_handlers(new_scene)
+        if self.fightstick:
+            self.fightstick.push_handlers(new_scene)
 
         self._current_scene = new_scene
         self._current_scene.activate()
@@ -339,11 +367,6 @@ if __name__ == "__main__":
     load_configuration()
 
     scene_manager = SceneManager(window_instance=window)
-    scene_manager.add_scene('main', MainScene())
-    scene_manager.add_scene('retry', RetryScene())
-    scene_manager.add_scene('config', ConfigScene())
-
-    scene_manager.set_scene('main')
 
     pyglet.clock.schedule_interval(scene_manager.enforce_aspect_ratio, 0.3)
     pyglet.app.run()
