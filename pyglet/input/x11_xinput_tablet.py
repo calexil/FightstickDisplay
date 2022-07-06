@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -93,7 +93,7 @@ class XInputTabletCanvas(DeviceResponder, TabletCanvas):
         x = e.x
         y = self.window.height - e.y
         pressure = e.axis_data[2] / float(cursor.max_pressure)
-        self.dispatch_event('on_motion', cursor, x, y, pressure, 0.0, 0.0)
+        self.dispatch_event('on_motion', cursor, x, y, pressure, 0.0, 0.0, 0.0)
 
     def _proximity_in(self, e):
         cursor = self._cursor_map.get(e.deviceid)

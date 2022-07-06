@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -42,16 +42,19 @@ import tempfile
 
 from threading import Event, Thread
 
-from ..exceptions import MediaDecodeException
+from pyglet.util import DecodeException
 from .base import StreamingSource, AudioData, AudioFormat, StaticSource
 from . import MediaEncoder, MediaDecoder
 
-import gi
-gi.require_version('Gst', '1.0')
-from gi.repository import Gst, GLib
+try:
+    import gi
+    gi.require_version('Gst', '1.0')
+    from gi.repository import Gst, GLib
+except (ValueError, ImportError) as e:
+    raise ImportError(e)
 
 
-class GStreamerDecodeException(MediaDecodeException):
+class GStreamerDecodeException(DecodeException):
     pass
 
 
@@ -278,7 +281,7 @@ class GStreamerDecoder(MediaDecoder):
     def get_file_extensions(self):
         return '.mp3', '.flac', '.ogg', '.m4a'
 
-    def decode(self, file, filename, streaming=True):
+    def decode(self, filename, file, streaming=True):
 
         if not any(filename.endswith(ext) for ext in self.get_file_extensions()):
             # Refuse to decode anything not specifically listed in the supported

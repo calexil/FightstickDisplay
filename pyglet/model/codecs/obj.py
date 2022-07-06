@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import os
 import pyglet
 
 from pyglet.gl import GL_TRIANGLES
+from pyglet.util import asstr
 
 from .. import Model, Material, MaterialGroup, TexturedMaterialGroup
 from . import ModelDecodeException, ModelDecoder
@@ -84,7 +85,7 @@ def load_material_library(filename):
             name = values[1]
 
         elif name is None:
-            raise ModelDecodeException('Expected "newmtl" in '.format(filename))
+            raise ModelDecodeException(f'Expected "newmtl" in {filename}')
 
         try:
             if values[0] == 'Kd':
@@ -96,7 +97,8 @@ def load_material_library(filename):
             elif values[0] == 'Ke':
                 emission = list(map(float, values[1:]))
             elif values[0] == 'Ns':
-                shininess = float(values[1])
+                shininess = float(values[1])            # Blender exports 1~1000
+                shininess = (shininess * 128) / 1000    # Normalize to 1~128 for OpenGL
             elif values[0] == 'd':
                 opacity = float(values[1])
             elif values[0] == 'map_Kd':
@@ -121,17 +123,14 @@ def parse_obj_file(filename, file=None):
 
     location = os.path.dirname(filename)
 
-    if file is None:
-        with open(filename, 'r') as f:
-            file_contents = f.read()
-    else:
-        file_contents = file.read()
-
-    if hasattr(file_contents, 'decode'):
-        try:
-            file_contents = file_contents.decode()
-        except UnicodeDecodeError as e:
-            raise ModelDecodeException("Unable to decode obj: {}".format(e))
+    try:
+        if file is None:
+            with open(filename, 'r') as f:
+                file_contents = f.read()
+        else:
+            file_contents = asstr(file.read())
+    except (UnicodeDecodeError, OSError):
+        raise ModelDecodeException
 
     material = None
     mesh = None
@@ -231,7 +230,7 @@ class OBJModelDecoder(ModelDecoder):
     def get_file_extensions(self):
         return ['.obj']
 
-    def decode(self, file, filename, batch):
+    def decode(self, filename, file, batch, group=None):
 
         if not batch:
             batch = pyglet.graphics.Batch()
@@ -245,22 +244,22 @@ class OBJModelDecoder(ModelDecoder):
             material = mesh.material
             count = len(mesh.vertices) // 3
             if material.texture_name:
-                texture = pyglet.resource.texture(material.texture_name)
-                group = TexturedMaterialGroup(material, texture)
                 program = pyglet.model.get_default_textured_shader()
-                vertex_lists.append(program.vertex_list(count, GL_TRIANGLES, batch, group,
+                texture = pyglet.resource.texture(material.texture_name)
+                matgroup = TexturedMaterialGroup(material, program, texture, parent=group)
+                vertex_lists.append(program.vertex_list(count, GL_TRIANGLES, batch, matgroup,
                                                         vertices=('f', mesh.vertices),
                                                         normals=('f', mesh.normals),
                                                         tex_coords=('f', mesh.tex_coords),
                                                         colors=('f', material.diffuse * count)))
             else:
-                group = MaterialGroup(material)
                 program = pyglet.model.get_default_shader()
-                vertex_lists.append(program.vertex_list(count, GL_TRIANGLES, batch, group,
+                matgroup = MaterialGroup(material, program, parent=group)
+                vertex_lists.append(program.vertex_list(count, GL_TRIANGLES, batch, matgroup,
                                                         vertices=('f', mesh.vertices),
                                                         normals=('f', mesh.normals),
                                                         colors=('f', material.diffuse * count)))
-            groups.append(group)
+            groups.append(matgroup)
 
         return Model(vertex_lists=vertex_lists, groups=groups, batch=batch)
 

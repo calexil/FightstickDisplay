@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -455,6 +455,14 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
             gl_Position = window.projection * window.view * position;
         }
     """
+    _default_fragment_source = """#version 150 core
+        out vec4 color;
+        
+        void main()
+        {
+            color = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    """
 
     def __init__(self,
                  width=None,
@@ -611,7 +619,10 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
             self.activate()
 
     def _create_projection(self):
-        self._default_program = shader.ShaderProgram(shader.Shader(self._default_vertex_source, 'vertex'))
+        self._default_program = shader.ShaderProgram(
+            shader.Shader(self._default_vertex_source, 'vertex'),
+            shader.Shader(self._default_fragment_source, 'fragment'))
+
         self.ubo = self._default_program.uniform_blocks['WindowBlock'].create_ubo()
 
         self._viewport = 0, 0, *self.get_framebuffer_size()
@@ -931,6 +942,27 @@ class BaseWindow(with_metaclass(_WindowMetaclass, EventDispatcher)):
     @height.setter
     def height(self, new_height):
         self.set_size(self.width, new_height)
+
+    @property
+    def size(self):
+        """The size of the window. Read-Write.
+
+        :type: tuple
+        """
+        return self.get_size()
+
+    @size.setter
+    def size(self, new_size):
+        self.set_size(*new_size)
+
+    @property
+    def aspect_ratio(self):
+        """The aspect ratio of the window. Read-Only.
+
+        :type: float
+        """
+        w, h = self.get_size()
+        return w / h
 
     @property
     def projection(self):
@@ -1819,7 +1851,7 @@ class FPSDisplay:
     #: :type: float
     update_period = 0.25
 
-    def __init__(self, window, color=(127, 127, 127, 127), samples=60):
+    def __init__(self, window, color=(127, 127, 127, 127), samples=240):
         from time import time
         from statistics import mean
         from collections import deque
@@ -1847,19 +1879,7 @@ class FPSDisplay:
 
         if self._elapsed >= self.update_period:
             self._elapsed = 0
-            self._set_fps_text(1 / self._mean(self._delta_times))
-
-    def _set_fps_text(self, fps):
-        """Set the label text for the given FPS estimation.
-
-        Called by `update` every `update_period` seconds.
-
-        :Parameters:
-            `fps` : float
-                Estimated framerate of the window.
-
-        """
-        self.label.text = '%.2f' % fps
+            self.label.text = f"{1 / self._mean(self._delta_times):.2f}"
 
     def draw(self):
         """Draw the label."""

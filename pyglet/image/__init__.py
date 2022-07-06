@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -141,8 +141,9 @@ from pyglet.gl import gl_info
 from pyglet.util import asbytes
 
 from .codecs import ImageEncodeException, ImageDecodeException
-from .codecs import add_default_image_codecs, add_decoders, add_encoders
-from .codecs import get_animation_decoders, get_decoders, get_encoders
+from .codecs import registry as _codec_registry
+from .codecs import add_default_codecs as _add_default_codecs
+
 from .animation import Animation, AnimationFrame
 from .buffer import *
 from . import atlas
@@ -172,36 +173,10 @@ def load(filename, file=None, decoder=None):
 
     :rtype: AbstractImage
     """
-
-    if not file:
-        file = open(filename, 'rb')
-        opened_file = file
+    if decoder:
+        return decoder.decode(filename, file)
     else:
-        opened_file = None
-
-    if not hasattr(file, 'seek'):
-        file = BytesIO(file.read())
-
-    try:
-        if decoder:
-            return decoder.decode(file, filename)
-        else:
-            first_exception = None
-            for decoder in get_decoders(filename):
-                try:
-                    image = decoder.decode(file, filename)
-                    return image
-                except ImageDecodeException as e:
-                    if not first_exception or first_exception.exception_priority < e.exception_priority:
-                        first_exception = e
-                    file.seek(0)
-
-            if not first_exception:
-                raise ImageDecodeException('No image decoders are available')
-            raise first_exception
-    finally:
-        if opened_file:
-            opened_file.close()
+        return _codec_registry.decode(filename, file)
 
 
 def load_animation(filename, file=None, decoder=None):
@@ -222,26 +197,10 @@ def load_animation(filename, file=None, decoder=None):
 
     :rtype: Animation
     """
-    if not file:
-        file = open(filename, 'rb')
-    if not hasattr(file, 'seek'):
-        file = BytesIO(file.read())
-
     if decoder:
-        return decoder.decode_animation(file, filename)
+        return decoder.decode_animation(filename, file)
     else:
-        first_exception = None
-        for decoder in get_animation_decoders(filename):
-            try:
-                image = decoder.decode_animation(file, filename)
-                return image
-            except ImageDecodeException as e:
-                first_exception = first_exception or e
-                file.seek(0)
-
-        if not first_exception:
-            raise ImageDecodeException('No image decoders are available')
-        raise first_exception
+        return _codec_registry.decode_animation(filename, file)
 
 
 def create(width, height, pattern=None):
@@ -452,13 +411,12 @@ class AbstractImage:
             file = open(filename, 'wb')
 
         if encoder:
-            encoder.encode(self, file, filename)
+            encoder.encode(self, filename, file)
         else:
             first_exception = None
-            for encoder in get_encoders(filename):
+            for encoder in _codec_registry.get_encoders(filename):
                 try:
-                    encoder.encode(self, file, filename)
-                    return
+                    return encoder.encode(self, filename, file)
                 except ImageEncodeException as e:
                     first_exception = first_exception or e
                     file.seek(0)
@@ -1291,7 +1249,7 @@ class Texture(AbstractImage):
             pass
 
     @classmethod
-    def create(cls, width, height, target=GL_TEXTURE_2D, internalformat=GL_RGBA, min_filter=None, mag_filter=None):
+    def create(cls, width, height, target=GL_TEXTURE_2D, internalformat=GL_RGBA8, min_filter=None, mag_filter=None, fmt=GL_RGBA):
         """Create a Texture
 
         Create a Texture with the specified dimentions, target and format.
@@ -1306,11 +1264,16 @@ class Texture(AbstractImage):
                 GL constant giving texture target to use, typically ``GL_TEXTURE_2D``.
             `internalformat` : int
                 GL constant giving internal format of texture; for example, ``GL_RGBA``.
+                The internal format decides how the texture data will be stored internally.
                 If ``None``, the texture will be created but not initialized.
             `min_filter` : int
                 The minifaction filter used for this texture, commonly ``GL_LINEAR`` or ``GL_NEAREST``
             `mag_filter` : int
                 The magnification filter used for this texture, commonly ``GL_LINEAR`` or ``GL_NEAREST``
+            `fmt` : int
+                GL constant giving format of texture; for example, ``GL_RGBA``.
+                The format specifies what format the pixel data we're expecting to write
+                to the texture and should ideally be the same as for internal format.
 
         :rtype: :py:class:`~pyglet.image.Texture`
         """
@@ -1329,7 +1292,8 @@ class Texture(AbstractImage):
                          internalformat,
                          width, height,
                          0,
-                         GL_RGBA, GL_UNSIGNED_BYTE,
+                         fmt,
+                         GL_UNSIGNED_BYTE,
                          blank)
             glFlush()
 
@@ -1362,9 +1326,22 @@ class Texture(AbstractImage):
         fmt = 'RGBA'
         gl_format = GL_RGBA
 
-        glPixelStorei(GL_PACK_ALIGNMENT, 1)
         buf = (GLubyte * (self.width * self.height * self.images * len(fmt)))()
-        glGetTexImage(self.target, self.level, gl_format, GL_UNSIGNED_BYTE, buf)
+
+        # TODO: Clean up this temporary hack
+        if pyglet.gl.current_context.get_info().get_opengl_api() == "gles":
+            fbo = c_uint()
+            glGenFramebuffers(1, fbo)
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo.value)
+            glPixelStorei(GL_PACK_ALIGNMENT, 1)
+            glCheckFramebufferStatus(GL_FRAMEBUFFER)
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.id, self.level)
+            glReadPixels(0, 0, self.width, self.height, gl_format, GL_UNSIGNED_BYTE, buf) 
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            glDeleteFramebuffers(1, fbo)
+        else:
+            glPixelStorei(GL_PACK_ALIGNMENT, 1)
+            glGetTexImage(self.target, self.level, gl_format, GL_UNSIGNED_BYTE, buf)
 
         data = ImageData(self.width, self.height, fmt, buf)
         if self.images > 1:
@@ -1992,7 +1969,7 @@ class TextureGrid(TextureRegion, UniformTextureSequence):
 
 
 # Initialise default codecs
-add_default_image_codecs()
+_add_default_codecs()
 
 # Default Framebuffer classes:
 ###############################################################

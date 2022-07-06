@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,10 @@ def dump_pyglet():
 
 def dump_window():
     """Dump display, window, screen and default config info."""
+    from pyglet.gl import gl_info
+    if not gl_info.have_version(3):
+        print(f"Insufficient OpenGL version: {gl_info.get_version_string()}")
+        return
     import pyglet.window
     display = pyglet.canvas.get_display()
     print('display:', repr(display))

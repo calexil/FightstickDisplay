@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,7 @@
 
 import io
 
-import pyglet
-
-from pyglet.media.exceptions import MediaException, CannotSeekException, MediaEncodeException
+from pyglet.media.exceptions import MediaException, CannotSeekException
 
 
 class AudioFormat:
@@ -348,27 +346,11 @@ class Source:
                 attempted is raised.
 
         """
-        if not file:
-            file = open(filename, 'wb')
-
         if encoder:
-            encoder.encode(self, file, filename)
+            return encoder.enccode(self, filename, file)
         else:
-            first_exception = None
-            for encoder in pyglet.media.get_encoders(filename):
-
-                try:
-                    encoder.encode(self, file, filename)
-                    return
-                except MediaEncodeException as e:
-                    first_exception = first_exception or e
-                    file.seek(0)
-
-            if not first_exception:
-                raise MediaEncodeException(f"No Encoders are available for this extension: '{filename}'")
-            raise first_exception
-
-        file.close()
+            import pyglet.media.codecs
+            return pyglet.media.codecs.registry.encode(self, filename, file)
 
     # Internal methods that Player calls on the source:
 

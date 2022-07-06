@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ from pyglet.util import debug_print
 _debug_com = debug_print('debug_com')
 
 if sys.platform != 'win32':
-    raise ImportError('pyglet.com requires a Windows build of Python')
+    raise ImportError('pyglet.libs.win32.com requires a Windows build of Python')
 
 
 class GUID(ctypes.Structure):

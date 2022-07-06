@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -202,7 +202,7 @@ def draw(size, mode, **data):
         attribute = vertexattribute.VertexAttribute(name, location, count, gl_type, normalize)
         assert size == len(array) // attribute.count, 'Data for %s is incorrect length' % fmt
 
-        buffer = BufferObject(size * attribute.stride, GL_ARRAY_BUFFER)
+        buffer = BufferObject(size * attribute.stride)
         attribute.set_region(buffer, 0, size, array)
         attribute.enable()
         attribute.set_pointer(buffer.ptr)
@@ -252,7 +252,7 @@ def draw_indexed(size, mode, indices, **data):
         attribute = vertexattribute.VertexAttribute(name, location, count, gl_type, normalize)
         assert size == len(array) // attribute.count, 'Data for %s is incorrect length' % fmt
 
-        buffer = BufferObject(size * attribute.stride, GL_ARRAY_BUFFER)
+        buffer = BufferObject(size * attribute.stride)
         attribute.set_region(buffer, 0, size, array)
         attribute.enable()
         attribute.set_pointer(buffer.ptr)
@@ -271,8 +271,9 @@ def draw_indexed(size, mode, indices, **data):
     # With GL 3.3 vertex arrays indices needs to be in a buffer
     # bound to the ELEMENT_ARRAY slot
     index_array = (index_c_type * len(indices))(*indices)
-    index_buffer = BufferObject(ctypes.sizeof(index_array), GL_ELEMENT_ARRAY_BUFFER)
+    index_buffer = BufferObject(ctypes.sizeof(index_array))
     index_buffer.set_data(index_array)
+    index_buffer.bind_to_index_buffer()
 
     glDrawElements(mode, len(indices), index_type, 0)
     glFlush()
@@ -385,7 +386,7 @@ class Batch:
 
     def get_domain(self, indexed, mode, group, program, attributes):
         if group is None:
-            group = get_default_group()
+            group = ShaderGroup(program=program)
 
         # Batch group
         if group not in self.group_map:
@@ -647,6 +648,8 @@ class Group:
             self.parent.unset_state_recursive()
 
 
+# Example Groups.
+
 class ShaderGroup(Group):
     def __init__(self, program, order=0, parent=None):
         super().__init__(order, parent)
@@ -674,8 +677,6 @@ class TextureGroup(Group):
     Texture groups are equal if their textures' targets and names are equal.
     """
 
-    # Don't use this, create your own group classes that are more specific.
-    # This is just an example.
     def __init__(self, texture, order=0, parent=None):
         """Create a texture group.
 
@@ -687,15 +688,12 @@ class TextureGroup(Group):
             `parent` : `~pyglet.graphics.Group`
                 Parent group.
         """
-        super(TextureGroup, self).__init__(order, parent)
+        super().__init__(order, parent)
         self.texture = texture
 
     def set_state(self):
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(self.texture.target, self.texture.id)
-
-    def unset_state(self):
-        glBindTexture(self.texture.target, 0)
 
     def __hash__(self):
         return hash((self.texture.target, self.texture.id, self.order, self.parent))
@@ -711,7 +709,7 @@ class TextureGroup(Group):
         return '%s(id=%d)' % (self.__class__.__name__, self.texture.id)
 
 
-#: The default Shaders
+# The default Shader source:
 
 _vertex_source = """#version 330 core
     in vec3 position;
@@ -728,7 +726,7 @@ _vertex_source = """#version 330 core
 
     void main()
     {
-        gl_Position = window.projection * window.view * vec4(position, 1);
+        gl_Position = window.projection * window.view * vec4(position, 1.0);
 
         vertex_colors = colors;
         texture_coords = tex_coords;

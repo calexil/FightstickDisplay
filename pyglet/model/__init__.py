@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -81,8 +81,6 @@ instance when loading the Model::
 
 .. versionadded:: 1.4
 """
-from math import radians
-from io import BytesIO
 
 import pyglet
 
@@ -92,12 +90,11 @@ from pyglet.gl import current_context
 from pyglet.math import Mat4, Vec3
 from pyglet.graphics import shader
 
-from .codecs import ModelDecodeException
-from .codecs import add_encoders, add_decoders, add_default_model_codecs
-from .codecs import get_encoders, get_decoders
+from .codecs import registry as _codec_registry
+from .codecs import add_default_codecs as _add_default_codecs
 
 
-def load(filename, file=None, decoder=None, batch=None):
+def load(filename, file=None, decoder=None, batch=None, group=None):
     """Load a 3D model from a file.
 
     :Parameters:
@@ -112,36 +109,15 @@ def load(filename, file=None, decoder=None, batch=None):
             registered for the file extension, or if decoding fails.
         `batch` : Batch or None
             An optional Batch instance to add this model to.
+        `group` : Group or None
+            An optional top level Group.
 
     :rtype: :py:mod:`~pyglet.model.Model`
     """
-
-    if not file:
-        file = open(filename, 'rb')
-
-    if not hasattr(file, 'seek'):
-        file = BytesIO(file.read())
-
-    try:
-        if decoder:
-            return decoder.decode(file, filename, batch)
-        else:
-            first_exception = None
-            for decoder in get_decoders(filename):
-                try:
-                    model = decoder.decode(file, filename, batch)
-                    return model
-                except ModelDecodeException as e:
-                    if (not first_exception or
-                            first_exception.exception_priority < e.exception_priority):
-                        first_exception = e
-                    file.seek(0)
-
-            if not first_exception:
-                raise ModelDecodeException('No decoders are available for this model format.')
-            raise first_exception
-    finally:
-        file.close()
+    if decoder:
+        return decoder.decode(filename, file, batch=batch, group=group)
+    else:
+        return _codec_registry.decode(filename, file, batch=batch, group=group)
 
 
 def get_default_shader():
@@ -190,8 +166,7 @@ class Model:
         self.vertex_lists = vertex_lists
         self.groups = groups
         self._batch = batch
-        self._rotation = Vec3()
-        self._translation = Vec3()
+        self._modelview_matrix = Mat4()
 
     @property
     def batch(self):
@@ -220,24 +195,14 @@ class Model:
         self._batch = batch
 
     @property
-    def rotation(self):
-        return self._rotation
+    def matrix(self):
+        return self._modelview_matrix
 
-    @rotation.setter
-    def rotation(self, values):
-        self._rotation = values
+    @matrix.setter
+    def matrix(self, matrix):
+        self._modelview_matrix = matrix
         for group in self.groups:
-            group.rotation = values
-
-    @property
-    def translation(self):
-        return self._translation
-
-    @translation.setter
-    def translation(self, values):
-        self._translation = values
-        for group in self.groups:
-            group.translation = values
+            group.matrix = matrix
 
     def draw(self):
         """Draw the model.
@@ -271,26 +236,15 @@ class Material:
                 self.texture_name == other.texture_name)
 
 
-class BaseMaterialGroup(graphics.ShaderGroup):
+class BaseMaterialGroup(graphics.Group):
     default_vert_src = None
     default_frag_src = None
+    matrix = Mat4()
 
     def __init__(self, material, program, order=0, parent=None):
-        super().__init__(program, order, parent)
-
+        super().__init__(order, parent)
         self.material = material
-        self.rotation = Vec3()
-        self.translation = Vec3()
-
-    def set_modelview_matrix(self):
-        # NOTE: Matrix operations can be optimized later with transform feedback
-        view = Mat4()
-        view = view.rotate(radians(self.rotation[2]), Vec3(0, 0, 1))
-        view = view.rotate(radians(self.rotation[1]), Vec3(0, 1, 0))
-        view = view.rotate(radians(self.rotation[0]), Vec3(1, 0, 0))
-        view = view.translate(self.translation)
-
-        self.program['mview'] = view
+        self.program = program
 
 
 class TexturedMaterialGroup(BaseMaterialGroup):
@@ -311,13 +265,13 @@ class TexturedMaterialGroup(BaseMaterialGroup):
         mat4 view;
     } window;
 
-    uniform mat4 mview;
+    uniform mat4 model;
 
     void main()
     {
-        vec4 pos = mview * vec4(vertices, 1.0);
+        vec4 pos = window.view * model * vec4(vertices, 1.0);
         gl_Position = window.projection * pos;
-        mat3 normal_matrix = transpose(inverse(mat3(mview)));
+        mat3 normal_matrix = transpose(inverse(mat3(model)));
 
         vertex_position = pos.xyz;
         vertex_colors = colors;
@@ -341,18 +295,15 @@ class TexturedMaterialGroup(BaseMaterialGroup):
     }
     """
 
-    def __init__(self, material, texture):
-        super().__init__(material, get_default_textured_shader())
+    def __init__(self, material, program, texture, order=0, parent=None):
+        super().__init__(material, program, order, parent)
         self.texture = texture
 
     def set_state(self):
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(self.texture.target, self.texture.id)
         self.program.use()
-        self.set_modelview_matrix()
-
-    def unset_state(self):
-        gl.glBindTexture(self.texture.target, 0)
+        self.program['model'] = self.matrix
 
     def __hash__(self):
         return hash((self.texture.target, self.texture.id, self.program, self.order, self.parent))
@@ -383,13 +334,13 @@ class MaterialGroup(BaseMaterialGroup):
         mat4 view;
     } window;
 
-    uniform mat4 mview;
+    uniform mat4 model;
 
     void main()
     {
-        vec4 pos = mview * vec4(vertices, 1.0);
+        vec4 pos = window.view * model * vec4(vertices, 1.0);
         gl_Position = window.projection * pos;
-        mat3 normal_matrix = transpose(inverse(mat3(mview)));
+        mat3 normal_matrix = transpose(inverse(mat3(model)));
 
         vertex_position = pos.xyz;
         vertex_colors = colors;
@@ -409,12 +360,9 @@ class MaterialGroup(BaseMaterialGroup):
     }
     """
 
-    def __init__(self, material):
-        super().__init__(material, get_default_shader())
-
     def set_state(self):
         self.program.use()
-        self.set_modelview_matrix()
+        self.program['model'] = self.matrix
 
 
-add_default_model_codecs()
+_add_default_codecs()

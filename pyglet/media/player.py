@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -427,6 +427,9 @@ class Player(pyglet.event.EventDispatcher):
         """
         return self.texture
 
+    def refill_buffer(self):
+        raise NotImplemented
+
     def seek_next_frame(self):
         """Step forwards one video frame in the current source."""
         time = self.source.get_next_video_timestamp()
@@ -634,7 +637,7 @@ class Player(pyglet.event.EventDispatcher):
     def on_driver_reset(self):
         """The audio driver has been reset, by default this will kill the current audio player and create a new one,
         and requeue the buffers. Any buffers that may have been queued in a player will be resubmitted.  It will
-        continue from from the last buffers submitted, not played and may cause sync issues if using video.
+        continue from the last buffers submitted, not played and may cause sync issues if using video.
 
         :event:
         """

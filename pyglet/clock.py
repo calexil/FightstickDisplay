@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,19 +38,19 @@
 Measuring time
 ==============
 
-The `tick` and `get_fps` functions can be used in conjunction to fulfil most
+The `tick` and `get_frequency` functions can be used in conjunction to fulfil most
 games' basic requirements::
 
     from pyglet import clock
     while True:
         dt = clock.tick()
         # ... update and render ...
-        print(f"FPS is {clock.get_fps()}")
+        print(f"FPS is {clock.get_frequency()}")
 
 The ``dt`` value returned gives the number of seconds (as a float) since the
 last "tick".
 
-The `get_fps` function averages the framerate over a sliding window of
+The `get_frequency` function averages the framerate over a sliding window of
 approximately 1 second.  (You can calculate the instantaneous framerate by
 taking the reciprocal of ``dt``).
 
@@ -176,7 +176,7 @@ class Clock:
         self.next_ts = self.time()
         self.last_ts = None
 
-        # Used by self.get_fps to show update frequency
+        # Used by self.get_frequency to show update frequency
         self.times = _deque()
         self.cumulative_time = 0
         self.window_size = 60
@@ -369,7 +369,7 @@ class Clock:
 
         return None
 
-    def get_fps(self):
+    def get_frequency(self):
         """Get the average clock update frequency of recent history.
 
         The result is the average of a sliding window of the last "n" updates,
@@ -638,7 +638,7 @@ def get_sleep_time(sleep_idle):
     return _default.get_sleep_time(sleep_idle)
 
 
-def get_fps():
+def get_frequency():
     """Get the average clock update frequency.
 
     The result is the sliding average of the last "n" updates,
@@ -650,7 +650,7 @@ def get_fps():
     :rtype: float
     :return: The measured updates per second.
     """
-    return _default.get_fps()
+    return _default.get_frequency()
 
 
 def schedule(func, *args, **kwargs):

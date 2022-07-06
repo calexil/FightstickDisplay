@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ Do not modify this file.
 
 from ctypes import *
 from pyglet.gl.lib import link_GLX as _link_function
+from pyglet.gl.lib import c_void
 
 
 # BEGIN GENERATED CONTENT (do not edit below this line)

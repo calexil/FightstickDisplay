@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,12 @@
 import warnings
 from ctypes import *
 
-from .base import Config, CanvasConfig, Context
+from pyglet import gl
 from pyglet.canvas.headless import HeadlessCanvas
 from pyglet.libs.egl import egl
 from pyglet.libs.egl.egl import *
-from pyglet import gl
 
+from .base import CanvasConfig, Config, Context
 
 _fake_gl_attributes = {
     'double_buffer': 0,
@@ -69,7 +69,10 @@ class HeadlessConfig(Config):
             if attr and value is not None:
                 attrs.extend([attr, int(value)])
         attrs.extend([EGL_SURFACE_TYPE, EGL_PBUFFER_BIT])
-        attrs.extend([EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT])
+        if self.opengl_api == "gl":
+            attrs.extend([EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT])
+        elif self.opengl_api == "gles":
+            attrs.extend([EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT])
         attrs.extend([EGL_NONE])
         attrs_list = (egl.EGLint * len(attrs))(*attrs)
 
@@ -139,7 +142,10 @@ class HeadlessContext(Context):
         else:
             share_context = None
 
-        egl.eglBindAPI(egl.EGL_OPENGL_API)
+        if self.config.opengl_api == "gl":
+            egl.eglBindAPI(egl.EGL_OPENGL_API)
+        elif self.config.opengl_api == "gles":
+            egl.eglBindAPI(egl.EGL_OPENGL_ES_API)
         return egl.eglCreateContext(self.config.canvas.display._display_connection,
                                     self.config._egl_config, share_context,
                                     self.config._context_attrib_array)

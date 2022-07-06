@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import sys
 from typing import TYPE_CHECKING
 
 #: The release version
-version = '2.0.dev13'
+version = '2.0.dev20'
 __version__ = version
 
 if sys.version_info < (3, 6):
@@ -53,7 +53,6 @@ if sys.version_info < (3, 6):
 if 'sphinx' in sys.modules:
     setattr(sys, 'is_pyglet_doc_run', True)
 _is_pyglet_doc_run = hasattr(sys, "is_pyglet_doc_run") and sys.is_pyglet_doc_run
-
 
 # pyglet platform treats *BSD systems as Linux
 compat_platform = sys.platform
@@ -150,6 +149,7 @@ options = {
     'debug_trace_depth': 1,
     'debug_trace_flush': True,
     'debug_win32': False,
+    'debug_input': False,
     'debug_x11': False,
     'shadow_window': True,
     'vsync': None,
@@ -159,6 +159,8 @@ options = {
     'win32_gdi_font': False,
     'headless': False,
     'headless_device': 0,
+    'win32_disable_shaping': False,
+    'xinput_controllers': True,
 }
 
 _option_types = {
@@ -177,6 +179,7 @@ _option_types = {
     'debug_trace_depth': int,
     'debug_trace_flush': bool,
     'debug_win32': bool,
+    'debug_input': bool,
     'debug_x11': bool,
     'shadow_window': bool,
     'vsync': bool,
@@ -185,28 +188,27 @@ _option_types = {
     'search_local_libs': bool,
     'win32_gdi_font': bool,
     'headless': bool,
-    'headless_device': int
+    'headless_device': int,
+    'win32_disable_shaping': bool,
+    'xinput_controllers': bool
 }
 
 
-def _read_environment():
+for key in options:
     """Read defaults for options from environment"""
-    for key in options:
-        assert key in _option_types, f"Option '{key}' must have a type set in _option_types."
-        env = 'PYGLET_%s' % key.upper()
-        try:
-            value = os.environ[env]
-            if _option_types[key] is tuple:
-                options[key] = value.split(',')
-            elif _option_types[key] is bool:
-                options[key] = value in ('true', 'TRUE', 'True', '1')
-            elif _option_types[key] is int:
-                options[key] = int(value)
-        except KeyError:
-            pass
+    assert key in _option_types, f"Option '{key}' must have a type set in _option_types."
+    env = 'PYGLET_%s' % key.upper()
+    try:
+        value = os.environ[env]
+        if _option_types[key] is tuple:
+            options[key] = value.split(',')
+        elif _option_types[key] is bool:
+            options[key] = value in ('true', 'TRUE', 'True', '1')
+        elif _option_types[key] is int:
+            options[key] = int(value)
+    except KeyError:
+        pass
 
-
-_read_environment()
 
 if compat_platform == 'cygwin':
     # This hack pretends that the posix-like ctypes provides windows
@@ -360,7 +362,6 @@ if TYPE_CHECKING:
     from . import app
     from . import canvas
     from . import clock
-    from . import com
     from . import event
     from . import font
     from . import gl
@@ -381,7 +382,6 @@ else:
     app = _ModuleProxy('app')
     canvas = _ModuleProxy('canvas')
     clock = _ModuleProxy('clock')
-    com = _ModuleProxy('com')
     event = _ModuleProxy('event')
     font = _ModuleProxy('font')
     gl = _ModuleProxy('gl')

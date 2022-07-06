@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -101,6 +101,9 @@ if _is_pyglet_doc_run:
         def __call__(self, *args, **kwargs):
             return LibraryMock()
 
+        def __rshift__(self, other):
+            return 0
+
 
 class LibraryLoader:
 
@@ -125,7 +128,7 @@ class LibraryLoader:
 
         if not names:
             raise ImportError("No library name specified")
-        
+
         platform_names = kwargs.get(self.platform, [])
         if isinstance(platform_names, str):
             platform_names = [platform_names]
@@ -142,7 +145,7 @@ class LibraryLoader:
             try:
                 lib = ctypes.cdll.LoadLibrary(name)
                 if _debug_lib:
-                    print(name)
+                    print(name, self.find_library(name))
                 if _debug_trace:
                     lib = _TraceLibrary(lib)
                 return lib
@@ -159,7 +162,8 @@ class LibraryLoader:
                     except OSError:
                         pass
                 elif self.platform == "win32" and o.winerror != 126:
-                    raise ImportError("Unexpected error loading library %s: %s" % (name, str(o)))
+                    if _debug_lib:
+                        print(f"Unexpected error loading library {name}: {str(o)}")
 
         raise ImportError('Library "%s" not found.' % names[0])
 
@@ -221,10 +225,10 @@ class MachOLibraryLoader(LibraryLoader):
             search_path.append(os.path.join(os.environ['CONDA_PREFIX'], 'lib', libname))
 
         # pyinstaller.py sets sys.frozen to True, and puts dylibs in
-        # Contents/MacOS, which path pyinstaller puts in sys._MEIPASS
-        if (hasattr(sys, 'frozen') and hasattr(sys, '_MEIPASS') and
-                sys.frozen is True and pyglet.compat_platform == 'darwin'):
-            search_path.append(os.path.join(sys._MEIPASS, libname))
+        # Contents/macOS, which path pyinstaller puts in sys._MEIPASS
+        if getattr(sys, 'frozen', False) and getattr(sys, '_MEIPASS', None):
+            meipass = getattr(sys, '_MEIPASS')
+            search_path.append(os.path.join(meipass, libname))
 
         # conda support
         if os.environ.get('CONDA_PREFIX', False):
@@ -312,7 +316,7 @@ class LinuxLibraryLoader(LibraryLoader):
 
         try:
             with open('/etc/ld.so.conf') as fid:
-                directories.extend([dir.strip() for dir in fid])
+                directories.extend([directory.strip() for directory in fid])
         except IOError:
             pass
 
@@ -350,4 +354,5 @@ elif pyglet.compat_platform.startswith('linux'):
     loader = LinuxLibraryLoader()
 else:
     loader = LibraryLoader()
+
 load_library = loader.load_library

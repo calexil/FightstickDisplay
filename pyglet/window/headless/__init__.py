@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
+# Copyright (c) 2008-2022 pyglet contributors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -55,9 +55,6 @@ ViewEventHandler = _ViewEventHandler
 class HeadlessWindow(BaseWindow):
     _egl_display_connection = None
     _egl_surface = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def _recreate(self, changes):
         pass
