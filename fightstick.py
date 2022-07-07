@@ -142,15 +142,17 @@ class ConfigScene(_BaseScene):
 
         self.stick_slider = pyglet.gui.Slider(100, 150, bar, knob, edge=0, batch=self.batch)
         self.stick_slider.set_handler('on_change', self._stick_slider_handler)
-        self.stick_label = pyglet.text.Label("Stick Deadzone: 0.0", x=300, y=300, batch=self.batch)
+        self.stick_label = pyglet.text.Label("", x=380, y=150, batch=self.batch)
 
         self.trigger_slider = pyglet.gui.Slider(100, 100, bar, knob, edge=0, batch=self.batch)
         self.trigger_slider.set_handler('on_change', self._trigger_slider_handler)
-        self.trigger_label = pyglet.text.Label("Trigger Deadzone: 0.0", x=300, y=200, batch=self.batch)
+        self.trigger_label = pyglet.text.Label("", x=380, y=100, batch=self.batch)
 
     def activate(self):
         self.stick_slider.value = self.manager.stick_deadzone * 100
         self.trigger_slider.value = self.manager.trigger_deadzone * 100
+        self.stick_label.text = f"Stick Deadzone: {self.manager.stick_deadzone * 100}"
+        self.trigger_label.text = f"Trigger Deadzone: {self.manager.trigger_deadzone * 100}"
         self.manager.window.push_handlers(self.stick_slider)
         self.manager.window.push_handlers(self.trigger_slider)
 
@@ -253,12 +255,12 @@ class MainScene(_BaseScene):
         if trigger == "lefttrigger":
             if value > self.manager.trigger_deadzone:
                 self.lt_spr.visible = True
-            elif value < -self.manager.trigger_deadzone:
+            elif value < self.manager.trigger_deadzone:
                 self.lt_spr.visible = False
         if trigger == "righttrigger":
             if value > self.manager.trigger_deadzone:
                 self.rt_spr.visible = True
-            elif value < -self.manager.trigger_deadzone:
+            elif value < self.manager.trigger_deadzone:
                 self.rt_spr.visible = False
 
 
