@@ -1,15 +1,15 @@
 # Fightstick Display  
 [![Build Status](https://github.com/calexil/FightstickDisplay/actions/workflows/python-app.yml/badge.svg)](https://github.com/calexil/FightstickDisplay/actions/workflows/python-app.yml)  [![CodeFactor](https://www.codefactor.io/repository/github/calexil/fightstickdisplay/badge)](https://www.codefactor.io/repository/github/calexil/fightstickdisplay)  [![Maintainability](https://api.codeclimate.com/v1/badges/237a2b5bbbfd21b0c613/maintainability)](https://codeclimate.com/github/calexil/FightstickDisplay/maintainability)  [![GitHub issues](https://img.shields.io/github/issues/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/issues)  [![GitHub stars](https://img.shields.io/github/stars/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/stargazers)  [![GitHub forks](https://img.shields.io/github/forks/calexil/FightstickDisplay.svg)](https://github.com/calexil/FightstickDisplay/network) 
 
-**A simple program written in python to display fightstick inputs.**
+**A simple program written in python to display fightstick inputs.** 
 # Screenshots
 <img src="/theme/fightstick.gif" width="320" height="195"><img src="/theme/fightstickHB.gif" width="320" height="195">
 
 
-# Prerequisites
+# Prerequisites :heavy_check_mark:
 * python(3.0+)
 
-# Installation & Usage
+# Installation & Usage 💾
 * Clone the git  
 `git clone https://github.com/calexil/FightstickDisplay.git`
 * If you desire, make a launcher with fightstick.sh or fightstick_hb.sh as the startup script.
@@ -21,13 +21,13 @@ at all, **[let us know by clicking here!](https://github.com/calexil/FightstickD
 * You can also use your own images for all items, and if you like different color buttons, just be sure to edit the image names to match in the main program
 * Enjoy
 
-# Current Version
+# Current Version 📰
 **Release Candidate 2.0** **[Watch it in action here](https://twitch.tv/calexil)**
 # Contributors:
 * [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)
 * [Scootadash](https://www.reddit.com/user/wonderful72pike) 
 
-# Donate
+# Donate :heavy_dollar_sign:
 This software is provided free of charge, but it certainly took time and effort to make, please consider
 * [Making a donation](https://calexil.com/#donate) to support the project, and my other works.
