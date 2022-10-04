@@ -23,7 +23,7 @@ at all, **[let us know by clicking here!](https://github.com/calexil/FightstickD
 
 # Current Version 📰
 **Release Candidate 2.0** **[Watch it in action here](https://twitch.tv/calexil)**
-# Contributors:
+# Contributors: :busts_in_silhouette:	
 * [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)
 * [Scootadash](https://www.reddit.com/user/wonderful72pike) 
