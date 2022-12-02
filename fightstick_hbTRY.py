@@ -14,13 +14,13 @@ _debug_print = debug_print(_debug_flag)
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 
-window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=True)
+window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=False)
 window.set_icon(pyglet.resource.image("icon.png"))
 
 config = ConfigParser()
 FIGHTSTICK_PLUGGED = False
 
-# Parse and add additional SDL style controller mappings.
+# Parse and add additional SDL controller mappings.
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 try:
     with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
@@ -46,32 +46,38 @@ def on_resize(width, height):
 
 _layout = {
     "background": (0, 0),
-    "stick": (119, 154),
     "select": (50, 318),
     "start": (50, 318),
-    "a": (256, 83),
-    "b": (336, 113),
-    "rt": (421, 112),
-    "lt": (507, 109),
-    "x": (275, 173),
-    "y": (354, 203),
-    "rb": (440, 202),
-    "lb": (527, 199),
+    "up": (237, 10),
+    "down": (133, 217),
+    "left": (47, 217),
+    "right": (209, 176),
+    "a": (284, 124),
+    "b": (364, 158),
+    "x": (290, 214),
+    "y": (369, 247),
+    "rb": (456, 246),
+    "lb": (543, 234),
+    "rt": (456, 159),
+    "lt": (540, 146),
 }
 
 _images = {
-    'background': 'background.png',
-    'stick': 'stick.png',
+    'background': 'backgroundHB.png',
     'select': 'select.png',
     'start': 'start.png',
-    'x': 'button.png',
-    'y': 'button.png',
-    'lt': 'button.png',
-    'rt': 'button.png',
-    'a': 'button.png',
-    'b': 'button.png',
-    'lb': 'button.png',
-    'rb': 'button.png',
+    'up': 'buttonhblg.png',
+    'down': 'buttonhb.png',
+    'left': 'buttonhb.png',
+    'right': 'buttonhb.png',
+    'a': 'buttonhb.png',
+    'b': 'buttonhb.png',
+    'x': 'buttonhb.png',
+    'y': 'buttonhb.png',
+    'lt': 'buttonhb.png',
+    'rt': 'buttonhb.png',
+    'lb': 'buttonhb.png',
+    'rb': 'buttonhb.png',
 }
 
 
@@ -80,7 +86,7 @@ def load_configuration():
     global _layout, _images
     layout = _layout.copy()
     images = _images.copy()
-    loaded_configs = config.read('theme/layout.ini')
+    loaded_configs = config.read('theme/layouthb.ini')
     if len(loaded_configs) > 0:
         try:
             for key, value in config.items('layout'):
@@ -91,13 +97,13 @@ def load_configuration():
             _layout = layout.copy()
             _images = images.copy()
         except KeyError:
-            print("Invalid theme/layout.ini file. Falling back to default.")
+            print("Invalid theme/layouthb.ini file. Falling back to default.")
     else:
-        print("No theme/layout.ini file found. Falling back to default.")
+        print("No theme/layouthb.ini file found. Falling back to default.")
 
 
 def _make_sprite(name, batch, group, visible=True):
-    # Helper function to make a Sprite.
+    # Helper function to make the batch sprite.
     image = pyglet.resource.image(_images[name])
     position = _layout[name]
     sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
@@ -106,7 +112,7 @@ def _make_sprite(name, batch, group, visible=True):
 
 
 class TryAgainScene:
-    # A scene that tells you to try again if no stick is detected.
+    # A scene that tells you to try plugging a controller in again if no stick is detected.
     def __init__(self, window_instance):
         self.window = window_instance
         self.missing_img = pyglet.resource.image("missing.png")
@@ -117,33 +123,8 @@ class TryAgainScene:
             self.missing_img.blit(0, 0)
 
 
-#Deadzone Interface, ?maybe TODO This doesn't work..
-class DeadzoneScene:
-    def __init__(self, window_instance):
-        self.window = window_instance
-        self.deadzone_img = pyglet.resource.image("deadzone.png")
-
-        @self.window.event
-        def on_button_press(controller, button):
-            assert _debug_print(f"Pressed Button: {button}")
-            pressed_button = button_mapping.get(button, None)
-            if pressed_button == 'guide':
-                if config_window.parent is not None:
-                    self.frame.remove(config_window)
-                else:
-                    self.frame.add(config_window)
-
-        def update_trigger_point(slider):
-            self.triggerpoint = slider.value
-            deadzone_label = self.frame.get_element_by_name("triggerpoint")
-            deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-        
-        def on_draw():
-            self.window.clear()
-            self.deadzone_img.blit(0, 0)
-
 class MainScene:
-    # The main scene, with all fightstick events wired up.
+    # The Main Scene, with all fightstick events rigged.
     def __init__(self, window_instance, fightstick):
         self.window = window_instance
         self.batch = pyglet.graphics.Batch()
@@ -154,25 +135,29 @@ class MainScene:
         self.fg = pyglet.graphics.Group(1)
         # Create all sprites using helper function (name, batch, group, visible).
         self.background = _make_sprite('background', self.batch, self.bg)
-        self.stick_spr = _make_sprite('stick', self.batch, self.fg)
         self.select_spr = _make_sprite('select', self.batch, self.fg, False)
         self.start_spr = _make_sprite('start', self.batch, self.fg, False)
-        self.x_spr = _make_sprite('x', self.batch, self.fg, False)
-        self.y_spr = _make_sprite('y', self.batch, self.fg, False)
+        self.up_spr = _make_sprite('up', self.batch, self.fg, False)
+        self.down_spr = _make_sprite('down', self.batch, self.fg, False)
+        self.left_spr = _make_sprite('left', self.batch, self.fg, False)
+        self.right_spr = _make_sprite('right', self.batch, self.fg, False)
         self.a_spr = _make_sprite('a', self.batch, self.fg, False)
         self.b_spr = _make_sprite('b', self.batch, self.fg, False)
-        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
-        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
+        self.x_spr = _make_sprite('x', self.batch, self.fg, False)
+        self.y_spr = _make_sprite('y', self.batch, self.fg, False)
         self.rt_spr = _make_sprite('rt', self.batch, self.fg, False)
         self.lt_spr = _make_sprite('lt', self.batch, self.fg, False)
+        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
+        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below.
-        button_mapping = {"x": self.x_spr, "y": self.y_spr, "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
-                          "a": self.a_spr, "b": self.b_spr,
-                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
-                          "back": self.select_spr, "start": self.start_spr}
+        button_mapping = {"back": self.select_spr, "start": self.start_spr,
+                          "up": self.up_spr, "down": self.down_spr, "left": self.left_spr, "right": self.right_spr,
+                          "a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr,
+                          "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
+                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr}
 
         @fightstick.event
         def on_button_press(controller, button):
@@ -187,31 +172,15 @@ class MainScene:
             if pressed_button:
                 pressed_button.visible = False
 
-        @fightstick.event
-        def on_stick_motion(controller, stick, xvalue, yvalue):
-            if stick == "leftstick":
-                center_x, center_y = _layout['stick']
-                if abs(xvalue) > self.deadzone:
-                    center_x += (xvalue * 50)
-                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
-                if abs(yvalue) > self.deadzone:
-                    center_y += (yvalue * 50)
-                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
-                self.stick_spr.position = center_x, center_y
-
+        # Have the dpad hats alert the main window to draw the sprites.
         @fightstick.event
         def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
             assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
-            center_x, center_y = _layout["stick"]
-            if dpup:
-                center_y += 50
-            elif dpdown:
-                center_y -= 50
-            if dpleft:
-                center_x -= 50
-            elif dpright:
-                center_x += 50
-            self.stick_spr.position = center_x, center_y
+            # this is dumb, refactor this..
+            if True (dpup is True == dpdown is True == dpleft is True == dpright is True):
+                (self.up_spr.visible, self.down_spr.visible, self.left_spr.visible, self.right_spr.visible) = True
+            elif (self.up_spr.visible, self.down_spr.visible, self.left_spr.visible, self.right_spr.visible) = False
+            break
 
         @fightstick.event
         def on_trigger_motion(controller, trigger, value):
@@ -227,14 +196,11 @@ class MainScene:
                 elif value < -self.triggerpoint:
                     self.rt_spr.visible = False
 
-
-
         # Window event to draw everything when necessary.
         @self.window.event
         def on_draw():
             self.window.clear()
             self.batch.draw()
-
 
 
 def enforce_aspect_ratio(dt):
@@ -264,6 +230,6 @@ if __name__ == "__main__":
     load_configuration()
     set_scene()
     # Schedulers for scene change, aspect enforce, and main display cycles(fps).
-    pyglet.clock.schedule_interval_soft(set_scene, 1.25)
-    pyglet.clock.schedule_interval_soft(enforce_aspect_ratio, 0.33)
+    pyglet.clock.schedule_interval(set_scene, 2.0)
+    pyglet.clock.schedule_interval(enforce_aspect_ratio, 0.3)
     pyglet.app.run()
