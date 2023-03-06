@@ -248,7 +248,7 @@ def enforce_aspect_ratio(dt):
 
 
 def set_scene(dt=0):
-    # Load up either the full scene, or just the "try again" scene.
+    # Load up either the default scene, or just the "try again" scene.
     global FIGHTSTICK_PLUGGED
     controllers = pyglet.input.get_game_controllers()
     if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
