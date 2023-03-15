@@ -22,16 +22,35 @@ FIGHTSTICK_PLUGGED = False
 
 # Parse and add additional SDL style controller mappings.
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
+
 try:
-    with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
-        f.write(response.read())
-except Exception:
+    response = requests.get(url, headers=headers)
+    with open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+        f.write(response.content)
+    print("Successfully downloaded controller mappings from 'gamecontrollerdb.txt'")
+    pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
+    print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+except Exception as e:
     if os.path.exists("gamecontrollerdb.txt"):
         try:
             pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
             print("Added additional controller mappings from 'gamecontrollerdb.txt'")
         except Exception:
             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
+    else:
+        print(f"Failed to download controller mappings from '{url}': {str(e)}")
+# try:
+#     req = urllib.request.Request(url, headers=headers)
+#     with urllib.request.urlopen(req) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+#         f.write(response.read())
+# except Exception:
+#     if os.path.exists("gamecontrollerdb.txt"):
+#         try:
+#             pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
+#             print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+#         except Exception:
+#             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
 
 
 @window.event
@@ -125,7 +144,7 @@ class DeadzoneScene:
 
         @self.window.event
         def on_button_press(controller, button):
-            assert _debug_print(f"Pressed Button: {button}")
+#            assert _debug_print(f"Pressed Button: {button}")
             pressed_button = button_mapping.get(button, None)
             if pressed_button == 'guide':
                 if config_window.parent is not None:
