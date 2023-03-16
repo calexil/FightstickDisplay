@@ -144,7 +144,7 @@ class DeadzoneScene:
 
         @self.window.event
         def on_button_press(controller, button):
-#            assert _debug_print(f"Pressed Button: {button}")
+            assert _debug_print(f"Pressed Button: {button}")
             pressed_button = button_mapping.get(button, None)
             if pressed_button == 'guide':
                 if config_window.parent is not None:
