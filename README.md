@@ -26,7 +26,6 @@ at all, **[let us know by clicking here!](https://github.com/calexil/FightstickD
 # Contributors: :busts_in_silhouette:	
 * [calexil](https://github.com/calexil)
 * [benmoran56](https://github.com/benmoran56)
-* [Scootadash](https://www.reddit.com/user/wonderful72pike) 
 
 # Donate :heavy_dollar_sign:
 This software is provided free of charge, but it certainly took time and effort to make, please consider
