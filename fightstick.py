@@ -27,37 +27,17 @@ FIGHTSTICK_PLUGGED = False
 
 # Parse and add additional SDL style controller mappings. TODO (This is broken).
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
-
 try:
-    response = requests.get(url, headers=headers)
-    with open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
-        f.write(response.content)
-    print("Successfully downloaded controller mappings from 'gamecontrollerdb.txt'")
-    pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
-    print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-except Exception as e:
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+        f.write(response.read())
+except Exception:
     if os.path.exists("gamecontrollerdb.txt"):
         try:
             pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
             print("Added additional controller mappings from 'gamecontrollerdb.txt'")
         except Exception:
             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
-    else:
-        print(f"Failed to download controller mappings from '{url}': {str(e)}")
-
-# This area was the former controller database call that stopped functioning TODO.
-# try:
-#     req = urllib.request.Request(url, headers=headers)
-#     with urllib.request.urlopen(req) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
-#         f.write(response.read())
-# except Exception:
-#     if os.path.exists("gamecontrollerdb.txt"):
-#         try:
-#             pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
-#             print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-#         except Exception:
-#             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
 
 # Math for scaling the window when resized.
 @window.event
