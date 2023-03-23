@@ -1,52 +1,51 @@
 import os
 import sys
-import urllib.request
+
+from weakref import proxy
 from configparser import ConfigParser
 
 import pyglet
-from pyglet.util import debug_print
 
-# Setup the debugging flag calls.
+from pyglet.util import debug_print
+from pyglet.math import Mat4, Vec3
+
+# Set up the debugging flag calls.
 _debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '-d', '--debug')
 _debug_print = debug_print(_debug_flag)
-print("Debugging Active")
+_debug_print("Debugging Active")
 
 # Load the theme from the /theme folder.
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
-print("Theme Loaded")
+_debug_print("Theme Loaded")
 
 # Create the main window
 window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=True)
 window.set_icon(pyglet.resource.image("icon.png"))
-print("Main window created")
+_debug_print("Main window created")
 
 # Use configParser to set a static controller status of unplugged.
 config = ConfigParser()
-FIGHTSTICK_PLUGGED = False
 
-# Parse and add additional SDL style controller mappings.
-url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
-try:
-    with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
-        f.write(response.read())
-except Exception:
-    if os.path.exists("gamecontrollerdb.txt"):
-        try:
-            pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
-            print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-        except Exception:
-            print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
+
+if os.path.exists("gamecontrollerdb.txt"):
+    try:
+        pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
+        print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+    except Exception as e:
+        print(f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
+
 
 # Math for scaling the window when resized.
 @window.event
 def on_resize(width, height):
-    projection_matrix = pyglet.math.Mat4.orthogonal_projection(0, width, 0, height, 0, 1)
+    projection_matrix = Mat4.orthogonal_projection(0, width, 0, height, 0, 1)
     scale_x = width / 640.0
     scale_y = height / 390.0
-    window.projection = projection_matrix.scale(scale_x, scale_y, 1)
+    window.projection = projection_matrix.scale(Vec3(scale_x, scale_y, 1))
     window.viewport = 0, 0, width, height
     return pyglet.event.EVENT_HANDLED
+
 
 # Set the x,y parameters for where certain elements should be displayed
 _layout = {
@@ -116,47 +115,47 @@ def _make_sprite(name, batch, group, visible=True):
 class TryAgainScene:
     # A scene that tells you to try again if no stick is detected.
     def __init__(self, window_instance):
-        self.window = window_instance
         self.missing_img = pyglet.resource.image("missing.png")
-        # Reset the window draw calls.
-        @self.window.event
-        def on_draw():
-            self.window.clear()
-            self.missing_img.blit(0, 0)
+        self.window = proxy(window_instance)
+
+    # Reset the window draw calls.
+    def on_draw(self):
+        self.window.clear()
+        self.missing_img.blit(0, 0)
 
 
-#Deadzone Interface, ?maybe TODO This doesn't work.
-class DeadzoneScene:
-    def __init__(self, window_instance):
-        self.window = window_instance
-        self.deadzone_img = pyglet.resource.image("deadzone.png")
+# # Deadzone Interface, ?maybe TODO This doesn't work.
+# class DeadzoneScene:
+#     def __init__(self, window_instance):
+#         self.window = window_instance
+#         self.deadzone_img = pyglet.resource.image("deadzone.png")
+#
+#         @self.window.event
+#         def on_button_press(controller, button):
+#             assert _debug_print(f"Pressed Button: {button}")
+#             pressed_button = button_mapping.get(button, None)
+#             if pressed_button == 'guide':
+#                 if config_window.parent is not None:
+#                     self.frame.remove(config_window)
+#                 else:
+#                     self.frame.add(config_window)
+#
+#         def update_trigger_point(slider):
+#             self.triggerpoint = slider.value
+#             deadzone_label = self.frame.get_element_by_name("triggerpoint")
+#             deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
+#
+#         def on_draw():
+#             self.window.clear()
+#             self.deadzone_img.blit(0, 0)
 
-        @self.window.event
-        def on_button_press(controller, button):
-            assert _debug_print(f"Pressed Button: {button}")
-            pressed_button = button_mapping.get(button, None)
-            if pressed_button == 'guide':
-                if config_window.parent is not None:
-                    self.frame.remove(config_window)
-                else:
-                    self.frame.add(config_window)
-
-        def update_trigger_point(slider):
-            self.triggerpoint = slider.value
-            deadzone_label = self.frame.get_element_by_name("triggerpoint")
-            deadzone_label.text = "Analog Trigger Point: {}".format(round(slider.value, 2))
-        
-        def on_draw():
-            self.window.clear()
-            self.deadzone_img.blit(0, 0)
 
 class MainScene:
-    # The main scene, with all fightstick events wired up.
-    def __init__(self, window_instance, fightstick):
-        self.window = window_instance
+    """ The main scene, with all fightstick events wired up."""
+
+    def __init__(self, window_instance):
+        self.window = proxy(window_instance)
         self.batch = pyglet.graphics.Batch()
-        self.fightstick = fightstick
-        self.fightstick.open()
         # Ordered groups to handle draw order of the sprites.
         self.bg = pyglet.graphics.Group(0)
         self.fg = pyglet.graphics.Group(1)
@@ -178,77 +177,115 @@ class MainScene:
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below.
-        button_mapping = {"x": self.x_spr, "y": self.y_spr, "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
-                          "a": self.a_spr, "b": self.b_spr,
-                          "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
-                          "back": self.select_spr, "start": self.start_spr, "guide": self.guide_spr}
+        self.button_mapping = {"rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
+                               "x": self.x_spr, "y": self.y_spr, "a": self.a_spr, "b": self.b_spr,
+                               "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
+                               "back": self.select_spr, "start": self.start_spr, "guide": self.guide_spr}
 
-        # Event to show a button when pressed.
-        @fightstick.event
-        def on_button_press(controller, button):
-            assert _debug_print(f"Pressed Button: {button}")
-            pressed_button = button_mapping.get(button, None)
-            if pressed_button:
-                pressed_button.visible = True
+    # Event to show a button when pressed.
+    def on_button_press(self, controller, button):
+        assert _debug_print(f"Pressed Button: {button}")
+        pressed_button = self.button_mapping.get(button, None)
+        if pressed_button:
+            pressed_button.visible = True
 
-        # Event to hide the sprite when the button is released.
-        @fightstick.event
-        def on_button_release(controller, button):
-            pressed_button = button_mapping.get(button, None)
-            if pressed_button:
-                pressed_button.visible = False
+    # Event to hide the sprite when the button is released.
+    def on_button_release(self, controller, button):
+        pressed_button = self.button_mapping.get(button, None)
+        if pressed_button:
+            pressed_button.visible = False
 
-        # Math to draw stick inputs in their correct location.
-        @fightstick.event
-        def on_stick_motion(controller, stick, xvalue, yvalue):
-            if stick == "leftstick":
-                center_x, center_y = _layout['stick']
-                if abs(xvalue) > self.deadzone:
-                    center_x += (xvalue * 50)
-                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
-                if abs(yvalue) > self.deadzone:
-                    center_y += (yvalue * 50)
-                    assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
-                self.stick_spr.position = center_x, center_y
+    # Math to draw stick inputs in their correct location.
+    def on_stick_motion(self, controller, stick, xvalue, yvalue):
+        if stick == "leftstick":
+            center_x, center_y = _layout['stick']
+            if abs(xvalue) > self.deadzone:
+                center_x += (xvalue * 50)
+                assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
+            if abs(yvalue) > self.deadzone:
+                center_y += (yvalue * 50)
+                assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
+            self.stick_spr.position = center_x, center_y, 0
 
-        # Math to draw dpad inputs in their correct location.
-        @fightstick.event
-        def on_dpad_motion(controller, dpleft, dpright, dpup, dpdown):
-            assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
-            center_x, center_y = _layout["stick"]
-            if dpup:
-                center_y += 50
-            elif dpdown:
-                center_y -= 50
-            if dpleft:
-                center_x -= 50
-            elif dpright:
-                center_x += 50
-            self.stick_spr.position = center_x, center_y
+    # Math to draw dpad inputs in their correct location.
+    def on_dpad_motion(self, controller, dpleft, dpright, dpup, dpdown):
+        assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
+        center_x, center_y = _layout["stick"]
+        if dpup:
+            center_y += 50
+        elif dpdown:
+            center_y -= 50
+        if dpleft:
+            center_x -= 50
+        elif dpright:
+            center_x += 50
+        self.stick_spr.position = center_x, center_y, 0
 
-        # Math to draw trigger inputs or hide them.
-        @fightstick.event
-        def on_trigger_motion(controller, trigger, value):
-            assert _debug_print(f"Pulled Trigger: {trigger}")
-            if trigger == "lefttrigger":
-                if value > self.triggerpoint:
-                    self.lt_spr.visible = True
-                elif value < -self.triggerpoint:
-                    self.lt_spr.visible = False
-            if trigger == "righttrigger":
-                if value > self.triggerpoint:
-                    self.rt_spr.visible = True
-                elif value < -self.triggerpoint:
-                    self.rt_spr.visible = False
+    # Math to draw trigger inputs or hide them.
+    def on_trigger_motion(self, controller, trigger, value):
+        assert _debug_print(f"Pulled Trigger: {trigger}")
+        if trigger == "lefttrigger":
+            if value > self.triggerpoint:
+                self.lt_spr.visible = True
+            elif value < self.triggerpoint:
+                self.lt_spr.visible = False
+        if trigger == "righttrigger":
+            if value > self.triggerpoint:
+                self.rt_spr.visible = True
+            elif value < self.triggerpoint:
+                self.rt_spr.visible = False
+
+    # Window event handler to draw everything when necessary.
+    def on_draw(self):
+        self.window.clear()
+        self.batch.draw()
 
 
+class SceneManager:
+    def __init__(self, window_instance):
+        """Scene Management and Controller hot-plugging."""
+        self.window = window_instance
+        self.controller_manager = pyglet.input.ControllerManager()
 
-        # Window event to draw everything when necessary.
-        @self.window.event
-        def on_draw():
-            self.window.clear()
-            self.batch.draw()
+        self.controller = None
+        self.current_scene = None
 
+        if controllers := self.controller_manager.get_controllers():
+            self._on_controller_connect(controllers[0])
+        else:
+            self.set_scene()
+
+        # Set handlers for connect/disconnect events:
+        self.controller_manager.on_connect = self._on_controller_connect
+        self.controller_manager.on_disconnect = self._on_controller_disconnect
+
+    def _on_controller_connect(self, controller):
+        _debug_print(f"Controller attached: {controller}")
+        if not self.controller:
+            self.controller = controller
+            self.controller.open()
+            self.set_scene()
+
+    def _on_controller_disconnect(self, controller):
+        _debug_print(f"Controller detached: {controller}")
+        controller.remove_handlers(self.current_scene)
+        if self.controller == controller:
+            controller.close()
+            self.controller = None
+        self.set_scene()
+
+    def set_scene(self):
+        self.window.remove_handlers(self.current_scene)
+
+        if self.controller:
+            self.controller.remove_handlers(self.current_scene)
+            self.current_scene = MainScene(window_instance=self.window)
+            self.controller.push_handlers(self.current_scene)
+
+        else:
+            self.current_scene = TryAgainScene(window_instance=self.window)
+
+        self.window.push_handlers(self.current_scene)
 
 
 def enforce_aspect_ratio(dt):
@@ -261,23 +298,10 @@ def enforce_aspect_ratio(dt):
         window.set_size(window.width, target_height)
 
 
-def set_scene(dt=0):
-    # Load up either the default scene, or just the "try again" scene.
-    global FIGHTSTICK_PLUGGED
-    controllers = pyglet.input.get_game_controllers()
-    if len(controllers) > 0 and FIGHTSTICK_PLUGGED is False:
-        controller = controllers[0]
-        scene = MainScene(window, controller)
-        FIGHTSTICK_PLUGGED = True
-    elif len(controllers) == 0:
-        scene = TryAgainScene(window)
-        FIGHTSTICK_PLUGGED = False
-
-
 if __name__ == "__main__":
     load_configuration()
-    set_scene()
-    # Schedulers for scene change, aspect enforce, and main display cycles(fps).
-    pyglet.clock.schedule_interval_soft(set_scene, 1.25)
+
+    scene_manager = SceneManager(window_instance=window)
+
     pyglet.clock.schedule_interval_soft(enforce_aspect_ratio, 0.33)
     pyglet.app.run()

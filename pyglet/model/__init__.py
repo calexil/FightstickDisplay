@@ -1,37 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
 """Loading of 3D models.
 
 A :py:class:`~pyglet.model.Model` is an instance of a 3D object.
@@ -81,23 +47,20 @@ instance when loading the Model::
 
 .. versionadded:: 1.4
 """
-from math import radians
-from io import BytesIO
 
 import pyglet
 
 from pyglet import gl
 from pyglet import graphics
 from pyglet.gl import current_context
-from pyglet.math import Mat4
+from pyglet.math import Mat4, Vec3
 from pyglet.graphics import shader
 
-from .codecs import ModelDecodeException
-from .codecs import add_encoders, add_decoders, add_default_model_codecs
-from .codecs import get_encoders, get_decoders
+from .codecs import registry as _codec_registry
+from .codecs import add_default_codecs as _add_default_codecs
 
 
-def load(filename, file=None, decoder=None, batch=None):
+def load(filename, file=None, decoder=None, batch=None, group=None):
     """Load a 3D model from a file.
 
     :Parameters:
@@ -112,36 +75,15 @@ def load(filename, file=None, decoder=None, batch=None):
             registered for the file extension, or if decoding fails.
         `batch` : Batch or None
             An optional Batch instance to add this model to.
+        `group` : Group or None
+            An optional top level Group.
 
     :rtype: :py:mod:`~pyglet.model.Model`
     """
-
-    if not file:
-        file = open(filename, 'rb')
-
-    if not hasattr(file, 'seek'):
-        file = BytesIO(file.read())
-
-    try:
-        if decoder:
-            return decoder.decode(file, filename, batch)
-        else:
-            first_exception = None
-            for decoder in get_decoders(filename):
-                try:
-                    model = decoder.decode(file, filename, batch)
-                    return model
-                except ModelDecodeException as e:
-                    if (not first_exception or
-                            first_exception.exception_priority < e.exception_priority):
-                        first_exception = e
-                    file.seek(0)
-
-            if not first_exception:
-                raise ModelDecodeException('No decoders are available for this model format.')
-            raise first_exception
-    finally:
-        file.close()
+    if decoder:
+        return decoder.decode(filename, file, batch=batch, group=group)
+    else:
+        return _codec_registry.decode(filename, file, batch=batch, group=group)
 
 
 def get_default_shader():
@@ -185,13 +127,12 @@ class Model:
                  a vertex list in `vertex_lists` of the same index.
             `batch` : `~pyglet.graphics.Batch`
                 Optional batch to add the model to. If no batch is provided,
-                the model will maintain it's own internal batch.
+                the model will maintain its own internal batch.
         """
         self.vertex_lists = vertex_lists
         self.groups = groups
         self._batch = batch
-        self._rotation = 0, 0, 0
-        self._translation = 0, 0, 0
+        self._modelview_matrix = Mat4()
 
     @property
     def batch(self):
@@ -199,7 +140,7 @@ class Model:
 
         The Model can be migrated from one batch to another, or removed from
         a batch (for individual drawing). If not part of any batch, the Model
-        will keep it's own internal batch. Note that batch migration can be
+        will keep its own internal batch. Note that batch migration can be
         an expensive operation.
 
         :type: :py:class:`pyglet.graphics.Batch`
@@ -220,24 +161,14 @@ class Model:
         self._batch = batch
 
     @property
-    def rotation(self):
-        return self._rotation
+    def matrix(self):
+        return self._modelview_matrix
 
-    @rotation.setter
-    def rotation(self, values):
-        self._rotation = values
+    @matrix.setter
+    def matrix(self, matrix):
+        self._modelview_matrix = matrix
         for group in self.groups:
-            group.rotation = values
-
-    @property
-    def translation(self):
-        return self._translation
-
-    @translation.setter
-    def translation(self, values):
-        self._translation = values
-        for group in self.groups:
-            group.translation = values
+            group.matrix = matrix
 
     def draw(self):
         """Draw the model.
@@ -271,31 +202,15 @@ class Material:
                 self.texture_name == other.texture_name)
 
 
-class BaseMaterialGroup(graphics.ShaderGroup):
+class BaseMaterialGroup(graphics.Group):
     default_vert_src = None
     default_frag_src = None
+    matrix = Mat4()
 
     def __init__(self, material, program, order=0, parent=None):
-        super().__init__(program, order, parent)
-
+        super().__init__(order, parent)
         self.material = material
-        self.rotation = 0, 0, 0
-        self.translation = 0, 0, 0
-
-    def set_modelview_matrix(self):
-        # NOTE: Matrix operations can be optimized later with transform feedback
-        view = Mat4()
-        view = view.rotate(radians(self.rotation[2]), z=1)
-        view = view.rotate(radians(self.rotation[1]), y=1)
-        view = view.rotate(radians(self.rotation[0]), x=1)
-        view = view.translate(*self.translation)
-
-        # TODO: separate the projection block, and remove this hack
-        block = self.program.uniform_blocks['WindowBlock']
-        ubo = block.create_ubo(0)
-        with ubo as window_block:
-            window_block.projection[:] = pyglet.math.Mat4.perspective_projection(0, 720, 0, 480, z_near=0.1, z_far=255)
-            window_block.view[:] = view
+        self.program = program
 
 
 class TexturedMaterialGroup(BaseMaterialGroup):
@@ -316,12 +231,13 @@ class TexturedMaterialGroup(BaseMaterialGroup):
         mat4 view;
     } window;
 
+    uniform mat4 model;
 
     void main()
     {
-        vec4 pos = window.view * vec4(vertices, 1.0);
+        vec4 pos = window.view * model * vec4(vertices, 1.0);
         gl_Position = window.projection * pos;
-        mat3 normal_matrix = transpose(inverse(mat3(window.view)));
+        mat3 normal_matrix = transpose(inverse(mat3(model)));
 
         vertex_position = pos.xyz;
         vertex_colors = colors;
@@ -345,18 +261,15 @@ class TexturedMaterialGroup(BaseMaterialGroup):
     }
     """
 
-    def __init__(self, material, texture):
-        super().__init__(material, get_default_textured_shader())
+    def __init__(self, material, program, texture, order=0, parent=None):
+        super().__init__(material, program, order, parent)
         self.texture = texture
 
     def set_state(self):
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(self.texture.target, self.texture.id)
         self.program.use()
-        self.set_modelview_matrix()
-
-    def unset_state(self):
-        gl.glBindTexture(self.texture.target, 0)
+        self.program['model'] = self.matrix
 
     def __hash__(self):
         return hash((self.texture.target, self.texture.id, self.program, self.order, self.parent))
@@ -387,11 +300,13 @@ class MaterialGroup(BaseMaterialGroup):
         mat4 view;
     } window;
 
+    uniform mat4 model;
+
     void main()
     {
-        vec4 pos = window.view * vec4(vertices, 1.0);
+        vec4 pos = window.view * model * vec4(vertices, 1.0);
         gl_Position = window.projection * pos;
-        mat3 normal_matrix = transpose(inverse(mat3(window.view)));
+        mat3 normal_matrix = transpose(inverse(mat3(model)));
 
         vertex_position = pos.xyz;
         vertex_colors = colors;
@@ -411,12 +326,9 @@ class MaterialGroup(BaseMaterialGroup):
     }
     """
 
-    def __init__(self, material):
-        super().__init__(material, get_default_shader())
-
     def set_state(self):
         self.program.use()
-        self.set_modelview_matrix()
+        self.program['model'] = self.matrix
 
 
-add_default_model_codecs()
+_add_default_codecs()

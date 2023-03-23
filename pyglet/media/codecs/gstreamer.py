@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Multi-format decoder using Gstreamer.
 """
 import queue
@@ -42,16 +7,19 @@ import tempfile
 
 from threading import Event, Thread
 
-from ..exceptions import MediaDecodeException
+from pyglet.util import DecodeException
 from .base import StreamingSource, AudioData, AudioFormat, StaticSource
 from . import MediaEncoder, MediaDecoder
 
-import gi
-gi.require_version('Gst', '1.0')
-from gi.repository import Gst, GLib
+try:
+    import gi
+    gi.require_version('Gst', '1.0')
+    from gi.repository import Gst, GLib
+except (ValueError, ImportError) as e:
+    raise ImportError(e)
 
 
-class GStreamerDecodeException(MediaDecodeException):
+class GStreamerDecodeException(DecodeException):
     pass
 
 
@@ -67,7 +35,12 @@ class _GLibMainLoopThread(Thread):
 
 
 class _MessageHandler:
-    """Message Handler class for GStreamer Sources."""
+    """Message Handler class for GStreamer Sources.
+    
+    This separate class holds a weak reference to the
+    Source, preventing garbage collection issues. 
+    
+    """
     def __init__(self, source):
         self.source = weakref.proxy(source)
 
@@ -113,7 +86,7 @@ class _MessageHandler:
 
     def new_sample(self, sink):
         """new-sample callback"""
-        # Pull the sample, and get it's buffer:
+        # Pull the sample, and get its buffer:
         buffer = sink.emit('pull-sample').get_buffer()
         # Extract a copy of the memory in the buffer:
         mem = buffer.extract_dup(0, buffer.get_size())
@@ -208,13 +181,13 @@ class GStreamerSource(StreamingSource):
             self._file.close()
 
         try:
-            # self._pipeline.bus.remove_signal_watch()
+            while not self.queue.empty():
+                self.queue.get_nowait()
             sink = self.appsink.get_static_pad("sink")
             if sink.handler_is_connected(self.caps_handler):
                 sink.disconnect(self.caps_handler)
-            while not self.queue.empty():
-                self.queue.get_nowait()
             self._pipeline.set_state(Gst.State.NULL)
+            self._pipeline.bus.remove_signal_watch()
             self.filesrc.set_property("location", None)
         except (ImportError, AttributeError):
             pass
@@ -273,7 +246,7 @@ class GStreamerDecoder(MediaDecoder):
     def get_file_extensions(self):
         return '.mp3', '.flac', '.ogg', '.m4a'
 
-    def decode(self, file, filename, streaming=True):
+    def decode(self, filename, file, streaming=True):
 
         if not any(filename.endswith(ext) for ext in self.get_file_extensions()):
             # Refuse to decode anything not specifically listed in the supported

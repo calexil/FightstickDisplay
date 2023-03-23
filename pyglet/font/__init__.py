@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2021 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Load fonts.
 
 pyglet will automatically load any system-installed fonts.  You can add additional fonts
@@ -66,13 +31,9 @@ if not getattr(sys, 'is_pyglet_doc_run', False):
 
     elif pyglet.compat_platform in ('win32', 'cygwin'):
         from pyglet.libs.win32.constants import WINDOWS_7_OR_GREATER
-        if WINDOWS_7_OR_GREATER:
-            if pyglet.options["advanced_font_features"] is True:
-                from pyglet.font.directwrite import Win32DirectWriteFont
-                _font_class = Win32DirectWriteFont
-            else:
-                from pyglet.font.win32 import GDIPlusFont
-                _font_class = GDIPlusFont
+        if WINDOWS_7_OR_GREATER and not pyglet.options['win32_gdi_font']:
+            from pyglet.font.directwrite import Win32DirectWriteFont
+            _font_class = Win32DirectWriteFont
         else:
             from pyglet.font.win32 import GDIPlusFont
             _font_class = GDIPlusFont
@@ -118,22 +79,34 @@ def load(name=None, size=None, bold=False, italic=False, stretch=False, dpi=None
     if dpi is None:
         dpi = 96
 
-    # Find first matching name
-    if type(name) in (tuple, list):
-        for n in name:
-            if _font_class.have_font(n):
-                name = n
-                break
-        else:
-            name = None
-
     # Locate or create font cache
     shared_object_space = gl.current_context.object_space
     if not hasattr(shared_object_space, 'pyglet_font_font_cache'):
         shared_object_space.pyglet_font_font_cache = weakref.WeakValueDictionary()
         shared_object_space.pyglet_font_font_hold = []
+        shared_object_space.pyglet_font_font_name_match = {}  # Match a tuple to specific name to reduce lookups.
+
     font_cache = shared_object_space.pyglet_font_font_cache
     font_hold = shared_object_space.pyglet_font_font_hold
+    font_name_match = shared_object_space.pyglet_font_font_name_match
+
+    name_type = type(name)
+    if name_type in (tuple, list):
+        if name_type == list:
+            name = tuple(name)
+
+        if name in font_name_match:
+            name = font_name_match[name]
+        else:
+            # Find first matching name, cache it.
+            found_name = None
+            for n in name:
+                if _font_class.have_font(n):
+                    found_name = n
+                    break
+
+            font_name_match[name] = found_name
+            name = found_name
 
     # Look for font name in font cache
     descriptor = (name, size, bold, italic, stretch, dpi)
@@ -144,7 +117,7 @@ def load(name=None, size=None, bold=False, italic=False, stretch=False, dpi=None
     font = _font_class(name, size, bold=bold, italic=italic, stretch=stretch, dpi=dpi)
 
     # Save parameters for new-style layout classes to recover
-    font.name = name
+    # TODO: add properties to the Font classes, so these can be queried:
     font.size = size
     font.bold = bold
     font.italic = italic
