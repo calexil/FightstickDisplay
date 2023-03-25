@@ -211,6 +211,7 @@ class MainScene:
             self.right_spr.visible = True
         elif dpright is False:
             self.right_spr.visible = False
+            
 
     # Math to draw trigger inputs or hide them.
     def on_trigger_motion(controller, trigger, value):
