@@ -1,5 +1,6 @@
 import os
 import sys
+import urllib.request
 
 from weakref import proxy
 from configparser import ConfigParser
@@ -27,14 +28,19 @@ _debug_print("Main window created")
 # Use configParser to set a static controller status of unplugged.
 config = ConfigParser()
 
-
-if os.path.exists("gamecontrollerdb.txt"):
-    try:
-        pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
-        print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-    except Exception as e:
-        print(f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
-
+# Parse and add additional SDL style controller mappings.
+url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
+try:
+    with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+        f.write(response.read())
+except Exception:
+    if os.path.exists("gamecontrollerdb.txt"):
+        try:
+            pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
+            _debug_print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+        except Exception as e:
+            print(f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
+         
 
 # Math for scaling the window when resized.
 @window.event

@@ -38,17 +38,17 @@ if os.path.exists("gamecontrollerdb.txt"):
 
 
 # Parse and add additional SDL controller mappings.
-# url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
-# try:
-#     with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
-#         f.write(response.read())
-# except Exception:
-#     if os.path.exists("gamecontrollerdb.txt"):
-#         try:
-#             pyglet.input.gamecontroller.add_mappings_from_file("gamecontrollerdb.txt")
-#             print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-#         except Exception:
-#             print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
+url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
+try:
+    with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+        f.write(response.read())
+except Exception:
+    if os.path.exists("gamecontrollerdb.txt"):
+        try:
+            pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
+            print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+        except Exception as e:
+            print(f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
 
 
 @window.event
