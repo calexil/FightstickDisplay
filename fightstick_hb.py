@@ -11,7 +11,7 @@ from pyglet.util import debug_print
 from pyglet.math import Mat4, Vec3
 
 # Set up the debugging flag calls.
-_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '-d', '--debug')
+_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ("-D", "-d", "--debug")
 _debug_print = debug_print(_debug_flag)
 _debug_print("Debugging Active")
 
@@ -21,7 +21,9 @@ pyglet.resource.reindex()
 _debug_print("Theme Loaded")
 
 # Create the main window
-window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=True)
+window = pyglet.window.Window(
+    640, 390, caption="Fightstick Display", resizable=True, vsync=True
+)
 window.set_icon(pyglet.resource.image("icon.png"))
 _debug_print("Main window created")
 
@@ -31,7 +33,9 @@ config = ConfigParser()
 # Parse and add additional SDL controller mappings.
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 try:
-    with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+    with urllib.request.urlopen(url) as response, open(
+        os.path.dirname(__file__) + "/gamecontrollerdb.txt", "wb"
+    ) as f:
         f.write(response.read())
 except Exception:
     if os.path.exists("gamecontrollerdb.txt"):
@@ -39,7 +43,9 @@ except Exception:
             pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
             print("Added additional controller mappings from 'gamecontrollerdb.txt'")
         except Exception as e:
-            print(f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
+            print(
+                f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}"
+            )
 
 
 # Math for scaling the window when resized.
@@ -75,22 +81,22 @@ _layout = {
 
 # Connect the image file names to their definitions.
 _images = {
-    'background': 'backgroundHB.png',
-    'select': 'select.png',
-    'start': 'start.png',
-    'guide': 'guide.png',
-    'up': 'buttonhblg.png',
-    'down': 'buttonhb.png',
-    'left': 'buttonhb.png',
-    'right': 'buttonhb.png',
-    'a': 'buttonhb.png',
-    'b': 'buttonhb.png',
-    'x': 'buttonhb.png',
-    'y': 'buttonhb.png',
-    'lt': 'buttonhb.png',
-    'rt': 'buttonhb.png',
-    'lb': 'buttonhb.png',
-    'rb': 'buttonhb.png',
+    "background": "backgroundHB.png",
+    "select": "select.png",
+    "start": "start.png",
+    "guide": "guide.png",
+    "up": "buttonhblg.png",
+    "down": "buttonhb.png",
+    "left": "buttonhb.png",
+    "right": "buttonhb.png",
+    "a": "buttonhb.png",
+    "b": "buttonhb.png",
+    "x": "buttonhb.png",
+    "y": "buttonhb.png",
+    "lt": "buttonhb.png",
+    "rt": "buttonhb.png",
+    "lb": "buttonhb.png",
+    "rb": "buttonhb.png",
 }
 
 
@@ -99,13 +105,13 @@ def load_configuration():
     global _layout, _images
     layout = _layout.copy()
     images = _images.copy()
-    loaded_configs = config.read('theme/layouthb.ini')
+    loaded_configs = config.read("theme/layouthb.ini")
     if len(loaded_configs) > 0:
         try:
-            for key, value in config.items('layout'):
-                x, y = value.split(', ')
+            for key, value in config.items("layout"):
+                x, y = value.split(", ")
                 layout[key] = int(x), int(y)
-            for key, value in config.items('images'):
+            for key, value in config.items("images"):
                 images[key] = value
             _layout = layout.copy()
             _images = images.copy()
@@ -137,7 +143,7 @@ class TryAgainScene:
 
 
 class MainScene:
-    """ The main scene, with all fightstick events wired up."""
+    """The main scene, with all fightstick events wired up."""
 
     def __init__(self, window_instance):
         self.window = proxy(window_instance)
@@ -149,31 +155,43 @@ class MainScene:
         self.bg = pyglet.graphics.Group(0)
         self.fg = pyglet.graphics.Group(1)
         # Create all sprites using helper function (name, batch, group, visible).
-        self.background = _make_sprite('background', self.batch, self.bg)
-        self.select_spr = _make_sprite('select', self.batch, self.fg, False)
-        self.start_spr = _make_sprite('start', self.batch, self.fg, False)
-        self.guide_spr = _make_sprite('guide', self.batch, self.fg, False)
-        self.up_spr = _make_sprite('up', self.batch, self.fg, False)
-        self.down_spr = _make_sprite('down', self.batch, self.fg, False)
-        self.left_spr = _make_sprite('left', self.batch, self.fg, False)
-        self.right_spr = _make_sprite('right', self.batch, self.fg, False)
-        self.a_spr = _make_sprite('a', self.batch, self.fg, False)
-        self.b_spr = _make_sprite('b', self.batch, self.fg, False)
-        self.x_spr = _make_sprite('x', self.batch, self.fg, False)
-        self.y_spr = _make_sprite('y', self.batch, self.fg, False)
-        self.rt_spr = _make_sprite('rt', self.batch, self.fg, False)
-        self.lt_spr = _make_sprite('lt', self.batch, self.fg, False)
-        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
-        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
+        self.background = _make_sprite("background", self.batch, self.bg)
+        self.select_spr = _make_sprite("select", self.batch, self.fg, False)
+        self.start_spr = _make_sprite("start", self.batch, self.fg, False)
+        self.guide_spr = _make_sprite("guide", self.batch, self.fg, False)
+        self.up_spr = _make_sprite("up", self.batch, self.fg, False)
+        self.down_spr = _make_sprite("down", self.batch, self.fg, False)
+        self.left_spr = _make_sprite("left", self.batch, self.fg, False)
+        self.right_spr = _make_sprite("right", self.batch, self.fg, False)
+        self.a_spr = _make_sprite("a", self.batch, self.fg, False)
+        self.b_spr = _make_sprite("b", self.batch, self.fg, False)
+        self.x_spr = _make_sprite("x", self.batch, self.fg, False)
+        self.y_spr = _make_sprite("y", self.batch, self.fg, False)
+        self.rt_spr = _make_sprite("rt", self.batch, self.fg, False)
+        self.lt_spr = _make_sprite("lt", self.batch, self.fg, False)
+        self.rb_spr = _make_sprite("rb", self.batch, self.fg, False)
+        self.lb_spr = _make_sprite("lb", self.batch, self.fg, False)
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below.
-        self.button_mapping = {"back": self.select_spr, "start": self.start_spr, "guide": self.guide_spr,
-                               "up": self.up_spr,    "down":self.down_spr, "left": self.left_spr, 
-                               "right": self.right_spr, "a": self.a_spr, "b": self.b_spr, "x": self.x_spr,
-                               "y": self.y_spr, "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
-                               "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr}
+        self.button_mapping = {
+            "back": self.select_spr,
+            "start": self.start_spr,
+            "guide": self.guide_spr,
+            "up": self.up_spr,
+            "down": self.down_spr,
+            "left": self.left_spr,
+            "right": self.right_spr,
+            "a": self.a_spr,
+            "b": self.b_spr,
+            "x": self.x_spr,
+            "y": self.y_spr,
+            "rightshoulder": self.rb_spr,
+            "leftshoulder": self.lb_spr,
+            "righttrigger": self.rt_spr,
+            "lefttrigger": self.lt_spr,
+        }
 
     # Event to show a button when pressed.
     def on_button_press(self, controller, button):
@@ -190,7 +208,9 @@ class MainScene:
 
     # Have the dpad hats alert the main window to draw the sprites.
     def on_dpad_motion(self, controller, dpleft, dpright, dpup, dpdown):
-        assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
+        assert _debug_print(
+            f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}"
+        )
         # this is dumb, refactor this..
         if dpup is True:
             self.up_spr.visible = True
@@ -208,7 +228,6 @@ class MainScene:
             self.right_spr.visible = True
         elif dpright is False:
             self.right_spr.visible = False
-            
 
     # Math to draw trigger inputs or hide them.
     def on_trigger_motion(self, controller, trigger, value):
