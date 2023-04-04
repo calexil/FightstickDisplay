@@ -7,7 +7,7 @@
 
 
 # Prerequisites :heavy_check_mark:
-* python(3.0+)
+* python(3.7+)
 
 # Installation & Usage 💾
 * Clone the git  
