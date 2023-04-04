@@ -39,7 +39,7 @@ except Exception:
             pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
             _debug_print("Added additional controller mappings from 'gamecontrollerdb.txt'")
         except Exception as e:
-            print(f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
+            print(f"Failed to load 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
          
 
 # Math for scaling the window when resized.
@@ -69,6 +69,8 @@ _layout = {
     "rb": (440, 202),
     "lb": (527, 199),
 }
+_debug_print("Layout loaded.")
+
 
 # Connect the image file names to their definitions.
 _images = {
@@ -104,9 +106,9 @@ def load_configuration():
             _layout = layout.copy()
             _images = images.copy()
         except KeyError:
-            print("Invalid theme/layout.ini file. Falling back to default.")
+            _debug_print("Invalid theme/layout.ini file. Falling back to default.")
     else:
-        print("No theme/layout.ini file found. Falling back to default.")
+        _debug_print("No theme/layout.ini file found. Falling back to default.")
 
 
 def _make_sprite(name, batch, group, visible=True):

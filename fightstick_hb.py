@@ -44,7 +44,7 @@ except Exception:
             print("Added additional controller mappings from 'gamecontrollerdb.txt'")
         except Exception as e:
             print(
-                f"Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}"
+                f"Failed to load 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}"
             )
 
 
@@ -78,6 +78,8 @@ _layout = {
     "rt": (456, 159),
     "lt": (540, 146),
 }
+_debug_print("Layout loaded.")
+
 
 # Connect the image file names to their definitions.
 _images = {
@@ -116,9 +118,9 @@ def load_configuration():
             _layout = layout.copy()
             _images = images.copy()
         except KeyError:
-            print("Invalid theme/layouthb.ini file. Falling back to default.")
+            _debug_print("Invalid theme/layouthb.ini file. Falling back to default.")
     else:
-        print("No theme/layouthb.ini file found. Falling back to default.")
+        _debug_print("No theme/layouthb.ini file found. Falling back to default.")
 
 
 def _make_sprite(name, batch, group, visible=True):
@@ -211,7 +213,6 @@ class MainScene:
         assert _debug_print(
             f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}"
         )
-        # this is dumb, refactor this..
         if dpup is True:
             self.up_spr.visible = True
         elif dpup is False:
