@@ -11,7 +11,7 @@ from pyglet.util import debug_print
 from pyglet.math import Mat4, Vec3
 
 # Set up the debugging flag calls.
-_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '-d', '--debug')
+_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ("-D", "-d", "--debug")
 _debug_print = debug_print(_debug_flag)
 _debug_print("Debugging Active")
 
@@ -21,7 +21,9 @@ pyglet.resource.reindex()
 _debug_print("Theme Loaded")
 
 # Create the main window
-window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=True)
+window = pyglet.window.Window(
+    640, 390, caption="Fightstick Display", resizable=True, vsync=True
+)
 window.set_icon(pyglet.resource.image("icon.png"))
 _debug_print("Main window created")
 
@@ -31,16 +33,22 @@ config = ConfigParser()
 # Parse and add additional SDL style controller mappings.
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 try:
-    with urllib.request.urlopen(url) as response, open(os.path.dirname(__file__) + "/gamecontrollerdb.txt", 'wb') as f:
+    with urllib.request.urlopen(url) as response, open(
+        os.path.dirname(__file__) + "/gamecontrollerdb.txt", "wb"
+    ) as f:
         f.write(response.read())
 except Exception:
     if os.path.exists("gamecontrollerdb.txt"):
         try:
             pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
-            _debug_print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+            _debug_print(
+                "Added additional controller mappings from 'gamecontrollerdb.txt'"
+            )
         except Exception as e:
-            print(f"Failed to load 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}")
-         
+            print(
+                f"Failed to load 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}"
+            )
+
 
 # Math for scaling the window when resized.
 @window.event
@@ -74,19 +82,19 @@ _debug_print("Layout loaded.")
 
 # Connect the image file names to their definitions.
 _images = {
-    'background': 'background.png',
-    'stick': 'stick.png',
-    'select': 'select.png',
-    'start': 'start.png',
-    'guide': 'guide.png',
-    'x': 'button.png',
-    'y': 'button.png',
-    'lt': 'button.png',
-    'rt': 'button.png',
-    'a': 'button.png',
-    'b': 'button.png',
-    'lb': 'button.png',
-    'rb': 'button.png',
+    "background": "background.png",
+    "stick": "stick.png",
+    "select": "select.png",
+    "start": "start.png",
+    "guide": "guide.png",
+    "x": "button.png",
+    "y": "button.png",
+    "lt": "button.png",
+    "rt": "button.png",
+    "a": "button.png",
+    "b": "button.png",
+    "lb": "button.png",
+    "rb": "button.png",
 }
 
 
@@ -95,13 +103,13 @@ def load_configuration():
     global _layout, _images
     layout = _layout.copy()
     images = _images.copy()
-    loaded_configs = config.read('theme/layout.ini')
+    loaded_configs = config.read("theme/layout.ini")
     if len(loaded_configs) > 0:
         try:
-            for key, value in config.items('layout'):
-                x, y = value.split(', ')
+            for key, value in config.items("layout"):
+                x, y = value.split(", ")
                 layout[key] = int(x), int(y)
-            for key, value in config.items('images'):
+            for key, value in config.items("images"):
                 images[key] = value
             _layout = layout.copy()
             _images = images.copy()
@@ -133,7 +141,7 @@ class TryAgainScene:
 
 
 class MainScene:
-    """ The main scene, with all fightstick events wired up."""
+    """The main scene, with all fightstick events wired up."""
 
     def __init__(self, window_instance):
         self.window = proxy(window_instance)
@@ -142,27 +150,36 @@ class MainScene:
         self.bg = pyglet.graphics.Group(0)
         self.fg = pyglet.graphics.Group(1)
         # Create all sprites using helper function (name, batch, group, visible).
-        self.background = _make_sprite('background', self.batch, self.bg)
-        self.stick_spr = _make_sprite('stick', self.batch, self.fg)
-        self.select_spr = _make_sprite('select', self.batch, self.fg, False)
-        self.start_spr = _make_sprite('start', self.batch, self.fg, False)
-        self.guide_spr = _make_sprite('guide', self.batch, self.fg, False)
-        self.x_spr = _make_sprite('x', self.batch, self.fg, False)
-        self.y_spr = _make_sprite('y', self.batch, self.fg, False)
-        self.a_spr = _make_sprite('a', self.batch, self.fg, False)
-        self.b_spr = _make_sprite('b', self.batch, self.fg, False)
-        self.rb_spr = _make_sprite('rb', self.batch, self.fg, False)
-        self.lb_spr = _make_sprite('lb', self.batch, self.fg, False)
-        self.rt_spr = _make_sprite('rt', self.batch, self.fg, False)
-        self.lt_spr = _make_sprite('lt', self.batch, self.fg, False)
+        self.background = _make_sprite("background", self.batch, self.bg)
+        self.stick_spr = _make_sprite("stick", self.batch, self.fg)
+        self.select_spr = _make_sprite("select", self.batch, self.fg, False)
+        self.start_spr = _make_sprite("start", self.batch, self.fg, False)
+        self.guide_spr = _make_sprite("guide", self.batch, self.fg, False)
+        self.x_spr = _make_sprite("x", self.batch, self.fg, False)
+        self.y_spr = _make_sprite("y", self.batch, self.fg, False)
+        self.a_spr = _make_sprite("a", self.batch, self.fg, False)
+        self.b_spr = _make_sprite("b", self.batch, self.fg, False)
+        self.rb_spr = _make_sprite("rb", self.batch, self.fg, False)
+        self.lb_spr = _make_sprite("lb", self.batch, self.fg, False)
+        self.rt_spr = _make_sprite("rt", self.batch, self.fg, False)
+        self.lt_spr = _make_sprite("lt", self.batch, self.fg, False)
         self.triggerpoint = 0.8
         self.deadzone = 0.2
 
         # Mapping and press/axis/abs event section below.
-        self.button_mapping = {"rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
-                               "x": self.x_spr, "y": self.y_spr, "a": self.a_spr, "b": self.b_spr,
-                               "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
-                               "back": self.select_spr, "start": self.start_spr, "guide": self.guide_spr}
+        self.button_mapping = {
+            "rightshoulder": self.rb_spr,
+            "leftshoulder": self.lb_spr,
+            "x": self.x_spr,
+            "y": self.y_spr,
+            "a": self.a_spr,
+            "b": self.b_spr,
+            "righttrigger": self.rt_spr,
+            "lefttrigger": self.lt_spr,
+            "back": self.select_spr,
+            "start": self.start_spr,
+            "guide": self.guide_spr,
+        }
 
     # Event to show a button when pressed.
     def on_button_press(self, controller, button):
@@ -180,18 +197,20 @@ class MainScene:
     # Math to draw stick inputs in their correct location.
     def on_stick_motion(self, controller, stick, xvalue, yvalue):
         if stick == "leftstick":
-            center_x, center_y = _layout['stick']
+            center_x, center_y = _layout["stick"]
             if abs(xvalue) > self.deadzone:
-                center_x += (xvalue * 50)
+                center_x += xvalue * 50
                 assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
             if abs(yvalue) > self.deadzone:
-                center_y += (yvalue * 50)
+                center_y += yvalue * 50
                 assert _debug_print(f"Moved Stick: {stick}, {xvalue, yvalue}")
             self.stick_spr.position = center_x, center_y, 0
 
     # Math to draw dpad inputs in their correct location.
     def on_dpad_motion(self, controller, dpleft, dpright, dpup, dpdown):
-        assert _debug_print(f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}")
+        assert _debug_print(
+            f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}"
+        )
         center_x, center_y = _layout["stick"]
         if dpup:
             center_y += 50

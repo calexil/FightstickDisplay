@@ -213,22 +213,10 @@ class MainScene:
         assert _debug_print(
             f"Dpad  Left:{dpleft}, Right:{dpright}, Up:{dpup}, Down:{dpdown}"
         )
-        if dpup is True:
-            self.up_spr.visible = True
-        elif dpup is False:
-            self.up_spr.visible = False
-        if dpdown is True:
-            self.down_spr.visible = True
-        elif dpdown is False:
-            self.down_spr.visible = False
-        if dpleft is True:
-            self.left_spr.visible = True
-        elif dpleft is False:
-            self.left_spr.visible = False
-        if dpright is True:
-            self.right_spr.visible = True
-        elif dpright is False:
-            self.right_spr.visible = False
+        self.up_spr.visible = bool(dpup)
+        self.down_spr.visible = bool(dpdown)
+        self.left_spr.visible = bool(dpleft)
+        self.right_spr.visible = bool(dpright)
 
     # Math to draw trigger inputs or hide them.
     def on_trigger_motion(self, controller, trigger, value):
