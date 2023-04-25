@@ -11,8 +11,8 @@ from pyglet.util import debug_print
 from pyglet.math import Mat4, Vec3
 
 # Set up the debugging flag calls.
-_debug_flag = len(sys.argv) > 1 and sys.argv[1] in ("-D", "-d", "--debug")
-_debug_print = debug_print(_debug_flag)
+_DEBUG_FLAG = len(sys.argv) > 1 and sys.argv[1] in ("-D", "-d", "--debug")
+_debug_print = debug_print(_DEBUG_FLAG)
 _debug_print("Debugging Active")
 
 # Load the theme from the /theme folder.
