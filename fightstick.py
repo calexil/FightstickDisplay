@@ -20,7 +20,7 @@ pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
 _debug_print("Theme Loaded")
 
-# Create the main window
+# Create the main window.
 window = pyglet.window.Window(
     640, 390, caption="Fightstick Display", resizable=True, vsync=True
 )
@@ -61,7 +61,7 @@ def on_resize(width, height):
     return pyglet.event.EVENT_HANDLED
 
 
-# Set the x,y parameters for where certain elements should be displayed
+# Set the (x,y) parameters for where certain elements should be displayed.
 _layout = {
     "background": (0, 0),
     "stick": (119, 154),
@@ -120,7 +120,7 @@ def load_configuration():
 
 
 def _make_sprite(name, batch, group, visible=True):
-    # Helper function to make a Sprite.
+    # Helper function to make a sprite.
     image = pyglet.resource.image(_images[name])
     position = _layout[name]
     sprite = pyglet.sprite.Sprite(image, *position, batch=batch, group=group)
@@ -242,6 +242,7 @@ class MainScene:
         self.batch.draw()
 
 
+# Create and draw the SceneManager Class.
 class SceneManager:
     def __init__(self, window_instance):
         """Scene Management and Controller hot-plugging."""
@@ -256,10 +257,11 @@ class SceneManager:
         else:
             self.set_scene()
 
-        # Set handlers for connect/disconnect events:
+        # Set handlers for connect/disconnect events.
         self.controller_manager.on_connect = self._on_controller_connect
         self.controller_manager.on_disconnect = self._on_controller_disconnect
 
+    # Detect is a controller is connected.
     def _on_controller_connect(self, controller):
         _debug_print(f"Controller attached: {controller}")
         if not self.controller:
@@ -267,6 +269,7 @@ class SceneManager:
             self.controller.open()
             self.set_scene()
 
+    # Detect is a controller is disconnected.
     def _on_controller_disconnect(self, controller):
         _debug_print(f"Controller detached: {controller}")
         controller.remove_handlers(self.current_scene)
@@ -275,6 +278,7 @@ class SceneManager:
             self.controller = None
         self.set_scene()
 
+    # Chose the scene for the current status of controller connnection.
     def set_scene(self):
         self.window.remove_handlers(self.current_scene)
 
@@ -289,8 +293,8 @@ class SceneManager:
         self.window.push_handlers(self.current_scene)
 
 
+# Enforce aspect ratio by readjusting the window height.
 def enforce_aspect_ratio(dt):
-    # Enforce aspect ratio by readjusting the window height.
     aspect_ratio = 1.641025641
     target_width = int(window.height * aspect_ratio)
     target_height = int(window.width / aspect_ratio)
@@ -299,6 +303,7 @@ def enforce_aspect_ratio(dt):
         window.set_size(window.width, target_height)
 
 
+# Run the program and set the clock interval.
 if __name__ == "__main__":
     load_configuration()
 
