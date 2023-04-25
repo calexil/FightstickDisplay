@@ -45,7 +45,7 @@ except Exception:
                 "Added additional controller mappings from 'gamecontrollerdb.txt'"
             )
         except Exception as e:
-            print(
+            _debug_print(
                 f"Failed to load 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}"
             )
 

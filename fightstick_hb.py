@@ -41,9 +41,9 @@ except Exception:
     if os.path.exists("gamecontrollerdb.txt"):
         try:
             pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
-            print("Added additional controller mappings from 'gamecontrollerdb.txt'")
+            _debug_print("Added additional controller mappings from 'gamecontrollerdb.txt'")
         except Exception as e:
-            print(
+            _debug_print(
                 f"Failed to load 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}"
             )
 
