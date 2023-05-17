@@ -83,6 +83,9 @@ _debug_print("Layout loaded.")
 # Connect the image file names to their definitions.
 _images = {
     "background": "background.png",
+    "deadzone": "deadzone.png",
+    "bar": "bar.png",
+    "knob": "knob.png",
     "stick": "stick.png",
     "select": "select.png",
     "start": "start.png",
@@ -138,6 +141,28 @@ class TryAgainScene:
     def on_draw(self):
         self.window.clear()
         self.missing_img.blit(0, 0)
+
+
+# class DeadzoneScene:
+#     # A scene for configuring deadzone stick detection.
+#     def __init__(self, window_instance):
+#         self.window = proxy(window_instance)
+#         self.batch = pyglet.graphics.Batch()
+#         bar = pyglet.resource.image("bar.png")
+#         knob = pyglet.resource.image("knob.png")
+#         bg_img = pyglet.resource.image('deadzone.png')
+#         self.bg = pyglet.sprite.Sprite(bg_img, batch=self.batch, group=pyglet.graphics.Group(-1))
+
+#         self.stick_slider = pyglet.gui.Slider(100, 150, bar, knob, edge=0, batch=self.batch)
+#         self.stick_slider.set_handler('on_change', self._stick_slider_handler)
+#         self.stick_label = pyglet.text.Label("Stick Deadzone: 0.0", x=300, y=300, batch=self.batch)
+
+#         self.trigger_slider = pyglet.gui.Slider(100, 100, bar, knob, edge=0, batch=self.batch)
+#         self.trigger_slider.set_handler('on_change', self._trigger_slider_handler)
+#         self.trigger_label = pyglet.text.Label("Trigger Deadzone: 0.0", x=300, y=200, batch=self.batch)
+
+
+#         self.current_scene = DeadzoneScene(window_instance=self.window)
 
 
 class MainScene:
