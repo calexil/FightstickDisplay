@@ -144,25 +144,62 @@ class TryAgainScene:
 
 
 # class DeadzoneScene:
-#     # A scene for configuring deadzone stick detection.
 #     def __init__(self, window_instance):
-#         self.window = proxy(window_instance)
+#         self.window = window_instance
+#         self.deadzone_img = pyglet.resource.image("deadzone.png")
+#         self.triggerpoint = 0.8  # Default trigger point value
+
+
+#         # Create a new batch to store the GUI elements
 #         self.batch = pyglet.graphics.Batch()
-#         bar = pyglet.resource.image("bar.png")
-#         knob = pyglet.resource.image("knob.png")
-#         bg_img = pyglet.resource.image('deadzone.png')
-#         self.bg = pyglet.sprite.Sprite(bg_img, batch=self.batch, group=pyglet.graphics.Group(-1))
-
-#         self.stick_slider = pyglet.gui.Slider(100, 150, bar, knob, edge=0, batch=self.batch)
-#         self.stick_slider.set_handler('on_change', self._stick_slider_handler)
-#         self.stick_label = pyglet.text.Label("Stick Deadzone: 0.0", x=300, y=300, batch=self.batch)
-
-#         self.trigger_slider = pyglet.gui.Slider(100, 100, bar, knob, edge=0, batch=self.batch)
-#         self.trigger_slider.set_handler('on_change', self._trigger_slider_handler)
-#         self.trigger_label = pyglet.text.Label("Trigger Deadzone: 0.0", x=300, y=200, batch=self.batch)
 
 
-#         self.current_scene = DeadzoneScene(window_instance=self.window)
+#         # Function to update trigger point
+#         def update_trigger_point(slider_value):
+#             self.triggerpoint = slider_value
+#             deadzone_label = self.frame.get_element_by_name("triggerpoint")
+#             deadzone_label.text = "Analog Trigger Point: {}".format(round(slider_value, 2))
+
+#         # Create the GUI elements for configuring the deadzone
+#         self.frame = pyglet.gui.Frame(
+#             100, 100, self.window.width - 200, self.window.height - 200,
+#             batch=self.window.batch, group=pyglet.graphics.OrderedGroup(1),
+#             anchor=(0, 0), name="config_frame"
+#         )
+
+#         trigger_slider = pyglet.gui.Slider(
+#             10, 10, 'bar', 'knob', edge=0,
+#             batch=self.window.batch, group=pyglet.graphics.OrderedGroup(2),
+#             name="trigger_slider"
+#         )
+#         trigger_slider.set_handler("on_change", update_trigger_point)
+#         trigger_slider.value = self.triggerpoint
+
+#         trigger_label = pyglet.text.Label(
+#             "Analog Trigger Point: {}".format(round(self.triggerpoint, 2)),
+#             x=10, y=50, anchor_x="left", anchor_y="bottom",
+#             batch=self.window.batch, group=pyglet.graphics.OrderedGroup(2),
+#             name="triggerpoint"
+#         )
+
+#         # Add the GUI elements to the frame
+#         self.frame.add(trigger_slider)
+#         self.frame.add(trigger_label)
+
+#         # Register this class for the 'guide' button press event
+#         controllers[0].push_handlers(self)
+
+#     def on_draw(self):
+#         self.window.clear()
+#         self.deadzone_img.blit(0, 0)
+
+#     def on_button_press(self, controller, button):
+#         assert _debug_print(f"Pressed Button: {button}")
+#         if button == "guide":
+#             if self.frame.parent is not None:
+#                 self.frame.remove_self()
+#             else:
+#                 self.window.push_handlers(self.frame)
 
 
 class MainScene:
@@ -279,6 +316,8 @@ class SceneManager:
 
         if controllers := self.controller_manager.get_controllers():
             self._on_controller_connect(controllers[0])
+        #    self.deadzone_scene = DeadzoneScene(window_instance=self.window)
+        #    controllers[0].push_handlers(self.deadzone_scene)
         else:
             self.set_scene()
 
