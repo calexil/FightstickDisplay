@@ -131,80 +131,8 @@ def _make_sprite(name, batch, group, visible=True):
     return sprite
 
 
-class TryAgainScene:
-    # A scene that tells you to try again if no stick is detected.
-    def __init__(self, window_instance):
-        self.missing_img = pyglet.resource.image("missing.png")
-        self.window = proxy(window_instance)
-
-    # Reset the window draw calls.
-    def on_draw(self):
-        self.window.clear()
-        self.missing_img.blit(0, 0)
-
-
-# class DeadzoneScene:
-#     def __init__(self, window_instance):
-#         self.window = window_instance
-#         self.deadzone_img = pyglet.resource.image("deadzone.png")
-#         self.triggerpoint = 0.8  # Default trigger point value
-
-
-#         # Create a new batch to store the GUI elements
-#         self.batch = pyglet.graphics.Batch()
-
-
-#         # Function to update trigger point
-#         def update_trigger_point(slider_value):
-#             self.triggerpoint = slider_value
-#             deadzone_label = self.frame.get_element_by_name("triggerpoint")
-#             deadzone_label.text = "Analog Trigger Point: {}".format(round(slider_value, 2))
-
-#         # Create the GUI elements for configuring the deadzone
-#         self.frame = pyglet.gui.Frame(
-#             100, 100, self.window.width - 200, self.window.height - 200,
-#             batch=self.window.batch, group=pyglet.graphics.OrderedGroup(1),
-#             anchor=(0, 0), name="config_frame"
-#         )
-
-#         trigger_slider = pyglet.gui.Slider(
-#             10, 10, 'bar', 'knob', edge=0,
-#             batch=self.window.batch, group=pyglet.graphics.OrderedGroup(2),
-#             name="trigger_slider"
-#         )
-#         trigger_slider.set_handler("on_change", update_trigger_point)
-#         trigger_slider.value = self.triggerpoint
-
-#         trigger_label = pyglet.text.Label(
-#             "Analog Trigger Point: {}".format(round(self.triggerpoint, 2)),
-#             x=10, y=50, anchor_x="left", anchor_y="bottom",
-#             batch=self.window.batch, group=pyglet.graphics.OrderedGroup(2),
-#             name="triggerpoint"
-#         )
-
-#         # Add the GUI elements to the frame
-#         self.frame.add(trigger_slider)
-#         self.frame.add(trigger_label)
-
-#         # Register this class for the 'guide' button press event
-#         controllers[0].push_handlers(self)
-
-#     def on_draw(self):
-#         self.window.clear()
-#         self.deadzone_img.blit(0, 0)
-
-#     def on_button_press(self, controller, button):
-#         assert _debug_print(f"Pressed Button: {button}")
-#         if button == "guide":
-#             if self.frame.parent is not None:
-#                 self.frame.remove_self()
-#             else:
-#                 self.window.push_handlers(self.frame)
-
-
+# Create and draw the main Fightstick Display scene.
 class MainScene:
-    """The main scene, with all fightstick events wired up."""
-
     def __init__(self, window_instance):
         self.window = proxy(window_instance)
         self.batch = pyglet.graphics.Batch()
@@ -303,6 +231,74 @@ class MainScene:
         self.window.clear()
         self.batch.draw()
 
+
+# A scene that tells you to try again if no stick is detected.
+class TryAgainScene:
+    def __init__(self, window_instance):
+        self.missing_img = pyglet.resource.image("missing.png")
+        self.window = proxy(window_instance)
+
+    # Reset the window draw calls.
+    def on_draw(self):
+        self.window.clear()
+        self.missing_img.blit(0, 0)
+
+# A scene to configure deadzone values, as well as other options.
+# class ConfigScene:
+#     def __init__(self, window_instance):
+#         self.config_img = pyglet.resource.image("deadzone.png")
+#         self.window = proxy(window_instance)
+#         bar = pyglet.resource.image("bar.png")
+#         knob = pyglet.resource.image("knob.png")
+#         bg_img = pyglet.resource.image('deadzone.png')
+#         self.bg = pyglet.sprite.Sprite(bg_img, batch=self.batch, group=pyglet.graphics.Group(-1))
+
+#         self.stick_slider = pyglet.gui.Slider(100, 150, bar, knob, edge=0, batch=self.batch)
+#         self.stick_slider.set_handler('on_change', self._stick_slider_handler)
+#         self.stick_label = pyglet.text.Label("Stick Deadzone: 0.0", x=300, y=300, batch=self.batch)
+
+#         self.trigger_slider = pyglet.gui.Slider(100, 100, bar, knob, edge=0, batch=self.batch)
+#         self.trigger_slider.set_handler('on_change', self._trigger_slider_handler)
+#         self.trigger_label = pyglet.text.Label("Trigger Deadzone: 0.0", x=300, y=200, batch=self.batch)
+
+#     def activate(self):
+#         self.stick_slider.value = self.manager.stick_deadzone * 100
+#         self.trigger_slider.value = self.manager.trigger_deadzone * 100
+#         self.manager.window.push_handlers(self.stick_slider)
+#         self.manager.window.push_handlers(self.trigger_slider)
+
+#     def deactivate(self):
+#         self.manager.window.remove_handlers(self.stick_slider)
+#         self.manager.window.remove_handlers(self.trigger_slider)
+
+#     def _stick_slider_handler(self, value):
+#         self.stick_label.text = f"Stick Deadzone: {value}"
+#         scaled_value = round(value / 100, 2)
+#         self.manager.stick_deadzone = scaled_value
+#         config.set('deadzones', 'stick', str(scaled_value))
+
+#     def _trigger_slider_handler(self, value):
+#         self.trigger_label.text = f"Trigger Deadzone: {value}"
+#         scaled_value = round(value / 100, 2)
+#         self.manager.trigger_deadzone = scaled_value
+#         config.set('deadzones', 'trigger', str(scaled_value))
+
+#     def on_button_press(self, controller, button):
+#         if button == "guide":
+#             save_configuration()
+#             self.manager.set_scene('main')
+
+#     def on_draw(self):
+#         self.window.clear()
+#         self.config_img.blit(0, 0)
+
+#     def on_button_press(self, controller, button):
+#         assert _debug_print(f"Pressed Button: {button}")
+#         if button == "guide":
+#             self.current_scene = ConfigScene(window_instance=self.window)
+#         pressed_button = self.button_mapping.get(button, None)
+#         if pressed_button:
+#             pressed_button.visible = True
 
 # Create and draw the SceneManager Class.
 class SceneManager:
