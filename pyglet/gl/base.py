@@ -1,37 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
 from enum import Enum
 
 from pyglet import gl
@@ -137,13 +103,7 @@ class Config:
             else:
                 setattr(self, name, None)
 
-    def requires_gl_3(self):
-        # TODO: remove deprecated
-        if self.major_version is not None and self.major_version >= 3:
-            return True
-        if self.forward_compatible or self.debug:
-            return True
-        return False
+        self.opengl_api = self.opengl_api or "gl"
 
     def get_gl_attributes(self):
         """Return a list of attributes set on this config.
@@ -220,7 +180,7 @@ class CanvasConfig(Config):
         self.major_version = base_config.major_version
         self.minor_version = base_config.minor_version
         self.forward_compatible = base_config.forward_compatible
-        self.opengl_api = base_config.opengl_api
+        self.opengl_api = base_config.opengl_api or self.opengl_api
         self.debug = base_config.debug
 
     def compatible(self, canvas):
@@ -263,15 +223,6 @@ class Context:
             GL objects.
 
     """
-
-    #: Context share behaviour indicating that objects should not be
-    #: shared with existing contexts.
-    CONTEXT_SHARE_NONE = None
-
-    #: Context share behaviour indicating that objects are shared with
-    #: the most recently created context (the default).
-    CONTEXT_SHARE_EXISTING = 1
-
     # gl_info.GLInfo instance, filled in on first set_current
     _info = None
 
@@ -292,7 +243,7 @@ class Context:
         if self.canvas is not None:
             self.detach()
         if not self.config.compatible(canvas):
-            raise RuntimeError('Cannot attach %r to %r' % (canvas, self))
+            raise RuntimeError(f'Cannot attach {canvas} to {self}')
         self.canvas = canvas
 
     def detach(self):
@@ -367,8 +318,7 @@ class Context:
 
         """
         if self.object_space is gl.current_context.object_space:
-            tex_id = gl.GLuint(texture_id)
-            gl.glDeleteTextures(1, tex_id)
+            gl.glDeleteTextures(1, gl.GLuint(texture_id))
         else:
             self.object_space.doomed_textures.append(texture_id)
 
@@ -385,8 +335,7 @@ class Context:
         .. versionadded:: 1.1
         """
         if self.object_space is gl.current_context.object_space and False:
-            buf_id = gl.GLuint(buffer_id)
-            gl.glDeleteBuffers(1, buf_id)
+            gl.glDeleteBuffers(1, gl.GLuint(buffer_id))
         else:
             self.object_space.doomed_buffers.append(buffer_id)
 
@@ -403,8 +352,7 @@ class Context:
         .. versionadded:: 2.0
         """
         if gl.current_context and self.object_space is gl.current_context.object_space and False:
-            v_id = gl.GLuint(vao_id)
-            gl.glDeleteVertexArrays(1, v_id)
+            gl.glDeleteVertexArrays(1, gl.GLuint(vao_id))
         else:
             self.object_space.doomed_vaos.append(vao_id)
 

@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 import atexit
 import struct
 import warnings
@@ -46,56 +11,15 @@ IS64 = struct.calcsize("P") == 8
 
 _debug_win32 = pyglet.options['debug_win32']
 
-if _debug_win32:
-    import traceback
+DebugLibrary = lambda lib: ctypes.WinDLL(lib, use_last_error=True if _debug_win32 else False)
 
-    _GetLastError = windll.kernel32.GetLastError
-    _SetLastError = windll.kernel32.SetLastError
-    _FormatMessageA = windll.kernel32.FormatMessageA
-
-    _log_win32 = open('debug_win32.log', 'w')
-
-
-    def format_error(err):
-        msg = create_string_buffer(256)
-        _FormatMessageA(constants.FORMAT_MESSAGE_FROM_SYSTEM,
-                        c_void_p(),
-                        err,
-                        0,
-                        msg,
-                        len(msg),
-                        c_void_p())
-        return msg.value
-
-
-    class DebugLibrary:
-        def __init__(self, lib):
-            self.lib = lib
-
-        def __getattr__(self, name):
-            fn = getattr(self.lib, name)
-
-            def f(*args):
-                _SetLastError(0)
-                result = fn(*args)
-                err = _GetLastError()
-                if err != 0:
-                    for entry in traceback.format_list(traceback.extract_stack()[:-1]):
-                        _log_win32.write(entry)
-                    print(format_error(err), file=_log_win32)
-                return result
-
-            return f
-else:
-    DebugLibrary = lambda lib: lib
-
-_gdi32 = DebugLibrary(windll.gdi32)
-_kernel32 = DebugLibrary(windll.kernel32)
-_user32 = DebugLibrary(windll.user32)
-_dwmapi = DebugLibrary(windll.dwmapi)
-_shell32 = DebugLibrary(windll.shell32)
-_ole32 = DebugLibrary(windll.ole32)
-_oleaut32 = DebugLibrary(windll.oleaut32)
+_gdi32 = DebugLibrary('gdi32')
+_kernel32 = DebugLibrary('kernel32')
+_user32 = DebugLibrary('user32')
+_dwmapi = DebugLibrary('dwmapi')
+_shell32 = DebugLibrary('shell32')
+_ole32 = DebugLibrary('ole32')
+_oleaut32 = DebugLibrary('oleaut32')
 
 # _gdi32
 _gdi32.AddFontMemResourceEx.restype = HANDLE
@@ -216,6 +140,8 @@ _user32.LoadCursorW.restype = HCURSOR
 _user32.LoadCursorW.argtypes = [HINSTANCE, c_wchar_p]
 _user32.LoadIconW.restype = HICON
 _user32.LoadIconW.argtypes = [HINSTANCE, c_wchar_p]
+_user32.LoadImageW.restype = HICON
+_user32.LoadImageW.argtypes = [HINSTANCE, LPCWSTR, UINT, c_int, c_int, UINT]
 _user32.MapVirtualKeyW.restype = UINT
 _user32.MapVirtualKeyW.argtypes = [UINT, UINT]
 _user32.MapWindowPoints.restype = c_int
@@ -281,6 +207,11 @@ _user32.GetRawInputData.restype = UINT
 _user32.GetRawInputData.argtypes = [HRAWINPUT, UINT, LPVOID, PUINT, UINT]
 _user32.ChangeWindowMessageFilterEx.restype = BOOL
 _user32.ChangeWindowMessageFilterEx.argtypes = [HWND, UINT, DWORD, c_void_p]
+_user32.RegisterDeviceNotificationW.restype = HANDLE
+_user32.RegisterDeviceNotificationW.argtypes = [HANDLE, LPVOID, DWORD]
+_user32.UnregisterDeviceNotification.restype = BOOL
+_user32.UnregisterDeviceNotification.argtypes = [HANDLE]
+
 
 # dwmapi
 _dwmapi.DwmIsCompositionEnabled.restype = c_int
@@ -319,11 +250,48 @@ _oleaut32.VariantInit.argtypes = [c_void_p]
 _oleaut32.VariantClear.restype = HRESULT
 _oleaut32.VariantClear.argtypes = [c_void_p]
 
-# Initialize COM in MTA mode. Required for: WIC (DirectWrite), WMF, and XInput
+if _debug_win32:
+    import traceback
+
+    _log_win32 = open('debug_win32.log', 'w')
+
+
+    def win32_errcheck(result, func, args):
+        last_err = ctypes.get_last_error()
+        if last_err != 0:  # If the result is not success and last error is invalid.
+            for entry in traceback.format_list(traceback.extract_stack()[:-1]):
+                _log_win32.write(entry)
+            print(f"[Result {result}] Error #{last_err} - {ctypes.FormatError(last_err)}", file=_log_win32)
+        return args
+
+
+    def set_errchecks(lib):
+        """Set errcheck hook on all functions we have defined."""
+        for key in lib.__dict__:
+            if key.startswith('_'):  # Ignore builtins.
+                continue
+            lib.__dict__[key].errcheck = win32_errcheck
+
+
+    set_errchecks(_gdi32)
+    set_errchecks(_kernel32)
+    set_errchecks(_user32)
+    set_errchecks(_dwmapi)
+    set_errchecks(_shell32)
+    set_errchecks(_ole32)
+    set_errchecks(_oleaut32)
+
+# Initialize COM. Required for: WIC (DirectWrite), WMF, and XInput
 try:
-    _ole32.CoInitializeEx(None, constants.COINIT_MULTITHREADED)
+    if pyglet.options["com_mta"] is True:
+        _ole32.CoInitializeEx(None, constants.COINIT_MULTITHREADED)
+    else:
+        _ole32.CoInitializeEx(None, constants.COINIT_APARTMENTTHREADED)
 except OSError as err:
-    warnings.warn("Could not set COM MTA mode. Unexpected behavior may occur.")
+    if err.winerror == constants.RPC_E_CHANGED_MODE:
+        warnings.warn("COM mode set by another library in a different mode. Unexpected behavior may occur.")
+    else:
+        warnings.warn("COM was already initialized by another library.")
 
 
 def _uninitialize():
@@ -331,5 +299,6 @@ def _uninitialize():
         _ole32.CoUninitialize()
     except OSError:
         pass
+
 
 atexit.register(_uninitialize)

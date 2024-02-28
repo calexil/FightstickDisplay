@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Display different types of interactive widgets.
 """
 
@@ -117,7 +82,7 @@ class WidgetBase(EventDispatcher):
     def aabb(self):
         """Bounding box of the widget.
 
-        Expresesed as (x, y, x + width, y + height)
+        Expressed as (x, y, x + width, y + height)
 
         :type: (int, int, int, int)
         """
@@ -327,6 +292,10 @@ class Slider(WidgetBase):
         self._value = 0
         self._in_update = False
 
+    def _update_position(self):
+        self._base_spr.position = self._x, self._y, 0
+        self._knob_spr.position = self._x + self._edge, self._y + self._base_img.height / 2, 0
+
     @property
     def value(self):
         return self._value
@@ -418,7 +387,7 @@ class TextEntry(WidgetBase):
                 The color of the outline box in RGBA format.
             `text_color` : (int, int, int, int)
                 The color of the text in RGBA format.
-            `text_color` : (int, int, int)
+            `caret_color` : (int, int, int)
                 The color of the caret in RGB format.
             `batch` : `~pyglet.graphics.Batch`
                 Optional batch to add the text entry widget to.
@@ -451,7 +420,7 @@ class TextEntry(WidgetBase):
         super().__init__(x, y, width, height)
 
     def _update_position(self):
-        self._layout.position = self._x, self._y
+        self._layout.position = self._x, self._y, 0
         self._outline.position = self._x - self._pad, self._y - self._pad
 
     @property
@@ -477,8 +446,6 @@ class TextEntry(WidgetBase):
     def on_mouse_motion(self, x, y, dx, dy):
         if not self.enabled:
             return
-        if not self._check_hit(x, y):
-            self._set_focus(False)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if not self.enabled:
@@ -492,11 +459,14 @@ class TextEntry(WidgetBase):
         if self._check_hit(x, y):
             self._set_focus(True)
             self._caret.on_mouse_press(x, y, buttons, modifiers)
+        else:
+            self._set_focus(False)
 
     def on_text(self, text):
         if not self.enabled:
             return
         if self._focus:
+            # Commit on Enter/Return:
             if text in ('\r', '\n'):
                 self.dispatch_event('on_commit', self._layout.document.text)
                 self._set_focus(False)

@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Text formatting, layout and display.
 
 This module provides classes for loading styled documents from text files,
@@ -148,7 +113,7 @@ def get_decoder(filename, mimetype=None):
         from pyglet.text.formats import attributed
         return attributed.AttributedTextDecoder()
     else:
-        raise DocumentDecodeException('Unknown format "%s"' % mimetype)
+        raise DocumentDecodeException(f'Unknown format "{mimetype}"')
 
 
 def load(filename, file=None, mimetype=None):
@@ -234,9 +199,9 @@ class DocumentLabel(layout.TextLayout):
     """
 
     def __init__(self, document=None,
-                 x=0, y=0, width=None, height=None,
+                 x=0, y=0, z=0, width=None, height=None,
                  anchor_x='left', anchor_y='baseline',
-                 multiline=False, dpi=None, batch=None, group=None):
+                 multiline=False, dpi=None, batch=None, group=None, rotation=0):
         """Create a label for a given document.
 
         :Parameters:
@@ -246,6 +211,8 @@ class DocumentLabel(layout.TextLayout):
                 X coordinate of the label.
             `y` : int
                 Y coordinate of the label.
+            `z` : int
+                Z coordinate of the label.
             `width` : int
                 Width of the label in pixels, or None
             `height` : int
@@ -265,11 +232,17 @@ class DocumentLabel(layout.TextLayout):
                 Optional graphics batch to add the label to.
             `group` : `~pyglet.graphics.Group`
                 Optional graphics group to use.
+            `rotation`: float
+                The amount to rotate the label in degrees. A positive amount
+                will be a clockwise rotation, negative values will result in
+                counter-clockwise rotation.
 
         """
         super().__init__(document, width, height, multiline, dpi, batch, group)
         self._x = x
         self._y = y
+        self._z = z
+        self._rotation = rotation
         self._anchor_x = anchor_x
         self._anchor_y = anchor_y
         self._update()
@@ -410,10 +383,10 @@ class Label(DocumentLabel):
     def __init__(self, text='',
                  font_name=None, font_size=None, bold=False, italic=False, stretch=False,
                  color=(255, 255, 255, 255),
-                 x=0, y=0, width=None, height=None,
+                 x=0, y=0, z=0, width=None, height=None,
                  anchor_x='left', anchor_y='baseline',
                  align='left',
-                 multiline=False, dpi=None, batch=None, group=None):
+                 multiline=False, dpi=None, batch=None, group=None, rotation=0):
         """Create a plain text label.
 
         :Parameters:
@@ -436,6 +409,8 @@ class Label(DocumentLabel):
                 X coordinate of the label.
             `y` : int
                 Y coordinate of the label.
+            `z` : int
+                Z coordinate of the label.
             `width` : int
                 Width of the label in pixels, or None
             `height` : int
@@ -459,10 +434,14 @@ class Label(DocumentLabel):
                 Optional graphics batch to add the label to.
             `group` : `~pyglet.graphics.Group`
                 Optional graphics group to use.
+            `rotation`: float
+                The amount to rotate the label in degrees. A positive amount
+                will be a clockwise rotation, negative values will result in
+                counter-clockwise rotation.
 
         """
         doc = decode_text(text)
-        super().__init__(doc, x, y, width, height, anchor_x, anchor_y, multiline, dpi, batch, group)
+        super().__init__(doc, x, y, z, width, height, anchor_x, anchor_y, multiline, dpi, batch, group, rotation)
 
         self.document.set_style(0, len(self.document.text), {
             'font_name': font_name,
@@ -483,9 +462,9 @@ class HTMLLabel(DocumentLabel):
     """
 
     def __init__(self, text='', location=None,
-                 x=0, y=0, width=None, height=None,
+                 x=0, y=0, z=0, width=None, height=None,
                  anchor_x='left', anchor_y='baseline',
-                 multiline=False, dpi=None, batch=None, group=None):
+                 multiline=False, dpi=None, batch=None, group=None, rotation=0):
         """Create a label with an HTML string.
 
         :Parameters:
@@ -498,6 +477,8 @@ class HTMLLabel(DocumentLabel):
                 X coordinate of the label.
             `y` : int
                 Y coordinate of the label.
+            `z` : int
+                Z coordinate of the label.
             `width` : int
                 Width of the label in pixels, or None
             `height` : int
@@ -517,12 +498,16 @@ class HTMLLabel(DocumentLabel):
                 Optional graphics batch to add the label to.
             `group` : `~pyglet.graphics.Group`
                 Optional graphics group to use.
+            `rotation`: float
+                The amount to rotate the label in degrees. A positive amount
+                will be a clockwise rotation, negative values will result in
+                counter-clockwise rotation.
 
         """
         self._text = text
         self._location = location
         doc = decode_html(text, location)
-        super().__init__(doc, x, y, width, height, anchor_x, anchor_y, multiline, dpi, batch, group)
+        super().__init__(doc, x, y, z, width, height, anchor_x, anchor_y, multiline, dpi, batch, group, rotation)
 
     @property
     def text(self):

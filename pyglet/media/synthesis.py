@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 import math as _math
 import struct as _struct
 
@@ -189,10 +154,10 @@ def noise_generator(frequency, sample_rate):
 
 
 def sine_generator(frequency, sample_rate):
-    step = 2 * _math.pi * frequency
+    step = 2 * _math.pi * frequency / sample_rate
     i = 0
     while True:
-        yield _math.sin(step * i / sample_rate)
+        yield _math.sin(i * step)
         i += 1
 
 
@@ -230,38 +195,32 @@ def pulse_generator(frequency, sample_rate, duty_cycle=50):
 
 # Source classes:
 
-class _SynthesisSource(Source):
+class SynthesisSource(Source):
     """Base class for synthesized waveforms.
 
     :Parameters:
         `generator` : A non-instantiated generator object
-            A waveform generator that produces a stream of numbers from (-1, 1)
+            A waveform generator that produces a stream of floats from (-1, 1)
         `duration` : float
             The length, in seconds, of audio that you wish to generate.
-        `frequency` : float
-            The frequency, in Hz, of the waveform you wish to generate.
         `sample_rate` : int
             Audio samples per second. (CD quality is 44100).
         `envelope` : :py:class:`pyglet.media.synthesis._Envelope`
             An optional Envelope to apply to the waveform.
     """
-    def __init__(self, generator, duration, frequency, sample_rate, envelope=None):
+    def __init__(self, generator, duration, sample_rate=44800, envelope=None):
         self._generator = generator
         self._duration = duration
-        self._frequency = frequency
-
-        self.envelope = envelope or FlatEnvelope(amplitude=1.0)
-        self._envelope_generator = self.envelope.get_generator(sample_rate, duration)
-
         self.audio_format = AudioFormat(channels=1, sample_size=16, sample_rate=sample_rate)
 
+        self._envelope = envelope or FlatEnvelope(amplitude=1.0)
+        self._envelope_generator = self._envelope.get_generator(sample_rate, duration)
+
+        # Two bytes per sample (16-bit):
+        self._bytes_per_second = sample_rate * 2
+        # Maximum offset, aligned to sample:
+        self._max_offset = int(self._bytes_per_second * duration) & 0xfffffffe
         self._offset = 0
-        self._sample_rate = sample_rate
-        self._bytes_per_sample = 2
-        self._bytes_per_second = self._bytes_per_sample * sample_rate
-        self._max_offset = int(self._bytes_per_second * duration)
-        # Align to sample:
-        self._max_offset &= 0xfffffffe
 
     def get_audio_data(self, num_bytes, compensation_time=0.0):
         """Return `num_bytes` bytes of audio data."""
@@ -269,94 +228,104 @@ class _SynthesisSource(Source):
         if num_bytes <= 0:
             return None
 
-        timestamp = float(self._offset) / self._bytes_per_second
-        duration = float(num_bytes) / self._bytes_per_second
+        timestamp = self._offset / self._bytes_per_second
+        duration = num_bytes / self._bytes_per_second
         self._offset += num_bytes
 
-        data = self._generate_data(num_bytes)
+        # Generate bytes:
+        samples = num_bytes >> 1
+        generator = self._generator
+        envelope = self._envelope_generator
+        data = (int(next(generator) * next(envelope) * 0x7fff) for _ in range(samples))
+        data = _struct.pack(f"{samples}h", *data)
 
         return AudioData(data, num_bytes, timestamp, duration, [])
 
-    def _generate_data(self, num_bytes):
-        samples = num_bytes >> 1
-        amplitude = 32767
-        generator = self._generator
-        envelope = self._envelope_generator
-        data = (int(next(generator) * next(envelope) * amplitude) for _ in range(samples))
-        return _struct.pack(f"{samples}h", *data)
-
     def seek(self, timestamp):
-        self._offset = int(timestamp * self._bytes_per_second)
-
-        # Bound within duration
-        self._offset = min(max(self._offset, 0), self._max_offset)
-
-        # Align to sample
-        self._offset &= 0xfffffffe
-        self._envelope_generator = self.envelope.get_generator(self._sample_rate, self._duration)
+        # Bound within duration & align to sample:
+        offset = int(timestamp * self._bytes_per_second)
+        self._offset = min(max(offset, 0), self._max_offset) & 0xfffffffe
+        self._envelope_generator = self._envelope.get_generator(self.audio_format.sample_rate, self._duration)
 
 
-class Silence(_SynthesisSource):
+class Silence(SynthesisSource):
     def __init__(self, duration, frequency=440, sample_rate=44800, envelope=None):
         """Create a Silent waveform."""
-        super().__init__(silence_generator(frequency, sample_rate), duration, frequency, sample_rate, envelope)
+        super().__init__(silence_generator(frequency, sample_rate), duration, sample_rate, envelope)
 
 
-class WhiteNoise(_SynthesisSource):
+class WhiteNoise(SynthesisSource):
     def __init__(self, duration, frequency=440, sample_rate=44800, envelope=None):
         """Create a random white noise waveform."""
-        super().__init__(noise_generator(frequency, sample_rate), duration, frequency, sample_rate, envelope)
+        super().__init__(noise_generator(frequency, sample_rate), duration, sample_rate, envelope)
 
 
-class Sine(_SynthesisSource):
+class Sine(SynthesisSource):
     def __init__(self, duration, frequency=440, sample_rate=44800, envelope=None):
         """Create a sinusoid (sine) waveform."""
-        super().__init__(sine_generator(frequency, sample_rate), duration, frequency, sample_rate, envelope)
+        super().__init__(sine_generator(frequency, sample_rate), duration, sample_rate, envelope)
 
 
-class Square(_SynthesisSource):
+class Square(SynthesisSource):
     def __init__(self, duration, frequency=440, sample_rate=44800, envelope=None):
         """Create a Square (pulse) waveform."""
-        super().__init__(pulse_generator(frequency, sample_rate), duration, frequency, sample_rate, envelope)
+        super().__init__(pulse_generator(frequency, sample_rate), duration, sample_rate, envelope)
 
 
-class Triangle(_SynthesisSource):
+class Triangle(SynthesisSource):
     def __init__(self, duration, frequency=440, sample_rate=44800, envelope=None):
         """Create a Triangle waveform."""
-        super().__init__(triangle_generator(frequency, sample_rate), duration, frequency, sample_rate, envelope)
+        super().__init__(triangle_generator(frequency, sample_rate), duration, sample_rate, envelope)
 
 
-class Sawtooth(_SynthesisSource):
+class Sawtooth(SynthesisSource):
     def __init__(self, duration, frequency=440, sample_rate=44800, envelope=None):
         """Create a Sawtooth waveform."""
-        super().__init__(sawtooth_generator(frequency, sample_rate), duration, frequency, sample_rate, envelope)
+        super().__init__(sawtooth_generator(frequency, sample_rate), duration, sample_rate, envelope)
 
 
 #############################################
 #   Experimental multi-operator FM synthesis:
 #############################################
 
-def sine_operator(samplerate=44800, frequency=440, index=1, modulator=None, envelope=None):
-    # A sine generator that can be optionally modulated with another generator.
+def sine_operator(sample_rate=44800, frequency=440, index=1, modulator=None, envelope=None):
+    """A sine wave generator that can be optionally modulated with another generator.
+
+    This generator represents a single FM Operator. It can be used by itself as a
+    simple sine wave, or modulated by another waveform generator. Multiple operators
+    can be linked together in this way. For example::
+
+        operator1 = sine_operator(samplerate=44800, frequency=1.22)
+        operator2 = sine_operator(samplerate=44800, frequency=99, modulator=operator1)
+        operator3 = sine_operator(samplerate=44800, frequency=333, modulator=operator2)
+        operator4 = sine_operator(samplerate=44800, frequency=545, modulator=operator3)
+
+    :Parameters:
+        `sample_rate` : int
+            Audio samples per second. (CD quality is 44100).
+        `frequency` : float
+            The frequency, in Hz, of the waveform you wish to generate.
+        `index` : float
+            The modulation index. Defaults to 1
+        `modulator` : sine_operator
+            An optional operator to modulate this one.
+        `envelope` : :py:class:`pyglet.media.synthesis._Envelope`
+            An optional Envelope to apply to the waveform.
+    """
     # FM equation:  sin((i * 2 * pi * carrier_frequency) + sin(i * 2 * pi * modulator_frequency))
+    envelope = envelope or FlatEnvelope(1).get_generator(sample_rate, duration=None)
     sin = _math.sin
-    step = 2 * _math.pi * frequency / samplerate
+    step = 2 * _math.pi * frequency / sample_rate
     i = 0
-    envelope = envelope or FlatEnvelope(1).get_generator(samplerate, duration=None)
     if modulator:
         while True:
             yield sin(i * step + index * next(modulator)) * next(envelope)
             i += 1
     else:
         while True:
-            yield _math.sin(i * step) * next(envelope)
+            yield sin(i * step) * next(envelope)
             i += 1
 
 
 def composite_operator(*operators):
     return (sum(samples) / len(samples) for samples in zip(*operators))
-
-
-class Encoder(_SynthesisSource):
-    def __init__(self, operator, duration,  frequency=440, sample_rate=44800, envelope=None):
-        super().__init__(operator, duration, frequency, sample_rate, envelope)

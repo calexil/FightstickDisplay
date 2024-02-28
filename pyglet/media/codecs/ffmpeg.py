@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Use ffmpeg to decode audio and video media.
 """
 
@@ -118,6 +83,7 @@ def ffmpeg_init():
     """Initialize libavformat and register all the muxers, demuxers and
     protocols."""
     pass
+
 
 class MemoryFileObject:
     """A class to manage reading and seeking of a ffmpeg file object."""
@@ -210,6 +176,7 @@ def ffmpeg_open_memory_file(filename, file_object):
 
     return file, memory_file
 
+
 def ffmpeg_open_filename(filename):
     """Open the media file.
 
@@ -262,8 +229,7 @@ def ffmpeg_file_info(file):
         info.title = asstr(entry.contents.value)
 
     entry = avutil.av_dict_get(file.context.contents.metadata, asbytes('artist'), None, 0) \
-            or \
-            avutil.av_dict_get(file.context.contents.metadata, asbytes('album_artist'), None, 0)
+        or avutil.av_dict_get(file.context.contents.metadata, asbytes('album_artist'), None, 0)
     if entry:
         info.author = asstr(entry.contents.value)
 

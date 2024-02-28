@@ -1,43 +1,9 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
-import sys
 import ctypes
-from . import com
+
 from ctypes import *
 from ctypes.wintypes import *
+
+from . import com
 
 
 _int_types = (c_int16, c_int32)
@@ -51,11 +17,6 @@ for t in _int_types:
         c_ptrdiff_t = t
 del t
 del _int_types
-
-
-# PUINT is defined only from >= python 3.2
-if sys.version_info < (3, 2)[:2]:
-    PUINT = POINTER(UINT)
 
 
 class c_void(Structure):
@@ -76,6 +37,7 @@ def POINTER_(obj):
                 return cls()
             else:
                 return x
+
         p.from_param = classmethod(from_param)
 
     return p
@@ -367,12 +329,14 @@ class _DUMMYSTRUCTNAME(Structure):
         ('dmPrintQuality', c_short),
     ]
 
+
 class _DUMMYSTRUCTNAME2(Structure):
     _fields_ = [
         ('dmPosition', POINTL),
         ('dmDisplayOrientation', DWORD),
         ('dmDisplayFixedOutput', DWORD)
     ]
+
 
 class _DUMMYDEVUNION(Union):
     _anonymous_ = ('_dummystruct1', '_dummystruct2')
@@ -381,6 +345,7 @@ class _DUMMYDEVUNION(Union):
         ('dmPosition', POINTL),
         ('_dummystruct2', _DUMMYSTRUCTNAME2),
     ]
+
 
 class DEVMODE(Structure):
     _anonymous_ = ('_dummyUnion',)
@@ -391,7 +356,7 @@ class DEVMODE(Structure):
         ('dmSize', WORD),
         ('dmDriverExtra', WORD),
         ('dmFields', DWORD),
-        # Just using largest union member here
+        # Just using the largest union member here
         ('_dummyUnion', _DUMMYDEVUNION),
         # End union
         ('dmColor', c_short),
@@ -404,7 +369,7 @@ class DEVMODE(Structure):
         ('dmBitsPerPel', DWORD),
         ('dmPelsWidth', DWORD),
         ('dmPelsHeight', DWORD),
-        ('dmDisplayFlags', DWORD), # union with dmNup
+        ('dmDisplayFlags', DWORD),  # union with dmNup
         ('dmDisplayFrequency', DWORD),
         ('dmICMMethod', DWORD),
         ('dmICMIntent', DWORD),
@@ -511,7 +476,7 @@ class RAWINPUT(Structure):
 
 
 # PROPVARIANT wrapper, doesn't require InitPropVariantFromInt64 this way.
-class _VarTable(ctypes.Union):
+class _VarTable(Union):
     """Must be in an anonymous union or values will not work across various VT's."""
     _fields_ = [
         ('llVal', ctypes.c_longlong),
@@ -519,7 +484,7 @@ class _VarTable(ctypes.Union):
     ]
 
 
-class PROPVARIANT(ctypes.Structure):
+class PROPVARIANT(Structure):
     _anonymous_ = ['union']
 
     _fields_ = [
@@ -530,14 +495,15 @@ class PROPVARIANT(ctypes.Structure):
         ('union', _VarTable)
     ]
 
-class _VarTableVariant(ctypes.Union):
+
+class _VarTableVariant(Union):
     """Must be in an anonymous union or values will not work across various VT's."""
     _fields_ = [
         ('bstrVal', LPCWSTR)
     ]
 
 
-class VARIANT(ctypes.Structure):
+class VARIANT(Structure):
     _anonymous_ = ['union']
 
     _fields_ = [
@@ -548,7 +514,8 @@ class VARIANT(ctypes.Structure):
         ('union', _VarTableVariant)
     ]
 
-class DWM_BLURBEHIND(ctypes.Structure):
+
+class DWM_BLURBEHIND(Structure):
     _fields_ = [
         ("dwFlags", DWORD),
         ("fEnable", BOOL),
@@ -557,7 +524,7 @@ class DWM_BLURBEHIND(ctypes.Structure):
     ]
 
 
-class STATSTG(ctypes.Structure):
+class STATSTG(Structure):
     _fields_ = [
         ('pwcsName', LPOLESTR),
         ('type', DWORD),
@@ -571,6 +538,12 @@ class STATSTG(ctypes.Structure):
         ('grfStateBits', DWORD),
         ('reserved', DWORD),
     ]
+
+
+class TIMECAPS(Structure):
+    _fields_ = (('wPeriodMin', UINT),
+                ('wPeriodMax', UINT))
+
 
 class IStream(com.pIUnknown):
     _methods_ = [
@@ -597,3 +570,19 @@ class IStream(com.pIUnknown):
         ('Clone',
          com.STDMETHOD()),
     ]
+
+class DEV_BROADCAST_HDR(Structure):
+    _fields_ = (
+        ('dbch_size', DWORD),
+        ('dbch_devicetype', DWORD),
+        ('dbch_reserved', DWORD),
+    )
+
+class DEV_BROADCAST_DEVICEINTERFACE(Structure):
+    _fields_ = (
+        ('dbcc_size', DWORD),
+        ('dbcc_devicetype', DWORD),
+        ('dbcc_reserved', DWORD),
+        ('dbcc_classguid', com.GUID),
+        ('dbcc_name', ctypes.c_wchar * 256)
+    )

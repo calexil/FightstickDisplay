@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Provides keyboard and mouse editing procedures for text layout.
 
 Example usage::
@@ -356,6 +321,7 @@ class Caret:
             m2 = len(self._layout.document.text)
         else:
             m2 = m2.start()
+
         self._position = m2
         self._update(line=line)
         self._next_attributes.clear()
@@ -384,20 +350,24 @@ class Caret:
         else:
             self._ideal_line = line
         x, y = self._layout.get_point_from_position(self._position, line)
+        z = self._layout.z
         if update_ideal_x:
             self._ideal_x = x
 
         x += self._layout.x
         y += self._layout.y + self._layout.height
 
-        font = self._layout.document.get_font(max(0, self._position - 1))
-        self._list.position[:] = [x, y + font.descent, x, y + font.ascent]
-
         if self._mark is not None:
             self._layout.set_selection(min(self._position, self._mark), max(self._position, self._mark))
 
         self._layout.ensure_line_visible(line)
         self._layout.ensure_x_visible(x)
+
+        font = self._layout.document.get_font(max(0, self._position - 1))
+        self._list.position[:] = [x, y + font.descent, z, x, y + font.ascent, z]
+
+    def on_translation_update(self):
+        self._list.translation[:] = (-self._layout.view_x, -self._layout.view_y, 0) * 2
 
     def on_layout_update(self):
         """Handler for the `IncrementalTextLayout.on_layout_update` event.
@@ -436,6 +406,7 @@ class Caret:
             elif self._position > 0:
                 self._position -= 1
                 self._layout.document.delete_text(self._position, self._position + 1)
+                self._update()
         elif motion == key.MOTION_DELETE:
             if self.mark is not None:
                 self._delete_selection()

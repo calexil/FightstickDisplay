@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Interface classes for `pyglet.input`.
 
 .. versionadded:: 1.2
@@ -530,6 +495,9 @@ class Joystick(EventDispatcher):
                 (centered) or 1 (top).
         """
 
+    def __repr__(self):
+        return f"Joystick(device={self.device.name})"
+
 
 Joystick.register_event_type('on_joyaxis_motion')
 Joystick.register_event_type('on_joybutton_press')
@@ -670,8 +638,7 @@ class Controller(EventDispatcher):
                         self.dpright = True
                     if normalized_value < -0.1:
                         self.dpleft = True
-                    self.dispatch_event('on_dpad_motion', self,
-                                        self.dpleft, self.dpright, self.dpup, self.dpdown)
+                    self.dispatch_event('on_dpad_motion', self, self.dpleft, self.dpright, self.dpup, self.dpdown)
 
             elif axis_name in ("lefttrigger", "righttrigger"):
                 @control.event
@@ -716,7 +683,6 @@ class Controller(EventDispatcher):
                 def on_release():
                     self.dispatch_event('on_button_release', self, button_name)
 
-        # TODO: Test this on Windows and Mac:
         def add_dedicated_hat(control):
             # 8-directional hat encoded as a single control (Windows/Mac)
             @control.event
@@ -824,18 +790,18 @@ class Controller(EventDispatcher):
 
     # Input Event types:
 
-    def on_stick_motion(self, controller, axis, xvalue, yvalue):
+    def on_stick_motion(self, controller, stick, xvalue, yvalue):
         """The value of a controller analogue stick changed.
 
         :Parameters:
             `controller` : `Controller`
                 The controller whose analogue stick changed.
-            `axis` : string
-                The name of the axis that changed.
+            `stick` : string
+                The name of the stick that changed.
             `xvalue` : float
-                The current x axis value, normalized to [-1, 1].
+                The current X axis value, normalized to [-1, 1].
             `yvalue` : float
-                The current y axis value, normalized to [-1, 1].
+                The current Y axis value, normalized to [-1, 1].
         """
 
     def on_dpad_motion(self, controller, dpleft, dpright, dpup, dpdown):
@@ -977,7 +943,7 @@ class AppleRemote(EventDispatcher):
 
         The 'select_hold' and 'menu_hold' button release events are sent
         immediately after the corresponding press events regardless of
-        whether or not the user has released the button.
+        whether the user has released the button.
 
         :Parameters:
             `button` : str

@@ -1,38 +1,3 @@
-# ----------------------------------------------------------------------------
-# pyglet
-# Copyright (c) 2006-2008 Alex Holkner
-# Copyright (c) 2008-2022 pyglet contributors
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in
-#    the documentation and/or other materials provided with the
-#    distribution.
-#  * Neither the name of pyglet nor the names of its
-#    contributors may be used to endorse or promote products
-#    derived from this software without specific prior written
-#    permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-# ----------------------------------------------------------------------------
-
 """Display positioned, scaled and rotated images.
 
 A sprite is an instance of an image displayed on-screen.  Multiple sprites can
@@ -63,7 +28,7 @@ properties determine the sprite's :py:attr:`~pyglet.sprite.Sprite.rotation`,
 :py:attr:`~pyglet.sprite.Sprite.scale` and
 :py:attr:`~pyglet.sprite.Sprite.opacity`.
 
-By default sprite coordinates are restricted to integer values to avoid
+By default, sprite coordinates are restricted to integer values to avoid
 sub-pixel artifacts.  If you require to use floats, for example for smoother
 animations, you can set the ``subpixel`` parameter to ``True`` when creating
 the sprite (:since: pyglet 1.2).
@@ -209,7 +174,7 @@ class SpriteGroup(graphics.Group):
     same parent group, texture and blend parameters.
     """
 
-    def __init__(self, texture, blend_src, blend_dest, program, order=0, parent=None):
+    def __init__(self, texture, blend_src, blend_dest, program, parent=None):
         """Create a sprite group.
 
         The group is created internally when a :py:class:`~pyglet.sprite.Sprite`
@@ -231,7 +196,7 @@ class SpriteGroup(graphics.Group):
             `parent` : `~pyglet.graphics.Group`
                 Optional parent group.
         """
-        super().__init__(order, parent)
+        super().__init__(parent=parent)
         self.texture = texture
         self.blend_src = blend_src
         self.blend_dest = blend_dest
@@ -256,14 +221,14 @@ class SpriteGroup(graphics.Group):
     def __eq__(self, other):
         return (other.__class__ is self.__class__ and
                 self.program is other.program and
-                self.parent is other.parent and
+                self.parent == other.parent and
                 self.texture.target == other.texture.target and
                 self.texture.id == other.texture.id and
                 self.blend_src == other.blend_src and
                 self.blend_dest == other.blend_dest)
 
     def __hash__(self):
-        return hash((id(self.parent), id(self.program),
+        return hash((self.program, self.parent,
                      self.texture.id, self.texture.target,
                      self.blend_src, self.blend_dest))
 
@@ -335,7 +300,7 @@ class Sprite(event.EventDispatcher):
             self._texture = img.get_texture()
 
         self._batch = batch or graphics.get_default_batch()
-        self._group = self.group_class(self._texture, blend_src, blend_dest, self.program, 0, group)
+        self._group = self.group_class(self._texture, blend_src, blend_dest, self.program, group)
         self._subpixel = subpixel
         self._create_vertex_list()
 
@@ -434,7 +399,6 @@ class Sprite(event.EventDispatcher):
                                        self._group.blend_src,
                                        self._group.blend_dest,
                                        self._group.program,
-                                       0,
                                        group)
         self._batch.migrate(self._vertex_list, GL_TRIANGLES, self._group, self._batch)
 
@@ -472,7 +436,6 @@ class Sprite(event.EventDispatcher):
                                                 self._group.blend_src,
                                                 self._group.blend_dest,
                                                 self._group.program,
-                                                0,
                                                 self._group.parent)
             self._vertex_list.delete()
             self._texture = texture
@@ -651,24 +614,41 @@ class Sprite(event.EventDispatcher):
             `scale_y` : float
                 Vertical scaling factor.
         """
-        if x:
+
+        translations_outdated = False
+
+        # only bother updating if the translation actually changed
+        if x is not None:
             self._x = x
-        if y:
+            translations_outdated = True
+        if y is not None:
             self._y = y
-        if z:
+            translations_outdated = True
+        if z is not None:
             self._z = z
-        if x or y or z:
+            translations_outdated = True
+
+        if translations_outdated:
             self._vertex_list.translate[:] = (self._x, self._y, self._z) * 4
-        if rotation:
+
+        if rotation is not None and rotation != self._rotation:
             self._rotation = rotation
             self._vertex_list.rotation[:] = (rotation,) * 4
-        if scale:
+
+        scales_outdated = False
+
+        # only bother updating if the scale actually changed
+        if scale is not None:
             self._scale = scale
-        if scale_x:
+            scales_outdated = True
+        if scale_x is not None:
             self._scale_x = scale_x
-        if scale_y:
+            scales_outdated = True
+        if scale_y is not None:
             self._scale_y = scale_y
-        if scale or scale_x or scale_y:
+            scales_outdated = True
+
+        if scales_outdated:
             self._vertex_list.scale[:] = (self._scale * self._scale_x, self._scale * self._scale_y) * 4
 
     @property
@@ -854,7 +834,6 @@ class AdvancedSprite(pyglet.sprite.Sprite):
                                        self._group.blend_src,
                                        self._group.blend_dest,
                                        program,
-                                       0,
                                        self._group)
         self._batch.migrate(self._vertex_list, GL_TRIANGLES, self._group, self._batch)
         self._program = program
