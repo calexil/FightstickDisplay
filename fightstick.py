@@ -126,10 +126,6 @@ class RetryScene(_BaseScene):
         self.missing_img = pyglet.resource.image("missing.png")
         self.sprite = pyglet.sprite.Sprite(img=pyglet.resource.image("missing.png"), batch=self.batch)
 
-    def on_button_press(self, controller, button):
-        # If a Controller button was pressed, one must be plugged in.
-        self.manager.set_scene('main')
-
 
 class ConfigScene(_BaseScene):
     """A scene to allow deadzone configuration."""
@@ -159,6 +155,7 @@ class ConfigScene(_BaseScene):
     def deactivate(self):
         self.manager.window.remove_handlers(self.stick_slider)
         self.manager.window.remove_handlers(self.trigger_slider)
+        save_configuration()
 
     def _stick_slider_handler(self, value):
         self.stick_label.text = f"Stick Deadzone: {round(value, 2)}"
@@ -174,7 +171,6 @@ class ConfigScene(_BaseScene):
 
     def on_button_press(self, controller, button):
         if button == "guide":
-            save_configuration()
             self.manager.set_scene('main')
 
     def on_key_press(self, key, modifiers):
