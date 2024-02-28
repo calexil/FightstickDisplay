@@ -151,8 +151,8 @@ class ConfigScene(_BaseScene):
     def activate(self):
         self.stick_slider.value = self.manager.stick_deadzone * 100
         self.trigger_slider.value = self.manager.trigger_deadzone * 100
-        self.stick_label.text = f"Stick Deadzone: {self.manager.stick_deadzone * 100}"
-        self.trigger_label.text = f"Trigger Deadzone: {self.manager.trigger_deadzone * 100}"
+        self.stick_label.text = f"Stick Deadzone: {round(self.manager.stick_deadzone * 100, 2)}"
+        self.trigger_label.text = f"Trigger Deadzone: {round(self.manager.trigger_deadzone * 100, 2)}"
         self.manager.window.push_handlers(self.stick_slider)
         self.manager.window.push_handlers(self.trigger_slider)
 
@@ -176,6 +176,10 @@ class ConfigScene(_BaseScene):
         if button == "guide":
             save_configuration()
             self.manager.set_scene('main')
+
+    def on_key_press(self, key, modifiers):
+        self.manager.set_scene('main')
+        return pyglet.event.EVENT_HANDLED
 
 
 class MainScene(_BaseScene):
@@ -212,6 +216,10 @@ class MainScene(_BaseScene):
         sprite = pyglet.sprite.Sprite(image, *position, batch=self.batch, group=group)
         sprite.visible = visible
         return sprite
+
+    def on_key_press(self, key, modifiers):
+        if key == pyglet.window.key.F1:
+            self.manager.set_scene('config')
 
     def on_button_press(self, controller, button):
         assert _debug_print(f"Pressed Button: {button}")
