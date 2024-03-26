@@ -99,7 +99,7 @@ _images = {
     "lb": "button.png",
     "rb": "button.png",
 }
-
+_debug_print("Images loaded.")
 
 def load_configuration():
     # Load the button mapping configuration.
@@ -243,62 +243,6 @@ class TryAgainScene:
         self.window.clear()
         self.missing_img.blit(0, 0)
 
-# A scene to configure deadzone values, as well as other options.
-# class ConfigScene:
-#     def __init__(self, window_instance):
-#         self.config_img = pyglet.resource.image("deadzone.png")
-#         self.window = proxy(window_instance)
-#         bar = pyglet.resource.image("bar.png")
-#         knob = pyglet.resource.image("knob.png")
-#         bg_img = pyglet.resource.image('deadzone.png')
-#         self.bg = pyglet.sprite.Sprite(bg_img, batch=self.batch, group=pyglet.graphics.Group(-1))
-
-#         self.stick_slider = pyglet.gui.Slider(100, 150, bar, knob, edge=0, batch=self.batch)
-#         self.stick_slider.set_handler('on_change', self._stick_slider_handler)
-#         self.stick_label = pyglet.text.Label("Stick Deadzone: 0.0", x=300, y=300, batch=self.batch)
-
-#         self.trigger_slider = pyglet.gui.Slider(100, 100, bar, knob, edge=0, batch=self.batch)
-#         self.trigger_slider.set_handler('on_change', self._trigger_slider_handler)
-#         self.trigger_label = pyglet.text.Label("Trigger Deadzone: 0.0", x=300, y=200, batch=self.batch)
-
-#     def activate(self):
-#         self.stick_slider.value = self.manager.stick_deadzone * 100
-#         self.trigger_slider.value = self.manager.trigger_deadzone * 100
-#         self.manager.window.push_handlers(self.stick_slider)
-#         self.manager.window.push_handlers(self.trigger_slider)
-
-#     def deactivate(self):
-#         self.manager.window.remove_handlers(self.stick_slider)
-#         self.manager.window.remove_handlers(self.trigger_slider)
-
-#     def _stick_slider_handler(self, value):
-#         self.stick_label.text = f"Stick Deadzone: {value}"
-#         scaled_value = round(value / 100, 2)
-#         self.manager.stick_deadzone = scaled_value
-#         config.set('deadzones', 'stick', str(scaled_value))
-
-#     def _trigger_slider_handler(self, value):
-#         self.trigger_label.text = f"Trigger Deadzone: {value}"
-#         scaled_value = round(value / 100, 2)
-#         self.manager.trigger_deadzone = scaled_value
-#         config.set('deadzones', 'trigger', str(scaled_value))
-
-#     def on_button_press(self, controller, button):
-#         if button == "guide":
-#             save_configuration()
-#             self.manager.set_scene('main')
-
-#     def on_draw(self):
-#         self.window.clear()
-#         self.config_img.blit(0, 0)
-
-#     def on_button_press(self, controller, button):
-#         assert _debug_print(f"Pressed Button: {button}")
-#         if button == "guide":
-#             self.current_scene = ConfigScene(window_instance=self.window)
-#         pressed_button = self.button_mapping.get(button, None)
-#         if pressed_button:
-#             pressed_button.visible = True
 
 # Create and draw the SceneManager Class.
 class SceneManager:
@@ -312,8 +256,6 @@ class SceneManager:
 
         if controllers := self.controller_manager.get_controllers():
             self._on_controller_connect(controllers[0])
-        #    self.deadzone_scene = DeadzoneScene(window_instance=self.window)
-        #    controllers[0].push_handlers(self.deadzone_scene)
         else:
             self.set_scene()
 
