@@ -224,7 +224,7 @@ class MainScene(_BaseScene):
     def on_key_press(self, key, modifiers):
         if key == pyglet.window.key.F1:
             self.manager.set_scene('config')
-            
+
     # Event to show a button when pressed.
     def on_button_press(self, controller, button):
         assert _debug_print(f"Pressed Button: {button}")
