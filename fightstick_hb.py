@@ -8,38 +8,43 @@ import pyglet
 from pyglet.util import debug_print
 from pyglet.math import Mat4, Vec3
 
-
+# Set up the debugging flag calls.
 _debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '-d', '--debug')
 _debug_print = debug_print(_debug_flag)
+_debug_print("Debugging Active")
 
-
+# Load the theme from the /theme folder.
 pyglet.resource.path.append("theme")
 pyglet.resource.reindex()
+_debug_print("Theme Loaded")
 
+# Create the main window. Use configParser to set a static controller status of unplugged.
 window = pyglet.window.Window(640, 390, caption="Fightstick Display", resizable=True, vsync=False)
 window.set_icon(pyglet.resource.image("icon.png"))
 config = ConfigParser()
 config.add_section('layout')
 config.add_section('images')
 config.add_section('deadzones')
+_debug_print("Main window created")
 
-
-# Download the latest Controller mapping database:
+# Parse and add additional SDL style controller mappings.
 url = "https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt"
 try:
-    with urllib.request.urlopen(url) as response, pyglet.resource.file("gamecontrollerdb.txt", 'wb') as f:
+    with urllib.request.urlopen(url) as response, open(
+        os.path.dirname(__file__) + "/gamecontrollerdb.txt", "wb"
+    ) as f:
         f.write(response.read())
-except urllib.error.URLError:
-    pass
-
-# Add the additional mappings to pyglet:
-if os.path.exists("gamecontrollerdb.txt"):
-    try:
-        pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
-        print("Added additional controller mappings from 'gamecontrollerdb.txt'")
-    except AssertionError:
-        print("Failed to parse 'gamecontrollerdb.txt'. Please open an issue on GitHub.")
-
+except Exception:
+    if os.path.exists("gamecontrollerdb.txt"):
+        try:
+            pyglet.input.controller.add_mappings_from_file("gamecontrollerdb.txt")
+            _debug_print(
+                "Added additional controller mappings from 'gamecontrollerdb.txt'"
+            )
+        except Exception as e:
+            _debug_print(
+                f"Failed to load 'gamecontrollerdb.txt'. Please open an issue on GitHub. \n --> {e}"
+            )
 
 # Set the (x,y) parameters for where certain elements should be displayed.
 _layout = {
@@ -79,6 +84,7 @@ _images = {
     "lb": "buttonhb.png",
     "rb": "buttonhb.png",
 }
+_debug_print("Images loaded.")
 
 def load_configuration():
     # Load the button mapping configuration.
@@ -128,7 +134,7 @@ class _BaseScene:
 
 
 class RetryScene(_BaseScene):
-    """A scene that tells you to try again if no stick is detected."""
+    #A scene that tells you to try again if no stick is detected.
     def __init__(self):
         self.batch = pyglet.graphics.Batch()
         self.missing_img = pyglet.resource.image("missing.png")
@@ -136,7 +142,7 @@ class RetryScene(_BaseScene):
 
 
 class ConfigScene(_BaseScene):
-    """A scene to allow deadzone configuration."""
+    #A scene to allow deadzone configuration.
     def __init__(self):
         self.batch = pyglet.graphics.Batch()
         bar = pyglet.resource.image("bar.png")
@@ -187,7 +193,7 @@ class ConfigScene(_BaseScene):
 
 
 class MainScene(_BaseScene):
-    """The main scene, with all fightstick events wired up."""
+    # The main scene, with all fightstick events wired up.
     def __init__(self):
         self.batch = pyglet.graphics.Batch()
         # Ordered groups to handle draw order of the sprites.
@@ -311,6 +317,7 @@ class SceneManager:
         self.stick_deadzone = float(config.get('deadzones', 'stick', fallback='0.2'))
         self.trigger_deadzone = float(config.get('deadzones', 'trigger', fallback='0.8'))
 
+    # Detect is a controller is connected.
     def on_controller_connect(self, controller):
         if not self.fightstick:
             controller.open()
@@ -318,8 +325,9 @@ class SceneManager:
             self.fightstick.push_handlers(self._current_scene)
             self.set_scene('main')
         else:
-            print(f"A Controller is already connected: {self.fightstick}")
+            _debug_print(f"A Controller is already connected: {self.fightstick}")
 
+    # Detect is a controller is disconnected.
     def on_controller_disconnect(self, controller):
         if self.fightstick == controller:
             self.fightstick.remove_handlers(self._current_scene)
@@ -373,6 +381,6 @@ if __name__ == "__main__":
     load_configuration()
 
     scene_manager = SceneManager(window_instance=window)
-
+    # Enforce aspect ratio by readjusting the window height.
     pyglet.clock.schedule_interval(scene_manager.enforce_aspect_ratio, 0.3)
     pyglet.app.run()

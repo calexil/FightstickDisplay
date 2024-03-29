@@ -187,7 +187,7 @@ class ConfigScene(_BaseScene):
 
 
 class MainScene(_BaseScene):
-    #The main scene, with all fightstick events wired up.
+    # The main scene, with all fightstick events wired up.
     def __init__(self):
         self.batch = pyglet.graphics.Batch()
         # Ordered groups to handle draw order of the sprites.
