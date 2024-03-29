@@ -3,6 +3,10 @@
 
 name: Fightstick Display
 
+runs:
+  using: 'node20'
+  main: 'main.js'
+
 on:
   push:
     branches: [ master ]
@@ -20,11 +24,9 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
 
     steps:
-    - uses: actions/checkout@v2 
-      using: 'node20'
+    - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
-      using: 'node20'
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
