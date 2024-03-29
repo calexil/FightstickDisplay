@@ -3,10 +3,6 @@
 
 name: Fightstick Display
 
-runs:
-  using: 'node20'
-  main: 'main.js'
-
 on:
   push:
     branches: [ master ]
