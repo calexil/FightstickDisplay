@@ -6,6 +6,7 @@
 <img src="/theme/fightstick.gif" width="320" height="195"><img src="/theme/fightstickHB.gif" width="320" height="195">
 
 # Installation
+## Manual installation
 Requirements:
 * Python *3.7+*
 * `python3-venv`
@@ -31,6 +32,22 @@ provided script:
 
 ```bash
 ./cleanup.sh
+```
+
+## Debian packaging
+To build a `.deb` Debian package, assuming you are on a Debian-based
+distribution, use the following commands:
+
+```bash
+apt-get install build-essential debhelper devscripts equivs
+mk-build-deps -i
+dpkg-buildpackage -us -uc -b
+```
+
+Then you can install your package:
+
+```bash
+apt install ../fightstick-display_*.deb
 ```
 
 # Current Version 📰

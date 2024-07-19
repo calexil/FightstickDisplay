@@ -16,7 +16,7 @@ classifiers = [
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
 dependencies = [
-  "pyglet==2.0.5",
+  "pyglet>=2.0.5",
 ]
 
 [project.urls]

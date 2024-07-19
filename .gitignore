@@ -8,4 +8,10 @@ src/gamecontrollerdb.txt
 build/
 dist/
 *.egg-info/
+
+.pybuild/
+debian/*debhelper*
+debian/fightstick-display*
+debian/files
+
 .venv/
