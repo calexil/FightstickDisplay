@@ -2,3 +2,7 @@
 *.pyc
 #ignore vscode folder
 .vscode/
+
+build/
+dist/
+*.egg-info/

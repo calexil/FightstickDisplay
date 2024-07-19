@@ -1,0 +1,37 @@
+[project]
+name = "fightstick-display"
+version = "2.0.0"
+authors = [
+  { name="calexil" },
+  { name="benmoran56" },
+]
+maintainers = [
+  { name="calexil" },
+]
+description = "Fightstick display utility"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+dependencies = [
+  "pyglet==2.0.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/calexil/FightstickDisplay"
+Issues = "https://github.com/calexil/FightstickDisplay/issues"
+
+[project.scripts]
+fightstick-display = "fightstick:main"
+fightstick-hb-display = "fightstick_hb:main"
+
+[build-system]
+requires = [
+  "setuptools>=61.0",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+"fightstick_display.theme" = ["*.gif", "*.ini", "*.jpg", "*.png"]
