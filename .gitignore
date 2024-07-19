@@ -3,6 +3,9 @@
 #ignore vscode folder
 .vscode/
 
+src/gamecontrollerdb.txt
+
 build/
 dist/
 *.egg-info/
+.venv/

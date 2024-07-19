@@ -5,13 +5,17 @@
 # Screenshots
 <img src="/theme/fightstick.gif" width="320" height="195"><img src="/theme/fightstickHB.gif" width="320" height="195">
 
+# Installation
+Requirements:
+* Python *3.7+*
+* `python3-venv`
 
-# Prerequisites :heavy_check_mark:
-* python(3.7+)
+Clone the repository:
+``` bash
+git clone https://github.com/calexil/FightstickDisplay.git
+```
 
-# Installation & Usage 💾
-* Clone the git  
-`git clone https://github.com/calexil/FightstickDisplay.git`
+# Usage 💾
 * If you desire, make a launcher with fightstick.sh or fightstick_hb.sh as the startup script.
 * Most fightsticks will be mapped correctly by default, but if yours is not
 simply open the **theme/layout.ini** or **theme/layouthb.ini** file and tinker with it until its mapped correctly.
@@ -20,6 +24,14 @@ at all, **[let us know by clicking here!](https://github.com/calexil/FightstickD
 * For troubleshooting, launch the program with "-D", "-d" or "--debug" to print button values to the terminal for troubleshooting: `python3 src/fightstick.py --debug` or `python3 src/fightstick_hb.py --debug`
 * You can also use your own images for all items, and if you like different color buttons, just be sure to edit the image names to match in the main program
 * Enjoy
+
+# Cleanup
+To clean up dependencies (for instance, if you want to reinstall them), use the
+provided script:
+
+```bash
+./cleanup.sh
+```
 
 # Current Version 📰
 **Version 2.0** **[Watch it in action here](https://twitch.tv/calexil)**
