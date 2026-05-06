@@ -124,7 +124,7 @@ def save_configuration():
 #########################
 
 class _BaseScene:
-    manager:    None
+    manager:None
 
     def activate(self):
         pass
@@ -237,9 +237,6 @@ class MainScene(_BaseScene):
     # Event to show a button when pressed.
     def on_button_press(self, controller, button):
         assert _debug_print(f"Pressed Button: {button}")
-        if button in ("lefttrigger", "righttrigger"):
-            return  # ignore digital button events for triggers, as they are handled in on_trigger_motion
-        
         if button == "guide":
             self.manager.set_scene('config')
         pressed_button = self.button_mapping.get(button, None)
