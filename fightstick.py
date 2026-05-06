@@ -1,12 +1,16 @@
+import pyglet
+print(pyglet.__file__)
+
+from pyglet.util import debug_print
+from pyglet.math import Mat4, Vec3
+
 import os
 import sys
 import urllib.error
 import urllib.request
 from configparser import ConfigParser, ParsingError, NoSectionError
 
-import pyglet
-from pyglet.util import debug_print
-from pyglet.math import Mat4, Vec3
+
 
 # Set up the debugging flag calls.
 _debug_flag = len(sys.argv) > 1 and sys.argv[1] in ('-D', '-d', '--debug')
@@ -118,7 +122,7 @@ def save_configuration():
 #########################
 
 class _BaseScene:
-    manager:    None
+    manager:None
 
     def activate(self):
         pass
