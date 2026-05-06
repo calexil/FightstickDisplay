@@ -219,7 +219,6 @@ class MainScene(_BaseScene):
         # Mapping of (Input names : Sprite names).
         self.button_mapping = {"a": self.a_spr, "b": self.b_spr, "x": self.x_spr, "y": self.y_spr,
                                "rightshoulder": self.rb_spr, "leftshoulder": self.lb_spr,
-                               "righttrigger": self.rt_spr, "lefttrigger": self.lt_spr,
                                "back": self.select_spr, "start": self.start_spr}
 
     def _make_sprite(self, name, group, visible=True):
@@ -261,17 +260,14 @@ class MainScene(_BaseScene):
 
     # Math to draw trigger inputs or hide them.
     def on_trigger_motion(self, controller, trigger, value):
-        assert _debug_print(f"Pulled Trigger: {trigger}")
+        # Since these are digital fightstick buttons, we only care about on/off
         if trigger == "lefttrigger":
-            if value > self.manager.trigger_deadzone:
-                self.lt_spr.visible = True
-            elif value < self.manager.trigger_deadzone:
-                self.lt_spr.visible = False
-        if trigger == "righttrigger":
-            if value > self.manager.trigger_deadzone:
-                self.rt_spr.visible = True
-            elif value < self.manager.trigger_deadzone:
-                self.rt_spr.visible = False
+            assert _debug_print(f"LT (lefttrigger) = {value > 0.5}")
+            self.lt_spr.visible = (value > 0.5)
+            
+        elif trigger == "righttrigger":
+            assert _debug_print(f"RT (righttrigger) = {value > 0.5}")
+            self.rt_spr.visible = (value > 0.5)
 
 
 #####################################################
